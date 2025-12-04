@@ -46,6 +46,6 @@ class Section extends Model
 
     public function getFullNameAttribute(): string
     {
-        return $this->schoolClass->name . ' - ' . $this->name;
+        return ($this->schoolClass?->name ?? 'Unknown Class') . ' - ' . $this->name;
     }
 }

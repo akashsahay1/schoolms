@@ -98,6 +98,7 @@ class SectionController extends Controller
 
 	public function edit(Section $section)
 	{
+		$section->load(['schoolClass', 'students']);
 		$classes = SchoolClass::active()->ordered()->get();
 		$teachers = User::where('role', 'teacher')->orWhere('role', 'staff')->orderBy('name')->get();
 
