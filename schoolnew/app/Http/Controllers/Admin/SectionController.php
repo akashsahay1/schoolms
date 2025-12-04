@@ -42,7 +42,7 @@ class SectionController extends Controller
 	public function create()
 	{
 		$classes = SchoolClass::active()->ordered()->get();
-		$teachers = User::where('role', 'teacher')->orWhere('role', 'staff')->orderBy('name')->get();
+		$teachers = User::role(['Teacher', 'Staff'])->orderBy('name')->get();
 
 		if ($classes->isEmpty()) {
 			return redirect()->route('admin.sections.index')
@@ -100,7 +100,7 @@ class SectionController extends Controller
 	{
 		$section->load(['schoolClass', 'students']);
 		$classes = SchoolClass::active()->ordered()->get();
-		$teachers = User::where('role', 'teacher')->orWhere('role', 'staff')->orderBy('name')->get();
+		$teachers = User::role(['Teacher', 'Staff'])->orderBy('name')->get();
 
 		return view('admin.sections.edit', compact('section', 'classes', 'teachers'));
 	}

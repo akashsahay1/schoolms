@@ -41,7 +41,7 @@ class SubjectController extends Controller
 	public function create()
 	{
 		$classes = SchoolClass::active()->ordered()->get();
-		$teachers = User::where('role', 'teacher')->orWhere('role', 'staff')->orderBy('name')->get();
+		$teachers = User::role(['Teacher', 'Staff'])->orderBy('name')->get();
 
 		return view('admin.subjects.create', compact('classes', 'teachers'));
 	}
@@ -99,7 +99,7 @@ class SubjectController extends Controller
 	{
 		$subject->load('classes');
 		$classes = SchoolClass::active()->ordered()->get();
-		$teachers = User::where('role', 'teacher')->orWhere('role', 'staff')->orderBy('name')->get();
+		$teachers = User::role(['Teacher', 'Staff'])->orderBy('name')->get();
 
 		return view('admin.subjects.edit', compact('subject', 'classes', 'teachers'));
 	}
