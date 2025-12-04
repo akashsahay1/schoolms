@@ -658,22 +658,15 @@
                 <div class="card-header card-no-border">
                     <div class="header-top student-header">
                         <h5>Students</h5>
-                        <div class="card-header-right-icon d-flex gap-2">
+                        <div class="card-header-right-icon">
                             <!-- Class Dropdown -->
                             <div class="dropdown custom-dropdown">
                                 <button class="btn dropdown-toggle" id="classDropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">All Classes</button>
-                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="classDropdown">
-                                    <li><a class="dropdown-item student-filter-class active" href="#" data-class-id="">All Classes</a></li>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item student-filter-class active" href="#!">All Classes</a></li>
                                     @foreach($classWiseStudents as $class)
-                                    <li><a class="dropdown-item student-filter-class" href="#" data-class-id="{{ $class->id }}">{{ $class->name }}</a></li>
+                                    <li><a class="dropdown-item student-filter-class" href="#!" data-class-id="{{ $class->id }}">{{ $class->name }}</a></li>
                                     @endforeach
-                                </ul>
-                            </div>
-                            <!-- Section Dropdown -->
-                            <div class="dropdown custom-dropdown">
-                                <button class="btn dropdown-toggle" id="sectionDropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false" disabled>All Sections</button>
-                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="sectionDropdown">
-                                    <li><a class="dropdown-item student-filter-section active" href="#" data-section-id="">All Sections</a></li>
                                 </ul>
                             </div>
                         </div>
@@ -848,9 +841,9 @@
 	// Student Chart Filter Functionality
 	jQuery(document).ready(function() {
 		// Class dropdown filter
-		jQuery('.student-filter-class').on('click', function(e) {
+		jQuery(document).on('click', '.student-filter-class', function(e) {
 			e.preventDefault();
-			var classId = jQuery(this).data('class-id');
+			var classId = jQuery(this).data('class-id') || '';
 			var className = jQuery(this).text();
 
 			// Update button text
@@ -860,57 +853,16 @@
 			jQuery('.student-filter-class').removeClass('active');
 			jQuery(this).addClass('active');
 
-			// Update section dropdown
-			var sectionDropdown = jQuery('#sectionDropdown');
-			var sectionMenu = sectionDropdown.siblings('.dropdown-menu');
-
-			if (classId) {
-				// Find sections for this class
-				var selectedClass = window.dashboardData.classes.find(function(c) { return c.id == classId; });
-				if (selectedClass && selectedClass.sections.length > 0) {
-					sectionDropdown.prop('disabled', false);
-					var html = '<li><a class="dropdown-item student-filter-section active" href="#" data-section-id="">All Sections</a></li>';
-					selectedClass.sections.forEach(function(section) {
-						html += '<li><a class="dropdown-item student-filter-section" href="#" data-section-id="' + section.id + '">' + section.name + '</a></li>';
-					});
-					sectionMenu.html(html);
-				} else {
-					sectionDropdown.prop('disabled', true).text('No Sections');
-					sectionMenu.html('<li><a class="dropdown-item student-filter-section active" href="#" data-section-id="">No Sections</a></li>');
-				}
-			} else {
-				sectionDropdown.prop('disabled', true).text('All Sections');
-				sectionMenu.html('<li><a class="dropdown-item student-filter-section active" href="#" data-section-id="">All Sections</a></li>');
-			}
-
 			// Fetch and update chart data
-			updateStudentChart(classId, '');
-		});
-
-		// Section dropdown filter
-		jQuery(document).on('click', '.student-filter-section', function(e) {
-			e.preventDefault();
-			var sectionId = jQuery(this).data('section-id');
-			var sectionName = jQuery(this).text();
-			var classId = jQuery('.student-filter-class.active').data('class-id');
-
-			// Update button text
-			jQuery('#sectionDropdown').text(sectionName);
-
-			// Mark active
-			jQuery('.student-filter-section').removeClass('active');
-			jQuery(this).addClass('active');
-
-			// Fetch and update chart data
-			updateStudentChart(classId, sectionId);
+			updateStudentChart(classId);
 		});
 
 		// Function to update chart via AJAX
-		function updateStudentChart(classId, sectionId) {
+		function updateStudentChart(classId) {
 			jQuery.ajax({
 				url: '{{ route("admin.dashboard.student-stats") }}',
 				type: 'GET',
-				data: { class_id: classId, section_id: sectionId },
+				data: { class_id: classId },
 				success: function(response) {
 					if (window.studentChartInstance) {
 						window.studentChartInstance.updateSeries(response.series);

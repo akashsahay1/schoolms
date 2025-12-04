@@ -86,14 +86,7 @@
 								<tr>
 									<td>{{ $users->firstItem() + $loop->index }}</td>
 									<td>
-										<div class="d-flex align-items-center">
-											<div class="avatar avatar-sm me-2">
-												<div class="avatar-title rounded-circle bg-primary">
-													{{ strtoupper(substr($user->name, 0, 1)) }}
-												</div>
-											</div>
-											{{ $user->name }}
-										</div>
+										{{ $user->name }}
 									</td>
 									<td>{{ $user->email }}</td>
 									<td>
