@@ -20,7 +20,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Use Bootstrap 5 for pagination styling
-        Paginator::useBootstrapFive();
+        // Use custom pagination view matching Cuba Admin template
+        Paginator::defaultView('vendor.pagination.custom');
+        Paginator::defaultSimpleView('vendor.pagination.custom');
     }
 }
