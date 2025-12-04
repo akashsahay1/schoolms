@@ -1,0 +1,150 @@
+# School Management System - Requirements
+
+## 1. User Management
+	1.1 Admin login with role-based access
+	1.2 Student/Parent unique login credentials
+	1.3 Password reset functionality
+	1.4 Secure session management
+
+## 2. Student Management
+	2.1 Student registration with complete details
+	2.2 Photo and document upload
+	2.3 Auto-generate admission numbers and login IDs
+	2.4 Class and section assignment
+	2.5 Student search and filters
+	2.6 Student profile management
+	2.7 Student transfer and withdrawal
+
+## 3. Class Management
+	3.1 Create and manage classes (Pre-KG to 12th)
+	3.2 Section management (A, B, C, etc.)
+	3.3 Subject assignment to classes
+	3.4 Class capacity settings
+
+## 4. Academic Session Management
+	4.1 Create and manage academic years (e.g., 2024-25, 2025-26)
+	4.2 Set active academic session
+	4.3 Session start and end dates
+	4.4 Link students, fees, attendance to academic session
+	4.5 View historical data by academic year
+	4.6 Academic year-wise reports
+
+## 5. Student Promotion
+	5.1 Bulk promote students to next class
+	5.2 Select students for promotion (pass/fail criteria)
+	5.3 Retain students in same class (if failed)
+	5.4 Transfer students to different section
+	5.5 Graduate/Alumni marking for final year students
+	5.6 Promotion history and logs
+	5.7 Rollback promotion if needed
+
+## 6. Fee Management
+	6.1 Fee structure setup by class
+	6.2 Fee types (admission, security, tuition, transport, etc.)
+	6.3 Monthly/quarterly/yearly fee collection
+	6.4 Fee receipt generation and printing
+	6.5 Payment history tracking
+	6.6 Outstanding fees reports
+	6.7 Fee discounts and waivers
+	6.8 Late fee calculation
+
+## 7. Online Payment
+	7.1 Integrated payment gateway for parents
+	7.2 Parents can pay fees online via student portal
+	7.3 Online/offline payment tracking
+	7.4 Automatic receipt generation after payment
+	7.5 Transaction logging and reconciliation
+
+## 8. Examination System
+	8.1 Exam schedule creation and management
+	8.2 Marks entry by subject
+	8.3 Grade calculation and report cards
+	8.4 Result publication to student portal
+	8.5 Rank calculation (class-wise, section-wise)
+	8.6 Performance analysis reports
+	8.7 Marks comparison across exams
+	8.8 Print report cards
+
+## 9. Attendance
+	9.1 Daily attendance marking by class
+	9.2 Subject-wise attendance (optional)
+	9.3 Attendance reports (daily/monthly/yearly)
+	9.4 Attendance percentage calculation
+	9.5 Absent student notifications (SMS/Email)
+	9.6 Attendance calendar view
+
+## 10. Homework Management
+	10.1 Create and assign homework by subject
+	10.2 File attachments support
+	10.3 Due date tracking
+	10.4 Homework notifications to parents
+	10.5 Submission tracking
+	10.6 Homework history
+
+## 11. Timetable
+	11.1 Create class timetables with periods
+	11.2 Teacher assignment to periods
+	11.3 Period timing management
+	11.4 View timetable on student portal
+	11.5 Printable timetables
+
+## 12. Staff Management
+	12.1 Staff registration and profiles
+	12.2 Staff attendance tracking
+	12.3 Leave management system
+	12.4 Department and designation setup
+	12.5 Staff ID card generation
+	12.6 Staff reports
+
+## 13. Library Management
+	13.1 Book inventory management
+	13.2 Book issue and return
+	13.3 Fine calculation for late returns
+	13.4 Book search functionality
+	13.5 Issue history tracking
+	13.6 Library reports
+
+## 14. Transport Management
+	14.1 Vehicle and route management
+	14.2 Driver details management
+	14.3 Student-route assignment
+	14.4 Transport fee management
+	14.5 Route-wise student reports
+
+## 15. Communication
+	15.1 Notice board with email notifications
+	15.2 SMS integration for important alerts
+	15.3 Event calendar
+	15.4 Photo gallery for events
+	15.5 Circular management
+	15.6 Parent-teacher messaging
+
+## 16. Student Portal
+	16.1 Dashboard for students/parents
+	16.2 View student profile and details
+	16.3 Pay fees online
+	16.4 View payment history and download receipts
+	16.5 View exam results and report cards
+	16.6 View homework and timetable
+	16.7 View attendance calendar
+	16.8 View school notices and events
+	16.9 Leave application submission
+	16.10 Contact school feature
+
+## 17. Reports & Analytics
+	17.1 Daily/Monthly/Yearly fee collection reports
+	17.2 Outstanding fees report
+	17.3 Student list by class/section
+	17.4 Attendance summary and analytics
+	17.5 Exam performance reports
+	17.6 Class-wise analysis
+	17.7 Graphical dashboards
+	17.8 Export reports to Excel/PDF
+
+## 18. School Website
+	18.1 Basic informational website
+	18.2 About school, facilities, contact page
+	18.3 Login links for admin and students
+	18.4 Responsive mobile-friendly design
+	18.5 News and announcements section
+	18.6 Photo gallery
