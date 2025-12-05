@@ -178,12 +178,12 @@
 					<!-- Settings -->
 					<li class="sidebar-list">
 						<i class="fa-solid fa-thumbtack"></i>
-						<a class="sidebar-link sidebar-title link-nav" href="{{ route('admin.settings') }}">
+						<a class="sidebar-link sidebar-title link-nav {{ request()->routeIs('admin.settings*') ? 'active' : '' }}" href="{{ route('admin.settings') }}">
 							<svg class="stroke-icon">
-								<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-setting') }}"></use>
+								<use href="{{ asset('assets/svg/icon-sprite.svg#setting') }}"></use>
 							</svg>
 							<svg class="fill-icon">
-								<use href="{{ asset('assets/svg/icon-sprite.svg#fill-setting') }}"></use>
+								<use href="{{ asset('assets/svg/icon-sprite.svg#setting') }}"></use>
 							</svg>
 							<span>Settings</span>
 						</a>
