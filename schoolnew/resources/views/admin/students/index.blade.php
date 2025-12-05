@@ -31,9 +31,7 @@
 			<div class="card-header">
 				<div class="d-flex justify-content-between align-items-center">
 					<h5>All Students {{ $academicYear ? '(' . $academicYear->name . ')' : '' }}</h5>
-					<a href="{{ route('admin.students.create') }}" class="btn btn-primary">
-						<i data-feather="plus" class="me-1"></i> Add New Student
-					</a>
+					<a href="{{ route('admin.students.create') }}" class="btn btn-primary">Add New</a>
 				</div>
 			</div>
 			<div class="card-body">
@@ -151,7 +149,6 @@
 										<div class="text-muted">
 											<i data-feather="users" style="width: 48px; height: 48px;"></i>
 											<p class="mt-2 mb-0">No students found.</p>
-											<a href="{{ route('admin.students.create') }}" class="btn btn-primary mt-3">Add First Student</a>
 										</div>
 									</td>
 								</tr>
