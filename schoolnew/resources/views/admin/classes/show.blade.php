@@ -56,7 +56,7 @@
 							<tr>
 								<td class="text-muted">Status</td>
 								<td>
-									<span class="badge bg-{{ $class->is_active ? 'success' : 'secondary' }}">
+									<span class="badge badge-light-{{ $class->is_active ? 'success' : 'danger' }}">
 										{{ $class->is_active ? 'Active' : 'Inactive' }}
 									</span>
 								</td>
@@ -102,7 +102,7 @@
 										<td><strong>{{ $section->name }}</strong></td>
 										<td>{{ $section->capacity ?? 'Not set' }}</td>
 										<td>
-											<span class="badge bg-{{ $section->is_active ? 'success' : 'secondary' }}">
+											<span class="badge badge-light-{{ $section->is_active ? 'success' : 'danger' }}">
 												{{ $section->is_active ? 'Active' : 'Inactive' }}
 											</span>
 										</td>
@@ -150,7 +150,7 @@
 										<td>{{ $student->full_name }}</td>
 										<td>{{ $student->section->name ?? 'N/A' }}</td>
 										<td>
-											<span class="badge bg-{{ $student->status == 'active' ? 'success' : 'secondary' }}">
+											<span class="badge badge-light-{{ $student->status == 'active' ? 'success' : 'danger' }}">
 												{{ ucfirst($student->status) }}
 											</span>
 										</td>

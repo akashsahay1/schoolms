@@ -125,12 +125,12 @@
 			<div class="card-body">
 				<div class="d-flex justify-content-between align-items-center mb-3">
 					<span class="text-muted">Students</span>
-					<span class="badge bg-primary">{{ $section->students->count() }}</span>
+					<span class="badge badge-light-primary">{{ $section->students->count() }}</span>
 				</div>
 				@if($section->capacity)
 					<div class="d-flex justify-content-between align-items-center mb-3">
 						<span class="text-muted">Capacity</span>
-						<span class="badge bg-info">{{ $section->capacity }}</span>
+						<span class="badge badge-light-info">{{ $section->capacity }}</span>
 					</div>
 					<div class="progress mb-2" style="height: 8px;">
 						@php

@@ -100,11 +100,11 @@
 									<td>{{ $section->room_no ?? '-' }}</td>
 									<td>{{ $section->capacity ?? 'No limit' }}</td>
 									<td>
-										<span class="badge bg-primary">{{ $section->students->count() }} students</span>
+										<span class="badge badge-light-primary">{{ $section->students->count() }} students</span>
 									</td>
 									<td>{{ $section->classTeacher->name ?? 'Not assigned' }}</td>
 									<td>
-										<span class="badge bg-{{ $section->is_active ? 'success' : 'secondary' }}">
+										<span class="badge badge-light-{{ $section->is_active ? 'success' : 'danger' }}">
 											{{ $section->is_active ? 'Active' : 'Inactive' }}
 										</span>
 									</td>

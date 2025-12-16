@@ -107,11 +107,11 @@
 			<div class="card-body">
 				<div class="d-flex justify-content-between align-items-center mb-3">
 					<span class="text-muted">Sections</span>
-					<span class="badge bg-info">{{ $class->sections->count() }}</span>
+					<span class="badge badge-light-info">{{ $class->sections->count() }}</span>
 				</div>
 				<div class="d-flex justify-content-between align-items-center mb-3">
 					<span class="text-muted">Students</span>
-					<span class="badge bg-primary">{{ $class->students->count() }}</span>
+					<span class="badge badge-light-primary">{{ $class->students->count() }}</span>
 				</div>
 				<div class="d-flex justify-content-between align-items-center">
 					<span class="text-muted">Created</span>

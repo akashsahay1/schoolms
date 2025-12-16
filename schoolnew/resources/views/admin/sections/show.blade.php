@@ -60,7 +60,7 @@
 							<tr>
 								<td class="text-muted">Status</td>
 								<td>
-									<span class="badge bg-{{ $section->is_active ? 'success' : 'secondary' }}">
+									<span class="badge badge-light-{{ $section->is_active ? 'success' : 'danger' }}">
 										{{ $section->is_active ? 'Active' : 'Inactive' }}
 									</span>
 								</td>
@@ -109,7 +109,7 @@
 										<td>{{ $student->full_name }}</td>
 										<td>{{ $student->roll_no ?? '-' }}</td>
 										<td>
-											<span class="badge bg-{{ $student->status == 'active' ? 'success' : 'secondary' }}">
+											<span class="badge badge-light-{{ $student->status == 'active' ? 'success' : 'danger' }}">
 												{{ ucfirst($student->status) }}
 											</span>
 										</td>

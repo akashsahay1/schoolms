@@ -35,12 +35,12 @@
 							</tr>
 							<tr>
 								<td class="text-muted">Subject Code</td>
-								<td><span class="badge bg-secondary">{{ $subject->code }}</span></td>
+								<td><span class="badge badge-light-secondary">{{ $subject->code }}</span></td>
 							</tr>
 							<tr>
 								<td class="text-muted">Type</td>
 								<td>
-									<span class="badge bg-{{ $subject->type == 'theory' ? 'primary' : ($subject->type == 'practical' ? 'info' : 'success') }}">
+									<span class="badge badge-light-{{ $subject->type == 'theory' ? 'primary' : ($subject->type == 'practical' ? 'info' : 'success') }}">
 										{{ ucfirst($subject->type) }}
 									</span>
 								</td>
@@ -49,9 +49,9 @@
 								<td class="text-muted">Optional</td>
 								<td>
 									@if($subject->is_optional)
-										<span class="badge bg-warning">Yes</span>
+										<span class="badge badge-light-warning">Yes</span>
 									@else
-										<span class="badge bg-secondary">No</span>
+										<span class="badge badge-light-secondary">No</span>
 									@endif
 								</td>
 							</tr>
@@ -70,7 +70,7 @@
 							<tr>
 								<td class="text-muted">Status</td>
 								<td>
-									<span class="badge bg-{{ $subject->is_active ? 'success' : 'secondary' }}">
+									<span class="badge badge-light-{{ $subject->is_active ? 'success' : 'danger' }}">
 										{{ $subject->is_active ? 'Active' : 'Inactive' }}
 									</span>
 								</td>

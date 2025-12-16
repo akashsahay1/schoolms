@@ -97,21 +97,21 @@
 									<td>
 										{{ $subject->name }}
 										@if($subject->is_optional)
-											<span class="badge bg-warning ms-1">Optional</span>
+											<span class="badge badge-light-warning ms-1">Optional</span>
 										@endif
 									</td>
 									<td>
-										<span class="badge bg-{{ $subject->type == 'theory' ? 'primary' : ($subject->type == 'practical' ? 'info' : 'success') }}">
+										<span class="badge badge-light-{{ $subject->type == 'theory' ? 'primary' : ($subject->type == 'practical' ? 'info' : 'success') }}">
 											{{ ucfirst($subject->type) }}
 										</span>
 									</td>
 									<td>{{ $subject->full_marks }}</td>
 									<td>{{ $subject->pass_marks }}</td>
 									<td>
-										<span class="badge bg-secondary">{{ $subject->classes->count() }} classes</span>
+										<span class="badge badge-light-secondary">{{ $subject->classes->count() }} classes</span>
 									</td>
 									<td>
-										<span class="badge bg-{{ $subject->is_active ? 'success' : 'secondary' }}">
+										<span class="badge badge-light-{{ $subject->is_active ? 'success' : 'danger' }}">
 											{{ $subject->is_active ? 'Active' : 'Inactive' }}
 										</span>
 									</td>

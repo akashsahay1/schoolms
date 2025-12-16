@@ -143,11 +143,11 @@
 			<div class="card-body">
 				<div class="d-flex justify-content-between align-items-center mb-3">
 					<span class="text-muted">Assigned Classes</span>
-					<span class="badge bg-primary">{{ $subject->classes->count() }}</span>
+					<span class="badge badge-light-primary">{{ $subject->classes->count() }}</span>
 				</div>
 				<div class="d-flex justify-content-between align-items-center mb-3">
 					<span class="text-muted">Type</span>
-					<span class="badge bg-info">{{ ucfirst($subject->type) }}</span>
+					<span class="badge badge-light-info">{{ ucfirst($subject->type) }}</span>
 				</div>
 				<div class="d-flex justify-content-between align-items-center">
 					<span class="text-muted">Created</span>

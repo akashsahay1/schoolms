@@ -87,14 +87,14 @@
 									<td><strong>{{ $class->name }}</strong></td>
 									<td>{{ $class->numeric_name ?? '-' }}</td>
 									<td>
-										<span class="badge bg-info">{{ $class->sections->count() }} sections</span>
+										<span class="badge badge-light-info">{{ $class->sections->count() }} sections</span>
 									</td>
 									<td>
-										<span class="badge bg-primary">{{ $class->students->count() }} students</span>
+										<span class="badge badge-light-primary">{{ $class->students->count() }} students</span>
 									</td>
 									<td>{{ $class->pass_mark }}%</td>
 									<td>
-										<span class="badge bg-{{ $class->is_active ? 'success' : 'secondary' }}">
+										<span class="badge badge-light-{{ $class->is_active ? 'success' : 'danger' }}">
 											{{ $class->is_active ? 'Active' : 'Inactive' }}
 										</span>
 									</td>
