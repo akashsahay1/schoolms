@@ -46,4 +46,9 @@ class Subject extends Model
     {
         return $query->whereIn('type', ['practical', 'both']);
     }
+
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('name');
+    }
 }

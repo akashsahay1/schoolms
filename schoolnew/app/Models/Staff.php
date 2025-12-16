@@ -117,7 +117,7 @@ class Staff extends Model
         if ($this->photo) {
             return asset('storage/' . $this->photo);
         }
-        return asset('assets/images/user/default-avatar.png');
+        return asset('assets/images/user/user.png');
     }
 
     public function getExperienceYearsAttribute(): int

@@ -20,8 +20,18 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'first_name',
+        'last_name',
         'email',
         'password',
+        'phone',
+        'address',
+        'avatar',
+        'status',
+        'department_id',
+        'designation_id',
+        'employee_id',
+        'joining_date',
     ];
 
     /**
@@ -44,6 +54,46 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'joining_date' => 'date',
         ];
+    }
+
+    /**
+     * Get avatar URL with fallback to default
+     */
+    public function getAvatarUrlAttribute(): string
+    {
+        if ($this->avatar && file_exists(public_path('storage/' . $this->avatar))) {
+            return asset('storage/' . $this->avatar);
+        }
+
+        return asset('assets/images/user/user.png');
+    }
+
+    /**
+     * Get the department that the user belongs to.
+     */
+    public function department()
+    {
+        return $this->belongsTo(Department::class);
+    }
+
+    /**
+     * Get the designation that the user belongs to.
+     */
+    public function designation()
+    {
+        return $this->belongsTo(Designation::class);
+    }
+
+    /**
+     * Get the user's full name.
+     */
+    public function getFullNameAttribute(): string
+    {
+        if ($this->first_name || $this->last_name) {
+            return trim($this->first_name . ' ' . $this->last_name);
+        }
+        return $this->name;
     }
 }
