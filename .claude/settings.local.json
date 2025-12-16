@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(php artisan migrate:*)",
+      "Bash(mkdir:*)",
+      "Bash(php artisan:*)",
+      "Bash(find:*)",
+      "Bash(ls:*)",
+      "Bash(php -l:*)",
+      "Bash(grep:*)",
+      "Bash(dir:*)",
+      "Bash(findstr:*)",
+      "Bash(pushd:*)",
+      "Bash(popd)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nPhase 3: Add Timetable Module\n\n- Add TimetableController with CRUD operations\n- Add Timetable and TimetablePeriod models\n- Add migrations for timetable tables\n- Add timetable views (index, create, edit, periods)\n- Support for class-wise timetable management\n- Period types: class, break, lunch\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git commit -m \"$(cat <<''EOF''\nPhase 3: Add Attendance Module\n\n- Add AttendanceController for student attendance\n- Add StaffAttendanceController for staff attendance\n- Add Attendance and StaffAttendance models with summaries\n- Add migrations for attendance tables\n- Add views for marking attendance, reports, calendar\n- Support for present, absent, late, half-day status\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git commit -m \"$(cat <<''EOF''\nPhase 3: Add Examination Module\n\n- Add ExamController with schedule and marks management\n- Add Exam, ExamMark, ExamType models\n- Add migrations for exam tables\n- Add ExamTypeSeeder for default exam types\n- Add views for exam schedule, marks entry, results\n- Support for multiple exam types and grading\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git commit -m \"$(cat <<''EOF''\nPhase 3: Add Fee Management Module\n\n- Add FeeTypeController, FeeGroupController for fee setup\n- Add FeeStructureController for class-wise fee structure\n- Add FeeCollectionController for fee collection\n- Add FeeType, FeeGroup, FeeStructure, FeeCollection models\n- Add FeeDiscount model for discounts\n- Add migrations and seeder for fee tables\n- Add views for fee types, groups, structure, collection\n- Add fee receipt with print functionality\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git commit -m \"$(cat <<''EOF''\nPhase 4: Add Notices and Events Module\n\n- Add NoticeController with CRUD and publishing\n- Add EventController with CRUD and calendar view\n- Add Notice, Event, EventPhoto models\n- Add migrations for notices and events tables\n- Add views for notices and events management\n- Support for attachments, target audience, scheduling\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git commit:*)"
+    ],
+    "deny": []
+  }
+}
