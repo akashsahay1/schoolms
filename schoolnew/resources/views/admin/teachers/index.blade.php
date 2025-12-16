@@ -100,9 +100,9 @@
 									<td>
 										<div class="avatar avatar-sm">
 											@if($teacher->photo)
-												<img src="{{ asset('storage/' . $teacher->photo) }}" alt="{{ $teacher->full_name }}" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
+												<img src="{{ $teacher->photo_url }}" alt="{{ $teacher->full_name }}" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
 											@else
-												<div class="avatar-title rounded-circle bg-{{ $teacher->gender == 'male' ? 'primary' : 'danger' }}">
+												<div class="rounded-circle bg-{{ $teacher->gender == 'male' ? 'primary' : 'danger' }} d-flex align-items-center justify-content-center text-white" style="width: 40px; height: 40px; font-size: 16px;">
 													{{ strtoupper(substr($teacher->first_name, 0, 1)) }}
 												</div>
 											@endif
@@ -114,7 +114,7 @@
 									<td>{{ $teacher->phone }}</td>
 									<td>{{ $teacher->email }}</td>
 									<td>
-										<span class="badge bg-{{ $teacher->status == 'active' ? 'success' : ($teacher->status == 'inactive' ? 'secondary' : ($teacher->status == 'resigned' ? 'warning' : 'danger')) }}">
+										<span class="badge badge-light-{{ $teacher->status == 'active' ? 'success' : ($teacher->status == 'inactive' ? 'secondary' : ($teacher->status == 'resigned' ? 'warning' : 'danger')) }}">
 											{{ ucfirst($teacher->status) }}
 										</span>
 									</td>

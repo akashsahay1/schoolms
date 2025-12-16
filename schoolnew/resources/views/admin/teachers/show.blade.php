@@ -18,16 +18,16 @@
 			<div class="card-body text-center">
 				<div class="mb-3">
 					@if($teacher->photo)
-						<img src="{{ asset('storage/' . $teacher->photo) }}" alt="{{ $teacher->full_name }}" class="rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
+						<img src="{{ $teacher->photo_url }}" alt="{{ $teacher->full_name }}" class="rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
 					@else
-						<div class="avatar-title rounded-circle bg-{{ $teacher->gender == 'male' ? 'primary' : 'danger' }} mx-auto" style="width: 150px; height: 150px; font-size: 48px; line-height: 150px;">
+						<div class="rounded-circle bg-{{ $teacher->gender == 'male' ? 'primary' : 'danger' }} mx-auto d-flex align-items-center justify-content-center text-white" style="width: 150px; height: 150px; font-size: 48px;">
 							{{ strtoupper(substr($teacher->first_name, 0, 1)) }}
 						</div>
 					@endif
 				</div>
 				<h4 class="mb-1">{{ $teacher->full_name }}</h4>
 				<p class="text-muted mb-2">{{ $teacher->designation->name ?? 'Teacher' }}</p>
-				<span class="badge bg-{{ $teacher->status == 'active' ? 'success' : ($teacher->status == 'inactive' ? 'secondary' : ($teacher->status == 'resigned' ? 'warning' : 'danger')) }} fs-6">
+				<span class="badge badge-light-{{ $teacher->status == 'active' ? 'success' : ($teacher->status == 'inactive' ? 'secondary' : ($teacher->status == 'resigned' ? 'warning' : 'danger')) }} fs-6">
 					{{ ucfirst($teacher->status) }}
 				</span>
 				<div class="mt-3">

@@ -279,7 +279,7 @@
 				</div>
 				<div class="card-body text-center">
 					<div class="mb-3">
-						<img id="photoPreview" src="{{ $teacher->photo ? asset('storage/' . $teacher->photo) : asset('assets/images/user/default-avatar.png') }}" alt="Photo Preview" class="rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
+						<img id="photoPreview" src="{{ $teacher->photo_url }}" alt="Photo Preview" class="rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
 					</div>
 					<input type="file" class="form-control @error('photo') is-invalid @enderror" id="photo" name="photo" accept="image/*" onchange="previewPhoto(this)">
 					<small class="text-muted">Max size: 2MB. Formats: JPG, PNG</small>

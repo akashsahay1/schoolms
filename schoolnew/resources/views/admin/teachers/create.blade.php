@@ -262,7 +262,7 @@
 				</div>
 				<div class="card-body text-center">
 					<div class="mb-3">
-						<img id="photoPreview" src="{{ asset('assets/images/user/default-avatar.png') }}" alt="Photo Preview" class="rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
+						<img id="photoPreview" src="{{ asset('assets/images/user/user.png') }}" alt="Photo Preview" class="rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
 					</div>
 					<input type="file" class="form-control @error('photo') is-invalid @enderror" id="photo" name="photo" accept="image/*" onchange="previewPhoto(this)">
 					<small class="text-muted">Max size: 2MB. Formats: JPG, PNG</small>
