@@ -84,7 +84,7 @@
                         <div class="card-body pt-0 count-student">
                             <div class="school-wrapper">
                                 <div class="school-header">
-                                    <h4 class="txt-warning counter" data-target="{{ $stats['total_staff'] }}">0</h4>
+                                    <h4 class="txt-warning">{{ $stats['total_teachers'] }}</h4>
                                     <div class="d-flex gap-1 align-items-center flex-wrap pt-xxl-0 pt-2">
                                         <i class="icon-arrow-up f-light"></i>
                                         <span class="f-w-500 f-light">Active</span>
@@ -110,7 +110,7 @@
                         <div class="card-body pt-0 count-student">
                             <div class="school-wrapper">
                                 <div class="school-header">
-                                    <h4 class="txt-primary counter" data-target="{{ $stats['total_students'] }}">0</h4>
+                                    <h4 class="txt-primary">{{ $stats['total_students'] }}</h4>
                                     <div class="d-flex gap-1 align-items-center flex-wrap pt-xxl-0 pt-2">
                                         <i class="icon-arrow-up f-light"></i>
                                         <span class="f-w-500 f-light">Active</span>
@@ -136,7 +136,7 @@
                         <div class="card-body pt-0 count-student">
                             <div class="school-wrapper">
                                 <div class="school-header">
-                                    <h4 class="txt-success counter" data-target="{{ $stats['total_parents'] ?? 0 }}">0</h4>
+                                    <h4 class="txt-success">{{ $stats['total_parents'] ?? 0 }}</h4>
                                     <div class="d-flex gap-1 align-items-center flex-wrap pt-xxl-0 pt-2">
                                         <i class="icon-arrow-up f-light"></i>
                                         <span class="f-w-500 f-light">Registered</span>
@@ -178,17 +178,17 @@
                                     <li>
                                         <div class="income-dot dot-primary"></div>
                                         <span class="text-muted">Income</span>
-                                        <h6>$<span class="counter" data-target="{{ $stats['total_income'] ?? 0 }}">0</span></h6>
+                                        <h6>₹{{ number_format($stats['total_income'] ?? 0) }}</h6>
                                     </li>
                                     <li>
                                         <div class="income-dot dot-warning"></div>
                                         <span class="text-muted">Expense</span>
-                                        <h6>$<span class="counter" data-target="{{ $stats['total_expense'] ?? 0 }}">0</span></h6>
+                                        <h6>₹{{ number_format($stats['total_expense'] ?? 0) }}</h6>
                                     </li>
                                     <li>
                                         <div class="income-dot dot-success"></div>
                                         <span class="text-muted">Revenue</span>
-                                        <h6>$<span class="counter" data-target="{{ $stats['total_revenue'] ?? 0 }}">0</span></h6>
+                                        <h6>₹{{ number_format($stats['total_revenue'] ?? 0) }}</h6>
                                     </li>
                                 </ul>
                                 <div class="main-income-chart">
@@ -450,10 +450,10 @@
                                     <div class="activity-dot-{{ ['primary', 'secondary', 'success', 'warning'][$loop->index % 4] }}"></div>
                                     <div class="ms-3">
                                         <p class="d-flex mb-2">
-                                            <span class="date-content light-background">{{ $notice->created_at ? $notice->created_at->format('d M, Y') : date('d M, Y') }}</span>
+                                            <span class="date-content light-background">{{ $notice->publish_date ? $notice->publish_date->format('d M, Y') : date('d M, Y') }}</span>
                                         </p>
                                         <h6>{{ $notice->title ?? 'Notice Title' }}<span class="dot-notification"></span></h6>
-                                        <p class="f-light">{{ $notice->author ?? 'Admin' }} / {{ $notice->created_at ? $notice->created_at->diffForHumans() : 'Just now' }}
+                                        <p class="f-light">{{ $notice->creator->name ?? 'Admin' }} / {{ $notice->publish_date ? $notice->publish_date->diffForHumans() : 'Just now' }}
                                             @if($loop->first)
                                             <span class="badge alert-light-success txt-success ms-2 f-w-600">New</span>
                                             @endif
@@ -560,7 +560,7 @@
                                     <td></td>
                                     <td>
                                         <div class="common-align justify-content-start">
-                                            <img class="img-fluid img-40 rounded-circle me-2" src="{{ $fee->student->photo_url ?? asset('assets/images/dashboard/profile.png') }}" alt="user">
+                                            <img class="rounded-circle me-2" src="{{ $fee->student->photo_url ?? asset('assets/images/dashboard/profile.png') }}" alt="user" style="width: 40px; height: 40px; object-fit: cover;">
                                             <div class="img-content-box">
                                                 <a class="f-w-500" href="#">{{ $fee->student->full_name ?? 'Student Name' }}</a>
                                             </div>
@@ -627,7 +627,7 @@
                                     <td><a href="#">#{{ $student->admission_no ?? '00000' }}</a></td>
                                     <td>
                                         <div class="common-align justify-content-start">
-                                            <img class="img-fluid img-40 rounded-circle me-2" src="{{ $student->photo_url ?? asset('assets/images/dashboard/profile.png') }}" alt="user">
+                                            <img class="rounded-circle me-2" src="{{ $student->photo_url ?? asset('assets/images/dashboard/profile.png') }}" alt="user" style="width: 40px; height: 40px; object-fit: cover;">
                                             <div class="img-content-box">
                                                 <a class="f-w-500" href="#">{{ $student->full_name ?? 'Student Name' }}</a>
                                             </div>
@@ -660,9 +660,9 @@
                         <h5>Students</h5>
                         <div class="card-header-right-icon">
                             <!-- Class Dropdown -->
-                            <div class="dropdown custom-dropdown">
-                                <button class="btn dropdown-toggle" id="classDropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">All Classes</button>
-                                <ul class="dropdown-menu">
+                            <div class="dropdown">
+                                <button class="btn dropdown-toggle" id="classDropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">All Classes <i class="fa fa-angle-down ms-1"></i></button>
+                                <ul class="dropdown-menu dropdown-menu-end">
                                     <li><a class="dropdown-item student-filter-class active" href="#!">All Classes</a></li>
                                     @foreach($classWiseStudents as $class)
                                     <li><a class="dropdown-item student-filter-class" href="#!" data-class-id="{{ $class->id }}">{{ $class->name }}</a></li>
@@ -717,7 +717,7 @@
                                 <tr>
                                     <td>
                                         <div class="common-align justify-content-start">
-                                            <img class="img-fluid img-40 rounded-circle me-2" src="{{ $student->photo_url ?? asset('assets/images/dashboard/profile.png') }}" alt="user">
+                                            <img class="rounded-circle me-2" src="{{ $student->photo_url ?? asset('assets/images/dashboard/profile.png') }}" alt="user" style="width: 40px; height: 40px; object-fit: cover;">
                                             <div class="img-content-box">
                                                 <a class="f-w-500" href="{{ route('admin.students.show', $student) }}">{{ $student->full_name }}</a>
                                             </div>

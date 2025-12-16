@@ -40,7 +40,7 @@
 
 				<div class="form-group">
 					<label class="col-form-label">Email Address</label>
-					<input class="form-control bg-white @error('email') is-invalid @enderror" type="email" name="email" value="{{ old('email') }}" required autofocus placeholder="">
+					<input class="form-control @error('email') is-invalid @enderror" type="email" name="email" value="{{ old('email') }}" required autofocus placeholder="">
 					@error('email')
 						<div class="invalid-feedback">{{ $message }}</div>
 					@enderror
@@ -49,7 +49,7 @@
 				<div class="form-group">
 					<label class="col-form-label">Password</label>
 					<div class="form-input position-relative">
-						<input class="form-control bg-white @error('password') is-invalid @enderror" type="password" name="password" required placeholder="">
+						<input class="form-control @error('password') is-invalid @enderror" type="password" name="password" required placeholder="">
 						@error('password')
 							<div class="invalid-feedback">{{ $message }}</div>
 						@enderror
@@ -60,9 +60,9 @@
 				</div>
 
 				<div class="form-group mb-0">
-					<div class="form-check">
-						<input class="form-check-input checkbox-primary" id="remember_me" type="checkbox" name="remember">
-						<label class="text-muted form-check-label" for="remember_me">Remember password</label>
+					<div class="checkbox p-0">
+						<input class="checkbox_animated" id="remember_me" type="checkbox" name="remember">
+						<label class="text-muted" for="remember_me">Remember password</label>
 					</div>
 					<div class="text-end mt-3">
 						<button class="btn btn-primary btn-block w-100" type="submit">Sign in</button>
