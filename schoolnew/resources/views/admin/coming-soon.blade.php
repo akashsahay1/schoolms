@@ -1,18 +1,21 @@
 @extends('layouts.app')
 
 @php
-	// Automatically determine page title from route name
-	$routeName = request()->route()->getName();
-	$routeParts = explode('.', str_replace('admin.', '', $routeName));
-	$pageTitle = ucwords(str_replace(['-', '_'], ' ', implode(' - ', $routeParts)));
+	// Use provided module name or automatically determine from route
+	$moduleTitle = $module ?? (function() {
+		$routeName = request()->route()->getName();
+		$routeParts = explode('.', str_replace('admin.', '', $routeName));
+		return ucwords(str_replace(['-', '_'], ' ', implode(' - ', $routeParts)));
+	})();
+	$moduleDescription = $description ?? 'This feature is currently under development and will be available soon.';
 @endphp
 
-@section('title', $pageTitle)
+@section('title', $moduleTitle)
 
-@section('page-title', $pageTitle)
+@section('page-title', $moduleTitle)
 
 @section('breadcrumb')
-	<li class="breadcrumb-item active">{{ $pageTitle }}</li>
+	<li class="breadcrumb-item active">{{ $moduleTitle }}</li>
 @endsection
 
 @section('content')
@@ -26,8 +29,12 @@
 							<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-board') }}"></use>
 						</svg>
 					</div>
-					<h3 class="text-muted mb-3">{{ $pageTitle }} - Coming Soon</h3>
-					<p class="text-muted mb-4">This feature is currently under development and will be available soon.</p>
+					<h3 class="text-muted mb-3">{{ $moduleTitle }}</h3>
+					<p class="text-muted mb-4">{{ $moduleDescription }}</p>
+					<div class="alert alert-info d-inline-block">
+						<i class="fas fa-info-circle me-2"></i>
+						This module will be available in the next phase of development.
+					</div>
 					<a href="{{ route('admin.dashboard') }}" class="btn btn-primary">
 						<i data-feather="arrow-left" class="me-2"></i>
 						Back to Dashboard

@@ -86,7 +86,7 @@
 									<td>{{ $parent->primary_email ?: 'N/A' }}</td>
 									<td>
 										@if($parent->students->count() > 0)
-											<span class="badge bg-primary">{{ $parent->students->count() }} student(s)</span>
+											<span class="badge badge-light-primary">{{ $parent->students->count() }} student(s)</span>
 										@else
 											<span class="text-muted">None</span>
 										@endif

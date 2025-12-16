@@ -41,6 +41,12 @@ class RolePermissionSeeder extends Seeder
             'edit staff',
             'delete staff',
 
+            // Academic Years
+            'academic_year_create',
+            'academic_year_read',
+            'academic_year_update',
+            'academic_year_delete',
+
             // Classes
             'view classes',
             'create classes',
@@ -121,7 +127,9 @@ class RolePermissionSeeder extends Seeder
         ];
 
         foreach ($permissions as $permission) {
-            Permission::create(['name' => $permission]);
+            if (!Permission::where('name', $permission)->exists()) {
+                Permission::create(['name' => $permission]);
+            }
         }
 
         // Create Roles and Assign Permissions
@@ -136,6 +144,7 @@ class RolePermissionSeeder extends Seeder
             'view students', 'create students', 'edit students', 'delete students', 'import students', 'export students',
             'view parents', 'create parents', 'edit parents', 'delete parents',
             'view staff', 'create staff', 'edit staff', 'delete staff',
+            'academic_year_create', 'academic_year_read', 'academic_year_update', 'academic_year_delete',
             'view classes', 'create classes', 'edit classes', 'delete classes',
             'view sections', 'create sections', 'edit sections', 'delete sections',
             'view subjects', 'create subjects', 'edit subjects', 'delete subjects',
