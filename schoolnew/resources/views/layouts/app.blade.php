@@ -42,6 +42,37 @@
 	<link id="color" rel="stylesheet" href="{{ asset('assets/css/color-1.css') }}" media="screen">
 	<!-- Responsive CSS -->
 	<link rel="stylesheet" type="text/css" href="{{ asset('assets/css/responsive.css') }}">
+	
+	<!-- Custom Styles -->
+	<style>
+		/* Logo size fix */
+		.logo-custom {
+			max-height: 45px !important;
+			max-width: 200px !important;
+			object-fit: contain;
+		}
+		
+		/* Sidebar spacing improvements */
+		.sidebar-main-title {
+			margin-bottom: 5px !important;
+		}
+		
+		.sidebar-list:not(:first-child) {
+			margin-top: 2px;
+		}
+		
+		/* Better logo wrapper spacing */
+		.logo-wrapper {
+			padding: 15px 20px !important;
+			margin-bottom: 10px;
+		}
+		
+		/* Ensure proper spacing between sections */
+		.sidebar-main-title + .sidebar-list {
+			margin-top: 8px !important;
+		}
+
+	</style>
 </head>
 <body>
 	<!-- Loader -->
@@ -149,8 +180,15 @@
 			}
 		});
 
-		// Delete Confirmation Modal using SweetAlert2
 		jQuery(document).ready(function() {
+			// Close sidebar when clicking on overlay
+			jQuery(document).on('click', '.bg-overlay', function() {
+				jQuery('.sidebar-wrapper').addClass('close_icon');
+				jQuery('.page-header').addClass('close_icon');
+				jQuery(this).remove();
+			});
+
+			// Delete Confirmation Modal using SweetAlert2
 			jQuery(document).on('click', '.delete-confirm', function(e) {
 				e.preventDefault();
 				var form = jQuery(this).closest('form');

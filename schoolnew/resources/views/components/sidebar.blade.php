@@ -3,8 +3,8 @@
 		<!-- Logo -->
 		<div class="logo-wrapper">
 			<a href="{{ route('admin.dashboard') }}">
-				<img class="img-fluid for-light" src="{{ asset('assets/images/logo/logo.png') }}" alt="">
-				<img class="img-fluid for-dark" src="{{ asset('assets/images/logo/logo_dark.png') }}" alt="">
+				<img class="img-fluid for-light logo-custom" src="{{ asset('assets/images/logo/logo.png') }}" alt="">
+				<img class="img-fluid for-dark logo-custom" src="{{ asset('assets/images/logo/logo_dark.png') }}" alt="">
 			</a>
 			<div class="back-btn"><i class="fa-solid fa-angle-left"></i></div>
 			<div class="toggle-sidebar">
@@ -39,7 +39,6 @@
 
 					<!-- Dashboard -->
 					<li class="sidebar-list">
-						<i class="fa-solid fa-thumbtack"></i>
 						<a class="sidebar-link sidebar-title link-nav {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}" href="{{ route('admin.dashboard') }}">
 							<svg class="stroke-icon">
 								<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-home') }}"></use>
@@ -57,9 +56,8 @@
 					</li>
 
 					<!-- Students -->
-					<li class="sidebar-list {{ request()->routeIs('admin.students.*') ? 'active' : '' }}">
-						<i class="fa-solid fa-thumbtack"></i>
-						<a class="sidebar-link sidebar-title {{ request()->routeIs('admin.students.*') ? 'active' : '' }}" href="#">
+					<li class="sidebar-list">
+						<a class="sidebar-link sidebar-title link-nav {{ request()->routeIs('admin.students.*') ? 'active' : '' }}" href="{{ route('admin.students.index') }}">
 							<svg class="stroke-icon">
 								<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-user') }}"></use>
 							</svg>
@@ -68,16 +66,11 @@
 							</svg>
 							<span>Students</span>
 						</a>
-						<ul class="sidebar-submenu" style="{{ request()->routeIs('admin.students.*') ? 'display: block;' : '' }}">
-							<li><a class="{{ request()->routeIs('admin.students.index') ? 'active' : '' }}" href="{{ route('admin.students.index') }}">All Students</a></li>
-							<li><a class="{{ request()->routeIs('admin.students.create') ? 'active' : '' }}" href="{{ route('admin.students.create') }}">Add Student</a></li>
-						</ul>
 					</li>
 
-					<!-- Academics (Classes, Sections, Subjects, Teachers, Parents) -->
-					<li class="sidebar-list {{ request()->routeIs('admin.classes.*') || request()->routeIs('admin.sections.*') || request()->routeIs('admin.subjects.*') || request()->routeIs('admin.teachers.*') || request()->routeIs('admin.parents.*') ? 'active' : '' }}">
-						<i class="fa-solid fa-thumbtack"></i>
-						<a class="sidebar-link sidebar-title {{ request()->routeIs('admin.classes.*') || request()->routeIs('admin.sections.*') || request()->routeIs('admin.subjects.*') || request()->routeIs('admin.teachers.*') || request()->routeIs('admin.parents.*') ? 'active' : '' }}" href="#">
+					<!-- Academics (Classes, Sections, Subjects, Timetable, Teachers, Parents) -->
+					<li class="sidebar-list {{ request()->routeIs('admin.academic-years.*') || request()->routeIs('admin.classes.*') || request()->routeIs('admin.sections.*') || request()->routeIs('admin.subjects.*') || request()->routeIs('admin.timetable.*') || request()->routeIs('admin.teachers.*') || request()->routeIs('admin.parents.*') ? 'active' : '' }}">
+						<a class="sidebar-link sidebar-title {{ request()->routeIs('admin.academic-years.*') || request()->routeIs('admin.classes.*') || request()->routeIs('admin.sections.*') || request()->routeIs('admin.subjects.*') || request()->routeIs('admin.timetable.*') || request()->routeIs('admin.teachers.*') || request()->routeIs('admin.parents.*') ? 'active' : '' }}" href="#">
 							<svg class="stroke-icon">
 								<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-board') }}"></use>
 							</svg>
@@ -86,19 +79,20 @@
 							</svg>
 							<span>Academics</span>
 						</a>
-						<ul class="sidebar-submenu" style="{{ request()->routeIs('admin.classes.*') || request()->routeIs('admin.sections.*') || request()->routeIs('admin.subjects.*') || request()->routeIs('admin.teachers.*') || request()->routeIs('admin.parents.*') ? 'display: block;' : '' }}">
+						<ul class="sidebar-submenu" style="{{ request()->routeIs('admin.academic-years.*') || request()->routeIs('admin.classes.*') || request()->routeIs('admin.sections.*') || request()->routeIs('admin.subjects.*') || request()->routeIs('admin.timetable.*') || request()->routeIs('admin.teachers.*') || request()->routeIs('admin.parents.*') ? 'display: block;' : '' }}">
+							<li><a class="{{ request()->routeIs('admin.academic-years.*') ? 'active' : '' }}" href="{{ route('admin.academic-years.index') }}">Academic Years</a></li>
 							<li><a class="{{ request()->routeIs('admin.classes.*') ? 'active' : '' }}" href="{{ route('admin.classes.index') }}">Classes</a></li>
 							<li><a class="{{ request()->routeIs('admin.sections.*') ? 'active' : '' }}" href="{{ route('admin.sections.index') }}">Sections</a></li>
 							<li><a class="{{ request()->routeIs('admin.subjects.*') ? 'active' : '' }}" href="{{ route('admin.subjects.index') }}">Subjects</a></li>
+							<li><a class="{{ request()->routeIs('admin.timetable.*') ? 'active' : '' }}" href="{{ route('admin.timetable.index') }}">Timetable</a></li>
 							<li><a class="{{ request()->routeIs('admin.teachers.*') ? 'active' : '' }}" href="{{ route('admin.teachers.index') }}">Teachers</a></li>
 							<li><a class="{{ request()->routeIs('admin.parents.*') ? 'active' : '' }}" href="{{ route('admin.parents.index') }}">Parents</a></li>
 						</ul>
 					</li>
 
 					<!-- Attendance -->
-					<li class="sidebar-list">
-						<i class="fa-solid fa-thumbtack"></i>
-						<a class="sidebar-link sidebar-title" href="#">
+					<li class="sidebar-list {{ request()->routeIs('admin.attendance.*') || request()->routeIs('admin.staff-attendance.*') ? 'active' : '' }}">
+						<a class="sidebar-link sidebar-title {{ request()->routeIs('admin.attendance.*') || request()->routeIs('admin.staff-attendance.*') ? 'active' : '' }}" href="#">
 							<svg class="stroke-icon">
 								<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-calendar') }}"></use>
 							</svg>
@@ -107,15 +101,17 @@
 							</svg>
 							<span>Attendance</span>
 						</a>
-						<ul class="sidebar-submenu">
-							<li><a href="{{ route('admin.attendance.mark') }}">Mark Attendance</a></li>
-							<li><a href="{{ route('admin.attendance.reports') }}">Reports</a></li>
+						<ul class="sidebar-submenu" style="{{ request()->routeIs('admin.attendance.*') || request()->routeIs('admin.staff-attendance.*') ? 'display: block;' : '' }}">
+							<li><a class="{{ request()->routeIs('admin.attendance.mark') ? 'active' : '' }}" href="{{ route('admin.attendance.mark') }}">Student Attendance</a></li>
+							<li><a class="{{ request()->routeIs('admin.attendance.reports') ? 'active' : '' }}" href="{{ route('admin.attendance.reports') }}">Student Reports</a></li>
+							<li><a class="{{ request()->routeIs('admin.attendance.calendar') ? 'active' : '' }}" href="{{ route('admin.attendance.calendar') }}">Attendance Calendar</a></li>
+							<li><a class="{{ request()->routeIs('admin.staff-attendance.mark') ? 'active' : '' }}" href="{{ route('admin.staff-attendance.mark') }}">Staff Attendance</a></li>
+							<li><a class="{{ request()->routeIs('admin.staff-attendance.reports') ? 'active' : '' }}" href="{{ route('admin.staff-attendance.reports') }}">Staff Reports</a></li>
 						</ul>
 					</li>
 
 					<!-- Examinations -->
 					<li class="sidebar-list">
-						<i class="fa-solid fa-thumbtack"></i>
 						<a class="sidebar-link sidebar-title" href="#">
 							<svg class="stroke-icon">
 								<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-file') }}"></use>
@@ -138,9 +134,8 @@
 					</li>
 
 					<!-- Fees -->
-					<li class="sidebar-list">
-						<i class="fa-solid fa-thumbtack"></i>
-						<a class="sidebar-link sidebar-title" href="#">
+					<li class="sidebar-list {{ request()->routeIs('admin.fees.*') ? 'active' : '' }}">
+						<a class="sidebar-link sidebar-title {{ request()->routeIs('admin.fees.*') ? 'active' : '' }}" href="#">
 							<svg class="stroke-icon">
 								<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-ecommerce') }}"></use>
 							</svg>
@@ -149,10 +144,34 @@
 							</svg>
 							<span>Fees</span>
 						</a>
-						<ul class="sidebar-submenu">
-							<li><a href="{{ route('admin.fees.structure') }}">Fee Structure</a></li>
-							<li><a href="{{ route('admin.fees.collection') }}">Collect Fees</a></li>
-							<li><a href="{{ route('admin.fees.outstanding') }}">Outstanding</a></li>
+						<ul class="sidebar-submenu" style="{{ request()->routeIs('admin.fees.*') ? 'display: block;' : '' }}">
+							<li><a class="{{ request()->routeIs('admin.fees.types.*') ? 'active' : '' }}" href="{{ route('admin.fees.types.index') }}">Fee Types</a></li>
+							<li><a class="{{ request()->routeIs('admin.fees.groups.*') ? 'active' : '' }}" href="{{ route('admin.fees.groups.index') }}">Fee Groups</a></li>
+							<li><a class="{{ request()->routeIs('admin.fees.structure*') && !request()->routeIs('admin.fees.structure.*') ? 'active' : '' }}" href="{{ route('admin.fees.structure') }}">Fee Structure</a></li>
+							<li><a class="{{ request()->routeIs('admin.fees.collection*') || request()->routeIs('admin.fees.collect') ? 'active' : '' }}" href="{{ route('admin.fees.collection') }}">Collect Fees</a></li>
+							<li><a class="{{ request()->routeIs('admin.fees.outstanding') ? 'active' : '' }}" href="{{ route('admin.fees.outstanding') }}">Outstanding</a></li>
+						</ul>
+					</li>
+
+					<!-- Communication -->
+					<li class="sidebar-main-title">
+						<div><h6>Communication</h6></div>
+					</li>
+
+					<!-- Notices & Events -->
+					<li class="sidebar-list {{ request()->routeIs('admin.notices.*') || request()->routeIs('admin.events.*') ? 'active' : '' }}">
+						<a class="sidebar-link sidebar-title {{ request()->routeIs('admin.notices.*') || request()->routeIs('admin.events.*') ? 'active' : '' }}" href="#">
+							<svg class="stroke-icon">
+								<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-form') }}"></use>
+							</svg>
+							<svg class="fill-icon">
+								<use href="{{ asset('assets/svg/icon-sprite.svg#fill-form') }}"></use>
+							</svg>
+							<span>Notices & Events</span>
+						</a>
+						<ul class="sidebar-submenu" style="{{ request()->routeIs('admin.notices.*') || request()->routeIs('admin.events.*') ? 'display: block;' : '' }}">
+							<li><a class="{{ request()->routeIs('admin.notices.*') ? 'active' : '' }}" href="{{ route('admin.notices.index') }}">Notices</a></li>
+							<li><a class="{{ request()->routeIs('admin.events.*') ? 'active' : '' }}" href="{{ route('admin.events.index') }}">Events</a></li>
 						</ul>
 					</li>
 
@@ -161,23 +180,44 @@
 						<div><h6>Administration</h6></div>
 					</li>
 
-					<!-- Users (Accountant, Administrator - not Students, Parents, Teachers) -->
-					<li class="sidebar-list {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
-						<i class="fa-solid fa-thumbtack"></i>
-						<a class="sidebar-link sidebar-title link-nav {{ request()->routeIs('admin.users.*') ? 'active' : '' }}" href="{{ route('admin.users.index') }}">
+					<!-- Users & Staff -->
+					<li class="sidebar-list {{ request()->routeIs('admin.users.*') || request()->routeIs('admin.staff.*') ? 'active' : '' }}">
+						<a class="sidebar-link sidebar-title {{ request()->routeIs('admin.users.*') || request()->routeIs('admin.staff.*') ? 'active' : '' }}" href="#">
 							<svg class="stroke-icon">
 								<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-user') }}"></use>
 							</svg>
 							<svg class="fill-icon">
 								<use href="{{ asset('assets/svg/icon-sprite.svg#fill-user') }}"></use>
 							</svg>
-							<span>Users</span>
+							<span>Users & Staff</span>
 						</a>
+						<ul class="sidebar-submenu" style="{{ request()->routeIs('admin.users.*') || request()->routeIs('admin.staff.*') ? 'display: block;' : '' }}">
+							<li><a class="{{ request()->routeIs('admin.users.index') ? 'active' : '' }}" href="{{ route('admin.users.index') }}">All Users</a></li>
+							<li><a class="{{ request()->routeIs('admin.users.create') ? 'active' : '' }}" href="{{ route('admin.users.create') }}">Add User</a></li>
+							<li><a class="{{ request()->routeIs('admin.staff.index') ? 'active' : '' }}" href="{{ route('admin.staff.index') }}">All Staff</a></li>
+							<li><a class="{{ request()->routeIs('admin.staff.create') ? 'active' : '' }}" href="{{ route('admin.staff.create') }}">Add Staff</a></li>
+						</ul>
+					</li>
+
+					<!-- Departments & Designations -->
+					<li class="sidebar-list {{ request()->routeIs('admin.departments.*') || request()->routeIs('admin.designations.*') ? 'active' : '' }}">
+						<a class="sidebar-link sidebar-title {{ request()->routeIs('admin.departments.*') || request()->routeIs('admin.designations.*') ? 'active' : '' }}" href="#">
+							<svg class="stroke-icon">
+								<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-others') }}"></use>
+							</svg>
+							<svg class="fill-icon">
+								<use href="{{ asset('assets/svg/icon-sprite.svg#fill-others') }}"></use>
+							</svg>
+							<span>HR Setup</span>
+						</a>
+						<ul class="sidebar-submenu" style="{{ request()->routeIs('admin.departments.*') || request()->routeIs('admin.designations.*') ? 'display: block;' : '' }}">
+							<li><a class="{{ request()->routeIs('admin.departments.*') ? 'active' : '' }}" href="{{ route('admin.departments.index') }}">Departments</a></li>
+							<li><a class="{{ request()->routeIs('admin.designations.*') ? 'active' : '' }}" href="{{ route('admin.designations.index') }}">Designations</a></li>
+						</ul>
 					</li>
 
 					<!-- Settings -->
 					<li class="sidebar-list">
-						<i class="fa-solid fa-thumbtack"></i>
 						<a class="sidebar-link sidebar-title link-nav {{ request()->routeIs('admin.settings*') ? 'active' : '' }}" href="{{ route('admin.settings') }}">
 							<svg class="stroke-icon">
 								<use href="{{ asset('assets/svg/icon-sprite.svg#setting') }}"></use>

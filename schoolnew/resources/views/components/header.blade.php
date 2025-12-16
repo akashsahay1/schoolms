@@ -24,7 +24,7 @@
 					<img class="img-fluid for-dark" src="{{ asset('assets/images/logo/logo_dark.png') }}" alt="">
 				</a>
 			</div>
-			<div class="toggle-sidebar">
+			<div class="toggle-sidebar" id="sidebar-toggle-btn">
 				<i class="status_toggle middle sidebar-toggle" data-feather="align-center"></i>
 			</div>
 		</div>
@@ -82,11 +82,11 @@
 				<!-- Profile Dropdown -->
 				<li class="profile-nav onhover-dropdown pe-0 py-0">
 					<div class="d-flex profile-media">
-						<img class="b-r-10" src="{{ asset('assets/images/dashboard/profile.png') }}" alt="">
+						<img class="b-r-10 img-40" src="{{ Auth::user()->avatar_url }}" alt="{{ Auth::user()->name }}">
 						<div class="flex-grow-1">
 							<span>{{ Auth::user()->name }}</span>
 							<p class="mb-0">
-								Administrator
+								{{ Auth::user()->roles->first()->name ?? 'Administrator' }}
 								<i class="middle fa-solid fa-angle-down"></i>
 							</p>
 						</div>
