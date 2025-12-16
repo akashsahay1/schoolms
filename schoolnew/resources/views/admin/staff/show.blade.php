@@ -21,7 +21,7 @@
 				</div>
 				<h4 class="mb-1">{{ $staff->full_name }}</h4>
 				<p class="text-muted mb-2">{{ $staff->designation->name ?? 'N/A' }}</p>
-				<span class="badge bg-{{ $staff->status == 'active' ? 'success' : ($staff->status == 'inactive' ? 'secondary' : ($staff->status == 'resigned' ? 'warning' : 'danger')) }} mb-3">
+				<span class="badge badge-light-{{ $staff->status == 'active' ? 'success' : ($staff->status == 'inactive' ? 'secondary' : ($staff->status == 'resigned' ? 'warning' : 'danger')) }} mb-3">
 					{{ ucfirst($staff->status) }}
 				</span>
 				<div class="border-top pt-3">
@@ -80,6 +80,9 @@
 				<div class="d-grid gap-2">
 					<a href="{{ route('admin.staff.edit', $staff) }}" class="btn btn-primary">
 						<i data-feather="edit" class="me-1"></i> Edit Staff
+					</a>
+					<a href="{{ route('admin.staff.id-card', $staff) }}" class="btn btn-info">
+						<i data-feather="credit-card" class="me-1"></i> Print ID Card
 					</a>
 					<a href="{{ route('admin.staff.index') }}" class="btn btn-outline-secondary">
 						<i data-feather="arrow-left" class="me-1"></i> Back to List
@@ -181,7 +184,7 @@
 							<tr>
 								<td class="text-muted">Status</td>
 								<td>
-									<span class="badge bg-{{ $staff->status == 'active' ? 'success' : ($staff->status == 'inactive' ? 'secondary' : ($staff->status == 'resigned' ? 'warning' : 'danger')) }}">
+									<span class="badge badge-light-{{ $staff->status == 'active' ? 'success' : ($staff->status == 'inactive' ? 'secondary' : ($staff->status == 'resigned' ? 'warning' : 'danger')) }}">
 										{{ ucfirst($staff->status) }}
 									</span>
 								</td>

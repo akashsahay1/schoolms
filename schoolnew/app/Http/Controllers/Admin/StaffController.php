@@ -146,6 +146,12 @@ class StaffController extends Controller
 		return view('admin.staff.show', compact('staff'));
 	}
 
+	public function idCard(Staff $staff)
+	{
+		$staff->load(['department', 'designation']);
+		return view('admin.staff.id-card', compact('staff'));
+	}
+
 	public function edit(Staff $staff)
 	{
 		$departments = Department::active()->orderBy('name')->get();
