@@ -91,7 +91,7 @@
 									<td>{{ $user->email }}</td>
 									<td>
 										@foreach($user->roles as $role)
-											<span class="badge bg-{{ $role->name === 'Super Admin' ? 'danger' : ($role->name === 'Admin' ? 'primary' : 'secondary') }}">
+											<span class="badge badge-light-{{ $role->name === 'Super Admin' ? 'danger' : ($role->name === 'Admin' ? 'primary' : 'secondary') }}">
 												{{ $role->name }}
 											</span>
 										@endforeach

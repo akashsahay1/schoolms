@@ -98,31 +98,31 @@
 				<p class="text-muted mb-3">Each role has different access levels:</p>
 				<ul class="list-unstyled">
 					<li class="mb-2">
-						<span class="badge bg-danger">Super Admin</span>
+						<span class="badge badge-light-danger">Super Admin</span>
 						<small class="d-block text-muted">Full system access</small>
 					</li>
 					<li class="mb-2">
-						<span class="badge bg-primary">Admin</span>
+						<span class="badge badge-light-primary">Admin</span>
 						<small class="d-block text-muted">Most permissions except role management</small>
 					</li>
 					<li class="mb-2">
-						<span class="badge bg-info">Teacher</span>
+						<span class="badge badge-light-info">Teacher</span>
 						<small class="d-block text-muted">View students, mark attendance, manage homework</small>
 					</li>
 					<li class="mb-2">
-						<span class="badge bg-success">Accountant</span>
+						<span class="badge badge-light-success">Accountant</span>
 						<small class="d-block text-muted">Fee collection and financial reports</small>
 					</li>
 					<li class="mb-2">
-						<span class="badge bg-warning">Librarian</span>
+						<span class="badge badge-light-warning">Librarian</span>
 						<small class="d-block text-muted">Library management</small>
 					</li>
 					<li class="mb-2">
-						<span class="badge bg-secondary">Student</span>
+						<span class="badge badge-light-secondary">Student</span>
 						<small class="d-block text-muted">View own information</small>
 					</li>
 					<li class="mb-2">
-						<span class="badge bg-secondary">Parent</span>
+						<span class="badge badge-light-secondary">Parent</span>
 						<small class="d-block text-muted">View children's information</small>
 					</li>
 				</ul>

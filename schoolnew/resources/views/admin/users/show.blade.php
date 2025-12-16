@@ -15,16 +15,14 @@
 	<div class="col-lg-4 col-12">
 		<div class="card">
 			<div class="card-body text-center">
-				<div class="avatar avatar-xxl mx-auto mb-3">
-					<div class="avatar-title rounded-circle bg-primary" style="width: 120px; height: 120px; font-size: 48px;">
-						{{ strtoupper(substr($user->name, 0, 1)) }}
-					</div>
+				<div class="rounded-circle bg-primary mx-auto mb-3 d-flex align-items-center justify-content-center text-white" style="width: 120px; height: 120px; font-size: 48px;">
+					{{ strtoupper(substr($user->name, 0, 1)) }}
 				</div>
 				<h4 class="mb-1">{{ $user->name }}</h4>
 				<p class="text-muted mb-3">{{ $user->email }}</p>
 
 				@foreach($user->roles as $role)
-					<span class="badge bg-{{ $role->name === 'Super Admin' ? 'danger' : ($role->name === 'Admin' ? 'primary' : 'secondary') }} fs-6">
+					<span class="badge badge-light-{{ $role->name === 'Super Admin' ? 'danger' : ($role->name === 'Admin' ? 'primary' : 'secondary') }} fs-6">
 						{{ $role->name }}
 					</span>
 				@endforeach
@@ -68,7 +66,7 @@
 								<td class="text-muted">Role</td>
 								<td>
 									@foreach($user->roles as $role)
-										<span class="badge bg-{{ $role->name === 'Super Admin' ? 'danger' : ($role->name === 'Admin' ? 'primary' : 'secondary') }}">
+										<span class="badge badge-light-{{ $role->name === 'Super Admin' ? 'danger' : ($role->name === 'Admin' ? 'primary' : 'secondary') }}">
 											{{ $role->name }}
 										</span>
 									@endforeach
@@ -78,10 +76,10 @@
 								<td class="text-muted">Email Verified</td>
 								<td>
 									@if($user->email_verified_at)
-										<span class="badge bg-success">Verified</span>
+										<span class="badge badge-light-success">Verified</span>
 										<small class="text-muted ms-2">{{ $user->email_verified_at->format('M d, Y H:i') }}</small>
 									@else
-										<span class="badge bg-warning">Not Verified</span>
+										<span class="badge badge-light-warning">Not Verified</span>
 									@endif
 								</td>
 							</tr>

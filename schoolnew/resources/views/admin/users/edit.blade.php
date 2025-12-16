@@ -100,10 +100,8 @@
 			</div>
 			<div class="card-body">
 				<div class="text-center mb-4">
-					<div class="avatar avatar-xl mx-auto mb-3">
-						<div class="avatar-title rounded-circle bg-primary" style="width: 80px; height: 80px; font-size: 32px;">
-							{{ strtoupper(substr($user->name, 0, 1)) }}
-						</div>
+					<div class="rounded-circle bg-primary mx-auto mb-3 d-flex align-items-center justify-content-center text-white" style="width: 80px; height: 80px; font-size: 32px;">
+						{{ strtoupper(substr($user->name, 0, 1)) }}
 					</div>
 					<h5 class="mb-1">{{ $user->name }}</h5>
 					<p class="text-muted mb-0">{{ $user->email }}</p>
