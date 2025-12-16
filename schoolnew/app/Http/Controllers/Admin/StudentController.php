@@ -312,4 +312,10 @@ class StudentController extends Controller
         $sections = Section::where('class_id', $classId)->active()->get();
         return response()->json($sections);
     }
+
+    public function idCard(Student $student)
+    {
+        $student->load(['schoolClass', 'section', 'academicYear', 'parent']);
+        return view('admin.students.id-card', compact('student'));
+    }
 }

@@ -78,7 +78,16 @@
                     <div class="row">
                         <div class="col-md-4 mb-3">
                             <label class="form-label">Religion</label>
-                            <input type="text" class="form-control @error('religion') is-invalid @enderror" name="religion" value="{{ old('religion', $student->religion) }}">
+                            <select class="form-select @error('religion') is-invalid @enderror" name="religion">
+                                <option value="">Select Religion</option>
+                                <option value="Hindu" {{ old('religion', $student->religion) == 'Hindu' ? 'selected' : '' }}>Hindu</option>
+                                <option value="Muslim" {{ old('religion', $student->religion) == 'Muslim' ? 'selected' : '' }}>Muslim</option>
+                                <option value="Christian" {{ old('religion', $student->religion) == 'Christian' ? 'selected' : '' }}>Christian</option>
+                                <option value="Sikh" {{ old('religion', $student->religion) == 'Sikh' ? 'selected' : '' }}>Sikh</option>
+                                <option value="Buddhist" {{ old('religion', $student->religion) == 'Buddhist' ? 'selected' : '' }}>Buddhist</option>
+                                <option value="Jain" {{ old('religion', $student->religion) == 'Jain' ? 'selected' : '' }}>Jain</option>
+                                <option value="Other" {{ old('religion', $student->religion) == 'Other' ? 'selected' : '' }}>Other</option>
+                            </select>
                         </div>
                         <div class="col-md-4 mb-3">
                             <label class="form-label">Nationality</label>
@@ -241,7 +250,7 @@
                 </div>
                 <div class="card-body text-center">
                     <div class="mb-3">
-                        <img id="photoPreview" src="{{ $student->photo ? asset('storage/' . $student->photo) : asset('assets/images/user/default-avatar.png') }}" alt="Student Photo" class="img-thumbnail" style="width: 200px; height: 200px; object-fit: cover;">
+                        <img id="photoPreview" src="{{ $student->photo_url }}" alt="Student Photo" class="img-thumbnail" style="width: 200px; height: 200px; object-fit: cover;">
                     </div>
                     <input type="file" class="form-control @error('photo') is-invalid @enderror" name="photo" id="photoInput" accept="image/*">
                     @error('photo')

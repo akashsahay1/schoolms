@@ -103,9 +103,9 @@
 									<td>
 										<div class="avatar avatar-sm">
 											@if($student->photo)
-												<img src="{{ asset('storage/' . $student->photo) }}" alt="{{ $student->full_name }}" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
+												<img src="{{ $student->photo_url }}" alt="{{ $student->full_name }}" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
 											@else
-												<div class="avatar-title rounded-circle bg-{{ $student->gender == 'male' ? 'primary' : 'danger' }}">
+												<div class="rounded-circle bg-{{ $student->gender == 'male' ? 'primary' : 'danger' }} d-flex align-items-center justify-content-center text-white" style="width: 40px; height: 40px; font-size: 16px;">
 													{{ strtoupper(substr($student->first_name, 0, 1)) }}
 												</div>
 											@endif
@@ -116,12 +116,12 @@
 									<td>{{ $student->schoolClass->name ?? 'N/A' }}</td>
 									<td>{{ $student->section->name ?? 'N/A' }}</td>
 									<td>
-										<span class="badge bg-{{ $student->gender == 'male' ? 'primary' : 'danger' }}">
+										<span class="badge badge-light-{{ $student->gender == 'male' ? 'primary' : 'danger' }}">
 											{{ ucfirst($student->gender) }}
 										</span>
 									</td>
 									<td>
-										<span class="badge bg-{{ $student->status == 'active' ? 'success' : ($student->status == 'inactive' ? 'secondary' : 'warning') }}">
+										<span class="badge badge-light-{{ $student->status == 'active' ? 'success' : ($student->status == 'inactive' ? 'secondary' : 'warning') }}">
 											{{ ucfirst($student->status) }}
 										</span>
 									</td>
@@ -129,6 +129,9 @@
 										<div class="common-align gap-2 justify-content-start">
 											<a class="square-white" href="{{ route('admin.students.show', $student) }}" title="View">
 												<svg><use href="{{ asset('assets/svg/icon-sprite.svg#eye') }}"></use></svg>
+											</a>
+											<a class="square-white" href="{{ route('admin.students.id-card', $student) }}" title="ID Card">
+												<i class="fa-solid fa-id-card"></i>
 											</a>
 											<a class="square-white" href="{{ route('admin.students.edit', $student) }}" title="Edit">
 												<svg><use href="{{ asset('assets/svg/icon-sprite.svg#edit-content') }}"></use></svg>

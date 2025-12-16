@@ -17,32 +17,33 @@
 		<div class="card">
 			<div class="card-body text-center">
 				@if($student->photo)
-					<img src="{{ asset('storage/' . $student->photo) }}" alt="{{ $student->full_name }}" class="rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;">
+					<img src="{{ $student->photo_url }}" alt="{{ $student->full_name }}" class="rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;">
 				@else
-					<div class="avatar avatar-xxl mx-auto mb-3">
-						<div class="avatar-title rounded-circle bg-{{ $student->gender == 'male' ? 'primary' : 'danger' }}" style="width: 150px; height: 150px; font-size: 60px;">
-							{{ strtoupper(substr($student->first_name, 0, 1)) }}
-						</div>
+					<div class="rounded-circle bg-{{ $student->gender == 'male' ? 'primary' : 'danger' }} mx-auto mb-3 d-flex align-items-center justify-content-center text-white" style="width: 150px; height: 150px; font-size: 60px;">
+						{{ strtoupper(substr($student->first_name, 0, 1)) }}
 					</div>
 				@endif
 
 				<h4 class="mb-1">{{ $student->full_name }}</h4>
 				<p class="text-muted mb-2">{{ $student->admission_no }}</p>
 
-				<span class="badge bg-{{ $student->status == 'active' ? 'success' : ($student->status == 'inactive' ? 'secondary' : 'warning') }} fs-6 mb-3">
+				<span class="badge badge-light-{{ $student->status == 'active' ? 'success' : ($student->status == 'inactive' ? 'secondary' : 'warning') }} fs-6 mb-3">
 					{{ ucfirst($student->status) }}
 				</span>
 
 				<div class="d-flex justify-content-center gap-2 mb-3">
-					<span class="badge bg-{{ $student->gender == 'male' ? 'primary' : 'danger' }}">{{ ucfirst($student->gender) }}</span>
+					<span class="badge badge-light-{{ $student->gender == 'male' ? 'primary' : 'danger' }}">{{ ucfirst($student->gender) }}</span>
 					@if($student->blood_group)
-						<span class="badge bg-info">{{ $student->blood_group }}</span>
+						<span class="badge badge-light-info">{{ $student->blood_group }}</span>
 					@endif
 				</div>
 
 				<hr>
 
 				<div class="d-grid gap-2">
+					<a href="{{ route('admin.students.id-card', $student) }}" class="btn btn-success">
+						<i data-feather="credit-card" class="me-1"></i> Print ID Card
+					</a>
 					<a href="{{ route('admin.students.edit', $student) }}" class="btn btn-outline-primary">
 						<i data-feather="edit" class="me-1"></i> Edit Student
 					</a>
