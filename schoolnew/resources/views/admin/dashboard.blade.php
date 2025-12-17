@@ -14,6 +14,29 @@
 <link rel="stylesheet" type="text/css" href="{{ asset('assets/css/vendors/flatpickr/flatpickr.min.css') }}">
 <link rel="stylesheet" type="text/css" href="{{ asset('assets/css/vendors/jquery.dataTables.css') }}">
 <link rel="stylesheet" type="text/css" href="{{ asset('assets/css/vendors/select.bootstrap5.css') }}">
+<style>
+.card-header-right-icon .dropdown-toggle {
+	border: 1px solid rgba(82, 82, 108, 0.2);
+	padding: 6px 12px;
+	font-size: 14px;
+	color: var(--body-font-color);
+	line-height: 1.5;
+	border-radius: 5px;
+	background-color: transparent;
+}
+.card-header-right-icon .dropdown-toggle::after {
+	display: none;
+}
+.card-header-right-icon .dropdown-toggle:hover {
+	background-color: var(--theme-default);
+	color: #fff;
+	border-color: var(--theme-default);
+}
+.card-header-right-icon .dropdown-toggle i {
+	font-size: 10px;
+	vertical-align: middle;
+}
+</style>
 @endpush
 
 @section('content')
@@ -56,7 +79,7 @@
                                 <h5>School Performance</h5>
                                 <div class="card-header-right-icon">
                                     <div class="dropdown">
-                                        <button class="btn dropdown-toggle" id="viewButton" type="button" data-bs-toggle="dropdown" aria-expanded="false">Today</button>
+                                        <button class="btn dropdown-toggle" id="viewButton" type="button" data-bs-toggle="dropdown" aria-expanded="false">Today <i class="fa fa-angle-down ms-1"></i></button>
                                         <div class="dropdown-menu dropdown-menu-end" aria-labelledby="viewButton">
                                             <a class="dropdown-item" href="#">This Month</a>
                                             <a class="dropdown-item" href="#">Previous Month</a>

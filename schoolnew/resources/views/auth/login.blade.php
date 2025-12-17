@@ -2,6 +2,18 @@
 
 @section('title', 'Login')
 
+@push('styles')
+<style>
+.show-hide {
+	cursor: pointer;
+}
+.show-hide i {
+	color: #999;
+	font-size: 14px;
+}
+</style>
+@endpush
+
 @section('content')
 <div class="login-card login-dark">
 	<div>
@@ -54,7 +66,7 @@
 							<div class="invalid-feedback">{{ $message }}</div>
 						@enderror
 						<div class="show-hide">
-							<span class="show"></span>
+							<i class="fa fa-eye"></i>
 						</div>
 					</div>
 				</div>
@@ -76,18 +88,16 @@
 
 @push('scripts')
 <script>
-	// Show/Hide password toggle
 	jQuery(document).ready(function() {
-		jQuery(".show-hide").show();
-		jQuery(".show-hide span").addClass("show");
-
-		jQuery(".show-hide span").click(function() {
-			if (jQuery(this).hasClass("show")) {
-				jQuery("input[name='password']").attr("type", "text");
-				jQuery(this).removeClass("show");
+		jQuery(".show-hide").click(function() {
+			var passwordField = jQuery("input[name='password']");
+			var icon = jQuery(this).find("i");
+			if (passwordField.attr("type") === "password") {
+				passwordField.attr("type", "text");
+				icon.removeClass("fa-eye").addClass("fa-eye-slash");
 			} else {
-				jQuery("input[name='password']").attr("type", "password");
-				jQuery(this).addClass("show");
+				passwordField.attr("type", "password");
+				icon.removeClass("fa-eye-slash").addClass("fa-eye");
 			}
 		});
 	});
