@@ -24,6 +24,13 @@ use App\Http\Controllers\FeeStructureController;
 use App\Http\Controllers\FeeCollectionController;
 use App\Http\Controllers\FeeTypeController;
 use App\Http\Controllers\FeeGroupController;
+use App\Http\Controllers\Admin\HomeworkController;
+use App\Http\Controllers\Admin\BookController;
+use App\Http\Controllers\Admin\BookIssueController;
+use App\Http\Controllers\Admin\VehicleController;
+use App\Http\Controllers\Admin\TransportRouteController;
+use App\Http\Controllers\Admin\NoticeController;
+use App\Http\Controllers\Admin\EventController;
 
 /*
 |--------------------------------------------------------------------------
