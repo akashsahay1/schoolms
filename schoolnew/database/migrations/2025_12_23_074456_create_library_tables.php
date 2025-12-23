@@ -22,17 +22,20 @@ return new class extends Migration
 
         Schema::create('books', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('book_category_id')->nullable()->constrained('book_categories')->onDelete('set null');
             $table->string('title');
             $table->string('author');
-            $table->string('isbn')->nullable();
-            $table->foreignId('category_id')->nullable()->constrained('book_categories')->onDelete('set null');
+            $table->string('isbn')->nullable()->unique();
             $table->string('publisher')->nullable();
-            $table->year('publication_year')->nullable();
+            $table->string('edition')->nullable();
+            $table->integer('published_year')->nullable();
             $table->integer('total_copies')->default(1);
             $table->integer('available_copies')->default(1);
-            $table->decimal('price', 10, 2)->nullable();
-            $table->string('shelf_location')->nullable();
+            $table->decimal('price', 10, 2)->default(0);
+            $table->string('rack_no')->nullable();
             $table->text('description')->nullable();
+            $table->string('cover_image')->nullable();
+            $table->boolean('is_active')->default(true);
             $table->softDeletes();
             $table->timestamps();
         });
