@@ -28,8 +28,11 @@ class DashboardController extends Controller
         // Get current academic year
         $currentAcademicYear = AcademicYear::where('is_active', true)->first();
 
-        // Count teachers from User model with Teacher role
-        $totalTeachers = User::role('Teacher')->count();
+        // Count teachers from Staff model with teacher designation
+        $totalTeachers = Staff::where('status', 'active')->teachers()->count();
+        if ($totalTeachers == 0) {
+            $totalTeachers = Staff::teachers()->count(); // Count all teachers if no active ones
+        }
 
         // Get fee collection stats
         $totalFeeCollected = 0;
