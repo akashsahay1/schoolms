@@ -24,7 +24,10 @@
       "Bash(gh auth:*)",
       "Bash(printf:*)",
       "Bash(git credential:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(xargs:*)",
+      "Bash(php:*)",
+      "Bash(del:*)"
     ],
     "deny": []
   }

@@ -169,27 +169,39 @@
 jQuery(document).ready(function() {
 	// Function to load sections
 	function loadSections(classId, selectedSectionId) {
+		console.log('loadSections called with classId:', classId, 'selectedSectionId:', selectedSectionId);
+
 		if (classId) {
+			var url = '/admin/homework/sections/' + classId;
+			console.log('Making AJAX call to:', url);
+
 			jQuery.ajax({
-				url: '/admin/homework/sections/' + classId,
+				url: url,
 				type: 'GET',
 				success: function(data) {
+					console.log('Sections loaded successfully:', data);
 					jQuery('#section_id').empty().append('<option value="">All Sections</option>');
+
 					if (data.length === 0) {
+						console.warn('No sections found for class ID:', classId);
 						jQuery('#section_id').append('<option value="" disabled>No sections found for this class</option>');
 					} else {
+						console.log('Adding', data.length, 'sections to dropdown');
 						jQuery.each(data, function(key, section) {
 							var selected = selectedSectionId && section.id == selectedSectionId ? 'selected' : '';
 							jQuery('#section_id').append('<option value="'+ section.id +'" '+ selected +'>'+ section.name +'</option>');
 						});
+						console.log('Sections dropdown populated');
 					}
 				},
 				error: function(xhr, status, error) {
-					console.error('Error loading sections:', error);
+					console.error('Error loading sections. Status:', status, 'Error:', error);
+					console.error('Response:', xhr.responseText);
 					jQuery('#section_id').empty().append('<option value="">Error loading sections</option>');
 				}
 			});
 		} else {
+			console.log('No class selected, showing default option');
 			jQuery('#section_id').empty().append('<option value="">All Sections</option>');
 		}
 	}
