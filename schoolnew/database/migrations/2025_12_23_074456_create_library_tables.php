@@ -44,10 +44,12 @@ return new class extends Migration
             $table->id();
             $table->foreignId('book_id')->constrained('books')->onDelete('cascade');
             $table->foreignId('student_id')->constrained('students')->onDelete('cascade');
+            $table->foreignId('staff_id')->nullable()->constrained('staff')->onDelete('set null');
+            $table->foreignId('issued_by')->nullable()->constrained('users')->onDelete('set null');
             $table->date('issue_date');
             $table->date('due_date');
             $table->date('return_date')->nullable();
-            $table->enum('status', ['issued', 'returned', 'overdue'])->default('issued');
+            $table->enum('status', ['issued', 'returned', 'overdue', 'lost'])->default('issued');
             $table->decimal('fine_amount', 10, 2)->default(0);
             $table->text('remarks')->nullable();
             $table->softDeletes();
