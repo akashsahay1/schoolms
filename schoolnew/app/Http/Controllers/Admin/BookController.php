@@ -88,7 +88,7 @@ class BookController extends Controller
 				'is_active' => $request->has('is_active'),
 			]);
 
-			return redirect()->route('admin.library.books')->with('success', 'Book added successfully.');
+			return redirect()->route('admin.library.books.index')->with('success', 'Book added successfully.');
 		} catch (\Exception $e) {
 			return back()->with('error', 'An error occurred: ' . $e->getMessage())->withInput();
 		}
@@ -125,7 +125,7 @@ class BookController extends Controller
 				'is_active' => $request->has('is_active'),
 			]);
 
-			return redirect()->route('admin.library.books')->with('success', 'Book updated successfully.');
+			return redirect()->route('admin.library.books.index')->with('success', 'Book updated successfully.');
 		} catch (\Exception $e) {
 			return back()->with('error', 'An error occurred: ' . $e->getMessage())->withInput();
 		}
@@ -143,7 +143,7 @@ class BookController extends Controller
 			}
 
 			$book->delete();
-			return redirect()->route('admin.library.books')->with('success', 'Book deleted successfully.');
+			return redirect()->route('admin.library.books.index')->with('success', 'Book deleted successfully.');
 		} catch (\Exception $e) {
 			return back()->with('error', 'An error occurred: ' . $e->getMessage());
 		}
