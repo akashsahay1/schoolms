@@ -167,21 +167,45 @@
 @section('scripts')
 <script>
 jQuery(document).ready(function() {
-	jQuery('#class_id').on('change', function() {
-		var classId = jQuery(this).val();
+	// Function to load sections
+	function loadSections(classId, selectedSectionId) {
 		if (classId) {
 			jQuery.ajax({
 				url: '/admin/homework/sections/' + classId,
 				type: 'GET',
 				success: function(data) {
 					jQuery('#section_id').empty().append('<option value="">All Sections</option>');
-					jQuery.each(data, function(key, section) {
-						jQuery('#section_id').append('<option value="'+ section.id +'">'+ section.name +'</option>');
-					});
+					if (data.length === 0) {
+						jQuery('#section_id').append('<option value="" disabled>No sections found for this class</option>');
+					} else {
+						jQuery.each(data, function(key, section) {
+							var selected = selectedSectionId && section.id == selectedSectionId ? 'selected' : '';
+							jQuery('#section_id').append('<option value="'+ section.id +'" '+ selected +'>'+ section.name +'</option>');
+						});
+					}
+				},
+				error: function(xhr, status, error) {
+					console.error('Error loading sections:', error);
+					jQuery('#section_id').empty().append('<option value="">Error loading sections</option>');
 				}
 			});
+		} else {
+			jQuery('#section_id').empty().append('<option value="">All Sections</option>');
 		}
+	}
+
+	// Load sections on class change
+	jQuery('#class_id').on('change', function() {
+		var classId = jQuery(this).val();
+		loadSections(classId, null);
 	});
+
+	// Load sections on page load if class is already selected (e.g., after validation error)
+	var initialClassId = jQuery('#class_id').val();
+	var initialSectionId = '{{ old('section_id') }}';
+	if (initialClassId) {
+		loadSections(initialClassId, initialSectionId);
+	}
 });
 </script>
 @endsection
