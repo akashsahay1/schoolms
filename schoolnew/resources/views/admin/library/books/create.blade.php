@@ -141,6 +141,13 @@
 						@enderror
 					</div>
 
+					<div class="mb-3">
+						<div class="form-check">
+							<input type="checkbox" class="form-check-input" id="is_active" name="is_active" value="1" {{ old('is_active', true) ? 'checked' : '' }}>
+							<label class="form-check-label" for="is_active">Active (Book available for issue)</label>
+						</div>
+					</div>
+
 					<div class="d-flex justify-content-end gap-2">
 						<a href="{{ route('admin.library.books.index') }}" class="btn btn-light">Cancel</a>
 						<button type="submit" class="btn btn-primary">
