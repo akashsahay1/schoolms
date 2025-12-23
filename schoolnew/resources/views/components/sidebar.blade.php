@@ -128,6 +128,19 @@
 						</ul>
 					</li>
 
+					<!-- Homework -->
+					<li class="sidebar-list">
+						<a class="sidebar-link sidebar-title link-nav {{ request()->routeIs('admin.homework.*') ? 'active' : '' }}" href="{{ route('admin.homework.index') }}">
+							<svg class="stroke-icon">
+								<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-learning') }}"></use>
+							</svg>
+							<svg class="fill-icon">
+								<use href="{{ asset('assets/svg/icon-sprite.svg#fill-learning') }}"></use>
+							</svg>
+							<span>Homework</span>
+						</a>
+					</li>
+
 					<!-- Finance -->
 					<li class="sidebar-main-title">
 						<div><h6>Finance</h6></div>
@@ -172,6 +185,45 @@
 						<ul class="sidebar-submenu" style="{{ request()->routeIs('admin.notices.*') || request()->routeIs('admin.events.*') ? 'display: block;' : '' }}">
 							<li><a class="{{ request()->routeIs('admin.notices.*') ? 'active' : '' }}" href="{{ route('admin.notices.index') }}">Notices</a></li>
 							<li><a class="{{ request()->routeIs('admin.events.*') ? 'active' : '' }}" href="{{ route('admin.events.index') }}">Events</a></li>
+						</ul>
+					</li>
+
+					<!-- Facilities -->
+					<li class="sidebar-main-title">
+						<div><h6>Facilities</h6></div>
+					</li>
+
+					<!-- Library -->
+					<li class="sidebar-list {{ request()->routeIs('admin.library.*') ? 'active' : '' }}">
+						<a class="sidebar-link sidebar-title {{ request()->routeIs('admin.library.*') ? 'active' : '' }}" href="#">
+							<svg class="stroke-icon">
+								<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-learning') }}"></use>
+							</svg>
+							<svg class="fill-icon">
+								<use href="{{ asset('assets/svg/icon-sprite.svg#fill-learning') }}"></use>
+							</svg>
+							<span>Library</span>
+						</a>
+						<ul class="sidebar-submenu" style="{{ request()->routeIs('admin.library.*') ? 'display: block;' : '' }}">
+							<li><a class="{{ request()->routeIs('admin.library.books.*') ? 'active' : '' }}" href="{{ route('admin.library.books.index') }}">Books</a></li>
+							<li><a class="{{ request()->routeIs('admin.library.issue.*') ? 'active' : '' }}" href="{{ route('admin.library.issue.index') }}">Issue/Return</a></li>
+						</ul>
+					</li>
+
+					<!-- Transport -->
+					<li class="sidebar-list {{ request()->routeIs('admin.transport.*') ? 'active' : '' }}">
+						<a class="sidebar-link sidebar-title {{ request()->routeIs('admin.transport.*') ? 'active' : '' }}" href="#">
+							<svg class="stroke-icon">
+								<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-board') }}"></use>
+							</svg>
+							<svg class="fill-icon">
+								<use href="{{ asset('assets/svg/icon-sprite.svg#fill-board') }}"></use>
+							</svg>
+							<span>Transport</span>
+						</a>
+						<ul class="sidebar-submenu" style="{{ request()->routeIs('admin.transport.*') ? 'display: block;' : '' }}">
+							<li><a class="{{ request()->routeIs('admin.transport.vehicles.*') ? 'active' : '' }}" href="{{ route('admin.transport.vehicles.index') }}">Vehicles</a></li>
+							<li><a class="{{ request()->routeIs('admin.transport.routes.*') ? 'active' : '' }}" href="{{ route('admin.transport.routes.index') }}">Routes</a></li>
 						</ul>
 					</li>
 
