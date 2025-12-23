@@ -172,7 +172,7 @@ jQuery(document).ready(function() {
 		console.log('loadSections called with classId:', classId, 'selectedSectionId:', selectedSectionId);
 
 		if (classId) {
-			var url = '/admin/homework/sections/' + classId;
+			var url = '{{ route("admin.homework.sections", ":classId") }}'.replace(':classId', classId);
 			console.log('Making AJAX call to:', url);
 
 			jQuery.ajax({
