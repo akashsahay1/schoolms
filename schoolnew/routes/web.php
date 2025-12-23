@@ -198,7 +198,7 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     // Library
     Route::prefix('library')->name('library.')->group(function () {
         // Books
-        Route::get('/books', [BookController::class, 'index'])->name('books');
+        Route::get('/books', [BookController::class, 'index'])->name('books.index');
         Route::get('/books/create', [BookController::class, 'create'])->name('books.create');
         Route::post('/books', [BookController::class, 'store'])->name('books.store');
         Route::get('/books/{book}/edit', [BookController::class, 'edit'])->name('books.edit');
@@ -206,7 +206,7 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
         Route::delete('/books/{book}', [BookController::class, 'destroy'])->name('books.destroy');
 
         // Book Issue
-        Route::get('/issue', [BookIssueController::class, 'index'])->name('issue');
+        Route::get('/issue', [BookIssueController::class, 'index'])->name('issue.index');
         Route::get('/issue/create', [BookIssueController::class, 'create'])->name('issue.create');
         Route::post('/issue', [BookIssueController::class, 'store'])->name('issue.store');
         Route::post('/issue/{issue}/return', [BookIssueController::class, 'returnBook'])->name('issue.return');
@@ -217,7 +217,7 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     // Transport
     Route::prefix('transport')->name('transport.')->group(function () {
         // Vehicles
-        Route::get('/vehicles', [VehicleController::class, 'index'])->name('vehicles');
+        Route::get('/vehicles', [VehicleController::class, 'index'])->name('vehicles.index');
         Route::get('/vehicles/create', [VehicleController::class, 'create'])->name('vehicles.create');
         Route::post('/vehicles', [VehicleController::class, 'store'])->name('vehicles.store');
         Route::get('/vehicles/{vehicle}/edit', [VehicleController::class, 'edit'])->name('vehicles.edit');
@@ -225,7 +225,7 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
         Route::delete('/vehicles/{vehicle}', [VehicleController::class, 'destroy'])->name('vehicles.destroy');
 
         // Routes
-        Route::get('/routes', [TransportRouteController::class, 'index'])->name('routes');
+        Route::get('/routes', [TransportRouteController::class, 'index'])->name('routes.index');
         Route::get('/routes/create', [TransportRouteController::class, 'create'])->name('routes.create');
         Route::post('/routes', [TransportRouteController::class, 'store'])->name('routes.store');
         Route::get('/routes/{route}/edit', [TransportRouteController::class, 'edit'])->name('routes.edit');
