@@ -134,9 +134,14 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
 
     // Homework
     Route::prefix('homework')->name('homework.')->group(function () {
-        Route::get('/', function () { return view('admin.coming-soon'); })->name('index');
-        Route::get('/create', function () { return view('admin.coming-soon'); })->name('create');
-        Route::get('/submissions', function () { return view('admin.coming-soon'); })->name('submissions');
+        Route::get('/', [HomeworkController::class, 'index'])->name('index');
+        Route::get('/create', [HomeworkController::class, 'create'])->name('create');
+        Route::post('/', [HomeworkController::class, 'store'])->name('store');
+        Route::get('/{homework}/edit', [HomeworkController::class, 'edit'])->name('edit');
+        Route::put('/{homework}', [HomeworkController::class, 'update'])->name('update');
+        Route::delete('/{homework}', [HomeworkController::class, 'destroy'])->name('destroy');
+        Route::get('/{homework}/submissions', [HomeworkController::class, 'submissions'])->name('submissions');
+        Route::get('/sections/{classId}', [HomeworkController::class, 'getSections'])->name('sections');
     });
 
     // Fees
@@ -192,15 +197,41 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
 
     // Library
     Route::prefix('library')->name('library.')->group(function () {
-        Route::get('/books', function () { return view('admin.coming-soon'); })->name('books');
-        Route::get('/issue', function () { return view('admin.coming-soon'); })->name('issue');
+        // Books
+        Route::get('/books', [BookController::class, 'index'])->name('books');
+        Route::get('/books/create', [BookController::class, 'create'])->name('books.create');
+        Route::post('/books', [BookController::class, 'store'])->name('books.store');
+        Route::get('/books/{book}/edit', [BookController::class, 'edit'])->name('books.edit');
+        Route::put('/books/{book}', [BookController::class, 'update'])->name('books.update');
+        Route::delete('/books/{book}', [BookController::class, 'destroy'])->name('books.destroy');
+
+        // Book Issue
+        Route::get('/issue', [BookIssueController::class, 'index'])->name('issue');
+        Route::get('/issue/create', [BookIssueController::class, 'create'])->name('issue.create');
+        Route::post('/issue', [BookIssueController::class, 'store'])->name('issue.store');
+        Route::post('/issue/{issue}/return', [BookIssueController::class, 'returnBook'])->name('issue.return');
+
         Route::get('/members', function () { return view('admin.coming-soon'); })->name('members');
     });
 
     // Transport
     Route::prefix('transport')->name('transport.')->group(function () {
-        Route::get('/vehicles', function () { return view('admin.coming-soon'); })->name('vehicles');
-        Route::get('/routes', function () { return view('admin.coming-soon'); })->name('routes');
+        // Vehicles
+        Route::get('/vehicles', [VehicleController::class, 'index'])->name('vehicles');
+        Route::get('/vehicles/create', [VehicleController::class, 'create'])->name('vehicles.create');
+        Route::post('/vehicles', [VehicleController::class, 'store'])->name('vehicles.store');
+        Route::get('/vehicles/{vehicle}/edit', [VehicleController::class, 'edit'])->name('vehicles.edit');
+        Route::put('/vehicles/{vehicle}', [VehicleController::class, 'update'])->name('vehicles.update');
+        Route::delete('/vehicles/{vehicle}', [VehicleController::class, 'destroy'])->name('vehicles.destroy');
+
+        // Routes
+        Route::get('/routes', [TransportRouteController::class, 'index'])->name('routes');
+        Route::get('/routes/create', [TransportRouteController::class, 'create'])->name('routes.create');
+        Route::post('/routes', [TransportRouteController::class, 'store'])->name('routes.store');
+        Route::get('/routes/{route}/edit', [TransportRouteController::class, 'edit'])->name('routes.edit');
+        Route::put('/routes/{route}', [TransportRouteController::class, 'update'])->name('routes.update');
+        Route::delete('/routes/{route}', [TransportRouteController::class, 'destroy'])->name('routes.destroy');
+
         Route::get('/drivers', function () { return view('admin.coming-soon'); })->name('drivers');
     });
 
