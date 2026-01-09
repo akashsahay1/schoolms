@@ -88,7 +88,7 @@
                 <div class="card-body">
                     <div class="table-responsive">
                         <table class="table table-bordered text-center">
-                            <thead class="bg-light">
+                            <thead class="bg-light text-dark">
                                 <tr>
                                     <th style="width: 14.28%;">Sun</th>
                                     <th style="width: 14.28%;">Mon</th>

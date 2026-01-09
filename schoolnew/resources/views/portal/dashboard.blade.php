@@ -16,12 +16,12 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div class="text-white">
-                            <h4 class="text-white mb-1">Welcome back, {{ $student->first_name }}!</h4>
-                            <p class="mb-0">Class: {{ $student->schoolClass->name ?? 'N/A' }} | Section: {{ $student->section->name ?? 'N/A' }}</p>
-                            <p class="mb-0 opacity-75">Academic Year: {{ $currentAcademicYear->name ?? 'N/A' }}</p>
+                            <h4 class="mb-1" style="color: white !important;">Welcome back, {{ $student->first_name }}!</h4>
+                            <p class="mb-0" style="color: white !important;">Class: {{ $student->schoolClass->name ?? 'N/A' }} | Section: {{ $student->section->name ?? 'N/A' }}</p>
+                            <p class="mb-0" style="color: rgba(255,255,255,0.75) !important;">Academic Year: {{ $currentAcademicYear->name ?? 'N/A' }}</p>
                         </div>
                         <div class="d-none d-md-block">
-                            <img src="{{ $student->photo_url }}" alt="{{ $student->full_name }}" class="rounded-circle" width="80" height="80" style="object-fit: cover; border: 3px solid white;">
+                            <img src="{{ $student->photo_url }}" alt="{{ $student->full_name }}" class="rounded-circle" width="80" height="80" style="object-fit: cover; border: 3px solid white;" onerror="this.src='https://ui-avatars.com/api/?name={{ urlencode($student->full_name) }}&background=7366ff&color=fff&size=80'">
                         </div>
                     </div>
                 </div>

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Portal;
 
 use App\Http\Controllers\Controller;
-use App\Models\Student;
 use App\Models\Event;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -16,14 +15,18 @@ class EventController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
-        $student = Student::where('user_id', $user->id)->first();
+        $student = $user->student;
         $audience = $student ? 'students' : 'parents';
 
         $month = $request->get('month', now()->month);
         $year = $request->get('year', now()->year);
 
-        // Get events for the month
-        $events = Event::forAudience($audience)
+        // Get events for the month (include both specific audience and general events)
+        $events = Event::where(function ($q) use ($audience) {
+                $q->whereNull('target_audience')
+                    ->orWhereJsonContains('target_audience', 'all')
+                    ->orWhereJsonContains('target_audience', $audience);
+            })
             ->inMonth($year, $month)
             ->orderBy('start_date')
             ->get();
@@ -32,7 +35,11 @@ class EventController extends Controller
         $calendarData = $this->buildCalendarData($year, $month, $events);
 
         // Get upcoming events
-        $upcomingEvents = Event::forAudience($audience)
+        $upcomingEvents = Event::where(function ($q) use ($audience) {
+                $q->whereNull('target_audience')
+                    ->orWhereJsonContains('target_audience', 'all')
+                    ->orWhereJsonContains('target_audience', $audience);
+            })
             ->upcoming()
             ->orderBy('start_date')
             ->take(10)
@@ -64,13 +71,17 @@ class EventController extends Controller
     public function calendarEvents(Request $request)
     {
         $user = Auth::user();
-        $student = Student::where('user_id', $user->id)->first();
+        $student = $user->student;
         $audience = $student ? 'students' : 'parents';
 
         $start = $request->get('start');
         $end = $request->get('end');
 
-        $events = Event::forAudience($audience)
+        $events = Event::where(function ($q) use ($audience) {
+                $q->whereNull('target_audience')
+                    ->orWhereJsonContains('target_audience', 'all')
+                    ->orWhereJsonContains('target_audience', $audience);
+            })
             ->whereBetween('start_date', [$start, $end])
             ->get()
             ->map(function ($event) {

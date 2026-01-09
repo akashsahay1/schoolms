@@ -447,6 +447,42 @@
                     </div>
                 </div>
 
+                <!-- Pending Leave Applications -->
+                @if($pendingLeavesCount > 0)
+                <div class="col-xl-12 d-xl-block d-none">
+                    <div class="card">
+                        <div class="card-header card-no-border">
+                            <div class="header-top">
+                                <h5>Pending Leaves <span class="badge badge-light-warning ms-2">{{ $pendingLeavesCount }}</span></h5>
+                                <a href="{{ route('admin.leaves.index') }}" class="f-light text-decoration-underline">View All</a>
+                            </div>
+                        </div>
+                        <div class="card-body pt-0">
+                            <ul class="list-group list-group-flush">
+                                @foreach($pendingLeaves as $leave)
+                                <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center gap-2">
+                                        @if($leave->student && $leave->student->photo)
+                                            <img src="{{ asset('storage/' . $leave->student->photo) }}" alt="" class="rounded-circle" width="35" height="35">
+                                        @else
+                                            <div class="bg-light-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 35px; height: 35px;">
+                                                <span class="text-primary">{{ $leave->student ? substr($leave->student->first_name, 0, 1) : '?' }}</span>
+                                            </div>
+                                        @endif
+                                        <div>
+                                            <span class="f-w-500">{{ $leave->student->first_name ?? '' }} {{ $leave->student->last_name ?? '' }}</span>
+                                            <br><small class="text-muted">{{ $leave->student->schoolClass->name ?? '' }} - {{ $leave->from_date->format('M d') }}</small>
+                                        </div>
+                                    </div>
+                                    <a href="{{ route('admin.leaves.show', $leave) }}" class="btn btn-sm btn-outline-primary">Review</a>
+                                </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                @endif
+
                 <!-- Notice Board -->
                 <div class="col-xl-12 notification box-col-6 d-xl-block d-none">
                     <div class="card">
@@ -550,16 +586,7 @@
                     <div class="header-top">
                         <h5>Unpaid Fees</h5>
                         <div class="card-header-right-icon">
-                            <div class="dropdown icon-dropdown">
-                                <button class="btn dropdown-toggle" id="unpaidFees" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="icon-more-alt"></i>
-                                </button>
-                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="unpaidFees">
-                                    <a class="dropdown-item" href="#!">Today</a>
-                                    <a class="dropdown-item" href="#!">Tomorrow</a>
-                                    <a class="dropdown-item" href="#!">Yesterday</a>
-                                </div>
-                            </div>
+                            <a href="{{ route('admin.fees.outstanding') }}" class="btn btn-sm btn-outline-primary">View All</a>
                         </div>
                     </div>
                 </div>
@@ -570,30 +597,40 @@
                                 <tr>
                                     <th></th>
                                     <th>Name</th>
-                                    <th>ID</th>
-                                    <th>Standard</th>
-                                    <th>Section</th>
+                                    <th>Class</th>
                                     <th>Fees</th>
-                                    <th>Due Date</th>
+                                    <th>Fine</th>
+                                    <th>Total Due</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @forelse($unpaidFees ?? [] as $fee)
                                 <tr>
-                                    <td></td>
+                                    <td>
+                                        @if($fee->is_overdue ?? false)
+                                            <span class="badge badge-light-danger" title="Overdue">!</span>
+                                        @endif
+                                    </td>
                                     <td>
                                         <div class="common-align justify-content-start">
                                             <img class="rounded-circle me-2" src="{{ $fee->student->photo_url ?? asset('assets/images/dashboard/profile.png') }}" alt="user" style="width: 40px; height: 40px; object-fit: cover;">
                                             <div class="img-content-box">
-                                                <a class="f-w-500" href="#">{{ $fee->student->full_name ?? 'Student Name' }}</a>
+                                                <a class="f-w-500" href="{{ route('admin.students.show', $fee->student->id) }}">{{ $fee->student->full_name ?? 'Student Name' }}</a>
+                                                <small class="text-muted d-block">{{ $fee->student->schoolClass->name ?? '' }} - {{ $fee->student->section->name ?? '' }}</small>
                                             </div>
                                         </div>
                                     </td>
-                                    <td>#{{ $fee->student->admission_no ?? '00000' }}</td>
-                                    <td>{{ $fee->student->schoolClass->name ?? 'Class' }}</td>
-                                    <td>{{ $fee->student->section->name ?? 'A' }}</td>
-                                    <td>${{ number_format($fee->amount ?? 0, 2) }}</td>
-                                    <td>{{ $fee->due_date ? $fee->due_date->format('M d, Y') : 'N/A' }}</td>
+                                    <td>₹{{ number_format($fee->total_fees ?? 0, 2) }}</td>
+                                    <td class="{{ ($fee->fine_amount ?? 0) > 0 ? 'text-warning fw-bold' : '' }}">
+                                        ₹{{ number_format($fee->fine_amount ?? 0, 2) }}
+                                    </td>
+                                    <td class="text-danger fw-bold">₹{{ number_format($fee->pending_amount ?? 0, 2) }}</td>
+                                    <td>
+                                        <a href="{{ route('admin.fees.collect', $fee->student->id) }}" class="btn btn-sm btn-primary">
+                                            Collect
+                                        </a>
+                                    </td>
                                 </tr>
                                 @empty
                                 <tr>

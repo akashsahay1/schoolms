@@ -25,7 +25,7 @@
 				</a>
 			</div>
 			<div class="toggle-sidebar" id="sidebar-toggle-btn">
-				<i class="status_toggle middle sidebar-toggle" data-feather="align-center"></i>
+				<i class="status_toggle middle sidebar-toggle" data-feather="align-center" style="color: #2c323f;"></i>
 			</div>
 		</div>
 
@@ -33,8 +33,8 @@
 		<div class="left-header col-xxl-5 col-xl-6 col-lg-5 col-md-4 col-sm-3 p-0">
 			<div class="notification-slider">
 				<div class="d-flex h-100">
-					<h6 class="mb-0 f-w-400">
-						<span class="font-primary">Welcome to {{ config('app.name') }}! </span>
+					<h6 class="mb-0 f-w-400" style="color: #fff !important;">
+						<span style="color: #fff !important;">Welcome to {{ config('app.name') }}! </span>
 					</h6>
 				</div>
 			</div>
@@ -46,7 +46,7 @@
 				<!-- Fullscreen Toggle -->
 				<li class="fullscreen-body">
 					<span>
-						<svg id="maximize-screen">
+						<svg id="maximize-screen" style="stroke: #2c323f;">
 							<use href="{{ asset('assets/svg/icon-sprite.svg#full-screen') }}"></use>
 						</svg>
 					</span>
@@ -55,7 +55,7 @@
 				<!-- Dark/Light Mode Toggle -->
 				<li>
 					<div class="mode">
-						<svg>
+						<svg style="stroke: #2c323f;">
 							<use href="{{ asset('assets/svg/icon-sprite.svg#moon') }}"></use>
 						</svg>
 					</div>
@@ -64,7 +64,7 @@
 				<!-- Notifications -->
 				<li class="onhover-dropdown">
 					<div class="notification-box">
-						<svg>
+						<svg style="stroke: #2c323f;">
 							<use href="{{ asset('assets/svg/icon-sprite.svg#notification') }}"></use>
 						</svg>
 						<span class="badge rounded-pill badge-success">0</span>
@@ -82,38 +82,21 @@
 				<!-- Profile Dropdown -->
 				<li class="profile-nav onhover-dropdown pe-0 py-0">
 					<div class="d-flex profile-media">
-						<img class="b-r-10 img-40" src="{{ Auth::user()->avatar_url }}" alt="{{ Auth::user()->name }}">
+						<img class="b-r-10" src="{{ Auth::user()->avatar_url }}" alt="{{ Auth::user()->name }}" width="40" height="40" style="border-radius: 10px;">
 						<div class="flex-grow-1">
-							<span>{{ Auth::user()->name }}</span>
-							<p class="mb-0">
+							<span style="color: #2c323f;">{{ Auth::user()->name }}</span>
+							<p class="mb-0" style="color: #6c757d;">
 								{{ Auth::user()->roles->first()->name ?? 'Administrator' }}
-								<i class="middle fa-solid fa-angle-down"></i>
+								<i class="middle fa-solid fa-angle-down" style="color: #2c323f;"></i>
 							</p>
 						</div>
 					</div>
 					<ul class="profile-dropdown onhover-show-div">
-						<li>
-							<a href="{{ route('admin.profile') }}">
-								<i data-feather="user"></i>
-								<span>Account</span>
-							</a>
-						</li>
-						<li>
-							<a href="{{ route('admin.settings') }}">
-								<i data-feather="settings"></i>
-								<span>Settings</span>
-							</a>
-						</li>
-						<li>
-							<form method="POST" action="{{ route('logout') }}">
-								@csrf
-								<a href="{{ route('logout') }}" onclick="event.preventDefault(); this.closest('form').submit();">
-									<i data-feather="log-out"></i>
-									<span>Log out</span>
-								</a>
-							</form>
-						</li>
+						<li><a href="{{ route('admin.profile') }}"><i data-feather="user"></i><span>Account</span></a></li>
+						<li><a href="{{ route('admin.settings.index') }}"><i data-feather="settings"></i><span>Settings</span></a></li>
+						<li><a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('admin-logout-form').submit();"><i data-feather="log-out"></i><span>Log out</span></a></li>
 					</ul>
+					<form method="POST" action="{{ route('logout') }}" id="admin-logout-form" style="display: none;">@csrf</form>
 				</li>
 			</ul>
 		</div>

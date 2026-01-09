@@ -136,8 +136,22 @@ class StudentController extends Controller
                 $photoPath = $request->file('photo')->store('students', 'public');
             }
 
+            // Create user account for student login
+            $studentEmail = $validated['email'] ?? strtolower(str_replace(' ', '', $validated['first_name'])) . '.' . $admissionNo . '@student.school.com';
+            $defaultPassword = $admissionNo; // Password is the admission number
+
+            $user = User::create([
+                'name' => trim($validated['first_name'] . ' ' . ($validated['last_name'] ?? '')),
+                'email' => $studentEmail,
+                'password' => Hash::make($defaultPassword),
+            ]);
+
+            // Assign student role
+            $user->assignRole('student');
+
             // Create student record
             $student = Student::create([
+                'user_id' => $user->id,
                 'parent_id' => $parent->id,
                 'class_id' => $validated['class_id'],
                 'section_id' => $validated['section_id'],
@@ -164,8 +178,13 @@ class StudentController extends Controller
 
             DB::commit();
 
+            $message = "Student registered successfully.\n";
+            $message .= "Admission No: {$admissionNo}\n";
+            $message .= "Login Email: {$studentEmail}\n";
+            $message .= "Password: {$defaultPassword}";
+
             return redirect()->route('admin.students.index')
-                ->with('success', 'Student registered successfully. Admission No: ' . $admissionNo);
+                ->with('success', $message);
 
         } catch (\Exception $e) {
             DB::rollBack();

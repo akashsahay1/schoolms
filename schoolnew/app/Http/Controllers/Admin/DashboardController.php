@@ -15,6 +15,8 @@ use App\Models\Notice;
 use App\Models\Event;
 use App\Models\FeeCollection;
 use App\Models\Attendance;
+use App\Models\LeaveApplication;
+use App\Models\FeeStructure;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
 
@@ -105,8 +107,80 @@ class DashboardController extends Controller
         // Top performers for table (placeholder)
         $topPerformers = collect([]);
 
-        // Unpaid fees (placeholder - connect to fees module when available)
+        // Unpaid fees - Calculate students with pending fees (including fines)
         $unpaidFees = collect([]);
+        $today = now();
+
+        if ($currentAcademicYear) {
+            // Get students with their class info
+            $studentsWithFees = Student::with(['schoolClass', 'section'])
+                ->where('status', 'active')
+                ->get();
+
+            foreach ($studentsWithFees as $student) {
+                // Get fee structures for student's class
+                $feeStructures = FeeStructure::where('class_id', $student->class_id)
+                    ->where('academic_year_id', $currentAcademicYear->id)
+                    ->where('is_active', true)
+                    ->get();
+
+                if ($feeStructures->isEmpty()) {
+                    continue;
+                }
+
+                // Get paid fee structure IDs for this student
+                $paidFeeStructureIds = FeeCollection::where('student_id', $student->id)
+                    ->where('academic_year_id', $currentAcademicYear->id)
+                    ->pluck('fee_structure_id')
+                    ->toArray();
+
+                // Get paid amount for this student
+                $paidAmount = FeeCollection::where('student_id', $student->id)
+                    ->where('academic_year_id', $currentAcademicYear->id)
+                    ->sum('paid_amount');
+
+                // Calculate total fees including fines for unpaid fees past due date
+                $totalFees = 0;
+                $totalFine = 0;
+                $nearestDueDate = null;
+
+                foreach ($feeStructures as $structure) {
+                    $totalFees += $structure->amount;
+
+                    // Calculate fine only for unpaid fees that are past due date
+                    if (!in_array($structure->id, $paidFeeStructureIds) && $structure->due_date && $structure->due_date < $today) {
+                        if ($structure->fine_type === 'percentage') {
+                            $totalFine += ($structure->amount * $structure->fine_amount) / 100;
+                        } else {
+                            $totalFine += $structure->fine_amount ?? 0;
+                        }
+                    }
+
+                    // Track nearest due date
+                    if ($structure->due_date && (!$nearestDueDate || $structure->due_date < $nearestDueDate)) {
+                        $nearestDueDate = $structure->due_date;
+                    }
+                }
+
+                $pendingAmount = ($totalFees + $totalFine) - $paidAmount;
+
+                if ($pendingAmount > 0) {
+                    $unpaidFees->push((object)[
+                        'student' => $student,
+                        'total_fees' => $totalFees,
+                        'fine_amount' => $totalFine,
+                        'paid_amount' => $paidAmount,
+                        'pending_amount' => $pendingAmount,
+                        'pending_count' => $feeStructures->count() - count($paidFeeStructureIds),
+                        'due_date' => $nearestDueDate,
+                        'is_overdue' => $nearestDueDate && $nearestDueDate < $today,
+                    ]);
+                }
+            }
+
+            // Sort by pending amount descending and take top 10
+            $unpaidFees = $unpaidFees->sortByDesc('pending_amount')->take(10)->values();
+        }
 
         // Fetch notices from Notice model
         $notices = collect([]);
@@ -158,6 +232,18 @@ class DashboardController extends Controller
             }
         }
 
+        // Pending leave applications
+        $pendingLeaves = collect([]);
+        $pendingLeavesCount = 0;
+        if (class_exists(LeaveApplication::class)) {
+            $pendingLeavesCount = LeaveApplication::pending()->count();
+            $pendingLeaves = LeaveApplication::with(['student.schoolClass', 'student.section'])
+                ->pending()
+                ->latest()
+                ->take(5)
+                ->get();
+        }
+
         return view('admin.dashboard', compact(
             'stats',
             'genderStats',
@@ -172,7 +258,9 @@ class DashboardController extends Controller
             'tasks',
             'totalTasks',
             'completedTasks',
-            'attendanceStats'
+            'attendanceStats',
+            'pendingLeaves',
+            'pendingLeavesCount'
         ));
     }
 

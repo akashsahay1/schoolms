@@ -106,6 +106,28 @@
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
+                                <label class="form-label">Target Audience</label>
+                                <div class="d-flex flex-wrap gap-3">
+                                    @php $audiences = $event->target_audience ?? ['all']; @endphp
+                                    <div class="form-check">
+                                        <input type="checkbox" name="target_audience[]" value="all" class="form-check-input" id="audience_all" {{ in_array('all', $audiences) ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="audience_all">All</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input type="checkbox" name="target_audience[]" value="students" class="form-check-input" id="audience_students" {{ in_array('students', $audiences) ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="audience_students">Students</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input type="checkbox" name="target_audience[]" value="parents" class="form-check-input" id="audience_parents" {{ in_array('parents', $audiences) ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="audience_parents">Parents</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input type="checkbox" name="target_audience[]" value="teachers" class="form-check-input" id="audience_teachers" {{ in_array('teachers', $audiences) ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="audience_teachers">Teachers</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
                                 <label class="form-label">Add More Photos</label>
                                 <input type="file" name="photos[]" class="form-control" accept="image/*" multiple>
                             </div>

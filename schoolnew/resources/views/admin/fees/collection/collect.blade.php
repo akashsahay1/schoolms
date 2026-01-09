@@ -55,17 +55,41 @@
 								<th>Fee Group</th>
 								<th>Amount</th>
 								<th>Due Date</th>
+								<th>Fine</th>
+								<th>Total</th>
 								<th>Status</th>
 								<th>Action</th>
 							</tr>
 						</thead>
 						<tbody>
+							@php $today = now()->startOfDay(); @endphp
 							@foreach($feeStructures as $structure)
-								<tr>
+								@php
+									$isOverdue = $structure->due_date && $structure->due_date < $today;
+									$fineAmount = 0;
+									if ($isOverdue && !in_array($structure->id, $paidFees)) {
+										if ($structure->fine_type === 'percentage') {
+											$fineAmount = ($structure->amount * $structure->fine_amount) / 100;
+										} else {
+											$fineAmount = $structure->fine_amount ?? 0;
+										}
+									}
+									$totalAmount = $structure->amount + $fineAmount;
+								@endphp
+								<tr class="{{ $isOverdue && !in_array($structure->id, $paidFees) ? 'table-warning' : '' }}">
 									<td>{{ $structure->feeType->name }}</td>
 									<td>{{ $structure->feeGroup->name }}</td>
 									<td><strong>₹{{ number_format($structure->amount, 2) }}</strong></td>
-									<td>{{ $structure->due_date ? $structure->due_date->format('d M Y') : '-' }}</td>
+									<td>
+										{{ $structure->due_date ? $structure->due_date->format('d M Y') : '-' }}
+										@if($isOverdue && !in_array($structure->id, $paidFees))
+											<br><span class="badge badge-light-danger">Overdue</span>
+										@endif
+									</td>
+									<td class="{{ $fineAmount > 0 ? 'text-danger fw-bold' : '' }}">
+										₹{{ number_format($fineAmount, 2) }}
+									</td>
+									<td class="fw-bold">₹{{ number_format($totalAmount, 2) }}</td>
 									<td>
 										@if(in_array($structure->id, $paidFees))
 											<span class="badge badge-light-success">Paid</span>
@@ -100,9 +124,29 @@
 														<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
 													</div>
 													<div class="modal-body">
+														@if($isOverdue)
+															<div class="alert alert-warning mb-3">
+																<i class="fa fa-exclamation-triangle me-2"></i>
+																This fee is <strong>overdue</strong> (Due: {{ $structure->due_date->format('d M Y') }})
+															</div>
+														@endif
+
 														<div class="mb-3">
 															<label class="form-label">Fee Amount</label>
 															<input type="text" class="form-control" value="₹{{ number_format($structure->amount, 2) }}" readonly>
+														</div>
+
+														<div class="mb-3">
+															<label for="fine_amount{{ $structure->id }}" class="form-label">
+																Fine Amount
+																@if($isOverdue)
+																	<span class="text-danger">(Auto-applied for overdue)</span>
+																@endif
+															</label>
+															<input type="number" step="0.01" class="form-control {{ $isOverdue ? 'border-warning' : '' }}" id="fine_amount{{ $structure->id }}" name="fine_amount" value="{{ $fineAmount }}" min="0">
+															@if($isOverdue && $structure->fine_type === 'percentage')
+																<small class="text-muted">{{ $structure->fine_amount }}% of ₹{{ number_format($structure->amount, 2) }}</small>
+															@endif
 														</div>
 
 														<div class="mb-3">
@@ -110,9 +154,20 @@
 															<input type="number" step="0.01" class="form-control" id="discount_amount{{ $structure->id }}" name="discount_amount" value="0" min="0" max="{{ $structure->amount }}">
 														</div>
 
-														<div class="mb-3">
-															<label for="fine_amount{{ $structure->id }}" class="form-label">Fine Amount</label>
-															<input type="number" step="0.01" class="form-control" id="fine_amount{{ $structure->id }}" name="fine_amount" value="{{ $structure->fine_amount }}" min="0">
+														<div class="mb-3 p-2 bg-light rounded">
+															<div class="d-flex justify-content-between">
+																<span>Fee Amount:</span>
+																<span>₹{{ number_format($structure->amount, 2) }}</span>
+															</div>
+															<div class="d-flex justify-content-between text-danger">
+																<span>Fine:</span>
+																<span>+ ₹{{ number_format($fineAmount, 2) }}</span>
+															</div>
+															<hr class="my-1">
+															<div class="d-flex justify-content-between fw-bold">
+																<span>Total Payable:</span>
+																<span>₹{{ number_format($totalAmount, 2) }}</span>
+															</div>
 														</div>
 
 														<div class="mb-3">
@@ -144,7 +199,7 @@
 													</div>
 													<div class="modal-footer">
 														<button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-														<button type="submit" class="btn btn-primary">Collect Fee</button>
+														<button type="submit" class="btn btn-primary">Collect ₹{{ number_format($totalAmount, 2) }}</button>
 													</div>
 												</form>
 											</div>

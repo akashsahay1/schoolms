@@ -46,6 +46,17 @@
         </div>
     </div>
 
+    <!-- Pay Now Button -->
+    @if($stats['total_due'] > 0)
+    <div class="row mb-3">
+        <div class="col-12 text-end">
+            <a href="{{ route('portal.payment.checkout') }}" class="btn btn-primary btn-lg">
+                <i class="fa fa-credit-card me-2"></i> Pay Fees Online
+            </a>
+        </div>
+    </div>
+    @endif
+
     <!-- Fee Structure -->
     <div class="row">
         <div class="col-12">
@@ -123,17 +134,10 @@
                                         <tr>
                                             <td>{{ $collection->receipt_no ?? 'N/A' }}</td>
                                             <td>{{ $collection->feeStructure->feeType->name ?? 'N/A' }}</td>
-                                            <td>Rs. {{ number_format($collection->amount_paid, 2) }}</td>
+                                            <td>Rs. {{ number_format($collection->paid_amount, 2) }}</td>
                                             <td>{{ $collection->payment_date ? $collection->payment_date->format('M d, Y') : 'N/A' }}</td>
                                             <td>
-                                                @php
-                                                    $statusClass = match($collection->status) {
-                                                        'paid' => 'success',
-                                                        'partial' => 'warning',
-                                                        default => 'danger'
-                                                    };
-                                                @endphp
-                                                <span class="badge badge-light-{{ $statusClass }}">{{ ucfirst($collection->status) }}</span>
+                                                <span class="badge badge-light-success">Paid</span>
                                             </td>
                                             <td>
                                                 <a href="{{ route('portal.fees.receipt', $collection) }}" class="btn btn-sm btn-outline-info" target="_blank">

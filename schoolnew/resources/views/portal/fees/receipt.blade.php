@@ -46,19 +46,19 @@
                         <tbody>
                             <tr>
                                 <td>{{ $feeCollection->feeStructure->feeType->name ?? 'Fee Payment' }}</td>
-                                <td class="text-end">Rs. {{ number_format($feeCollection->amount_paid + ($feeCollection->discount ?? 0), 2) }}</td>
+                                <td class="text-end">Rs. {{ number_format($feeCollection->paid_amount + ($feeCollection->discount_amount ?? 0), 2) }}</td>
                             </tr>
-                            @if($feeCollection->discount > 0)
+                            @if($feeCollection->discount_amount > 0)
                                 <tr>
                                     <td>Discount</td>
-                                    <td class="text-end text-success">- Rs. {{ number_format($feeCollection->discount, 2) }}</td>
+                                    <td class="text-end text-success">- Rs. {{ number_format($feeCollection->discount_amount, 2) }}</td>
                                 </tr>
                             @endif
                         </tbody>
                         <tfoot class="table-primary">
                             <tr>
                                 <th>Total Paid</th>
-                                <th class="text-end">Rs. {{ number_format($feeCollection->amount_paid, 2) }}</th>
+                                <th class="text-end">Rs. {{ number_format($feeCollection->paid_amount, 2) }}</th>
                             </tr>
                         </tfoot>
                     </table>
@@ -73,14 +73,7 @@
                         </div>
                         <div class="col-6 text-end">
                             <strong>Status:</strong>
-                            @php
-                                $statusClass = match($feeCollection->status) {
-                                    'paid' => 'success',
-                                    'partial' => 'warning',
-                                    default => 'danger'
-                                };
-                            @endphp
-                            <span class="badge badge-light-{{ $statusClass }}">{{ ucfirst($feeCollection->status) }}</span>
+                            <span class="badge badge-light-success">Paid</span>
                         </div>
                     </div>
 

@@ -84,6 +84,45 @@
 				</ul>
 			</div>
 		</div>
+
+		<!-- Login Credentials -->
+		<div class="card border-primary">
+			<div class="card-header bg-primary">
+				<h5 class="text-white mb-0"><i data-feather="key" class="me-2"></i>Portal Login Credentials</h5>
+			</div>
+			<div class="card-body">
+				@if($student->user)
+					<div class="mb-3">
+						<label class="text-muted small">Login Email</label>
+						<div class="input-group">
+							<input type="text" class="form-control" id="loginEmail" value="{{ $student->user->email }}" readonly>
+							<button class="btn btn-outline-primary" type="button" onclick="copyToClipboard('loginEmail')">
+								<i data-feather="copy"></i>
+							</button>
+						</div>
+					</div>
+					<div class="mb-3">
+						<label class="text-muted small">Password</label>
+						<div class="input-group">
+							<input type="text" class="form-control" id="loginPassword" value="{{ $student->admission_no }}" readonly>
+							<button class="btn btn-outline-primary" type="button" onclick="copyToClipboard('loginPassword')">
+								<i data-feather="copy"></i>
+							</button>
+						</div>
+						<small class="text-muted">Default password is Admission Number</small>
+					</div>
+					<button class="btn btn-primary w-100" onclick="copyAllCredentials()">
+						<i data-feather="clipboard" class="me-2"></i>Copy All Credentials
+					</button>
+				@else
+					<div class="text-center text-muted py-3">
+						<i data-feather="alert-circle" class="mb-2" style="width: 40px; height: 40px;"></i>
+						<p class="mb-0">No login account linked</p>
+						<small>Student cannot access the portal</small>
+					</div>
+				@endif
+			</div>
+		</div>
 	</div>
 
 	<!-- Details -->
@@ -231,3 +270,42 @@
 	</div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+function copyToClipboard(elementId) {
+	var input = document.getElementById(elementId);
+	input.select();
+	input.setSelectionRange(0, 99999);
+	navigator.clipboard.writeText(input.value);
+
+	Swal.fire({
+		icon: 'success',
+		title: 'Copied!',
+		text: 'Copied to clipboard',
+		timer: 1500,
+		showConfirmButton: false
+	});
+}
+
+function copyAllCredentials() {
+	var email = document.getElementById('loginEmail').value;
+	var password = document.getElementById('loginPassword').value;
+	var text = "Student Portal Login Credentials\n";
+	text += "================================\n";
+	text += "Email: " + email + "\n";
+	text += "Password: " + password + "\n";
+	text += "URL: {{ url('/login') }}";
+
+	navigator.clipboard.writeText(text);
+
+	Swal.fire({
+		icon: 'success',
+		title: 'Copied!',
+		text: 'All credentials copied to clipboard',
+		timer: 1500,
+		showConfirmButton: false
+	});
+}
+</script>
+@endpush

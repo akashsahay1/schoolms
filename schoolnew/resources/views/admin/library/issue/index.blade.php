@@ -60,7 +60,14 @@
 									</td>
 									<td>
 										@if($issue->status === 'issued')
-											<button class="btn btn-sm btn-success" onclick="alert('Return functionality')">Return</button>
+											<button type="button" class="btn btn-sm btn-success return-book-btn" data-issue-id="{{ $issue->id }}" data-book-title="{{ $issue->book->title }}" data-student-name="{{ $issue->student->full_name }}" data-due-date="{{ $issue->due_date->format('Y-m-d') }}">
+												<i data-feather="corner-down-left" class="me-1" style="width: 14px; height: 14px;"></i> Return
+											</button>
+											<form id="return-form-{{ $issue->id }}" action="{{ route('admin.library.issue.return', $issue) }}" method="POST" class="d-none">
+												@csrf
+												<input type="hidden" name="return_date" id="return-date-{{ $issue->id }}">
+												<input type="hidden" name="fine_amount" id="fine-amount-{{ $issue->id }}">
+											</form>
 										@endif
 									</td>
 								</tr>
@@ -83,3 +90,59 @@
 	</div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+jQuery(document).ready(function() {
+	jQuery('.return-book-btn').on('click', function() {
+		var issueId = jQuery(this).data('issue-id');
+		var bookTitle = jQuery(this).data('book-title');
+		var studentName = jQuery(this).data('student-name');
+		var dueDate = jQuery(this).data('due-date');
+		var today = new Date().toISOString().split('T')[0];
+
+		Swal.fire({
+			title: 'Return Book',
+			html: `
+				<div class="text-start mb-3">
+					<p class="mb-1"><strong>Book:</strong> ${bookTitle}</p>
+					<p class="mb-0"><strong>Student:</strong> ${studentName}</p>
+				</div>
+				<div class="mb-3 text-start">
+					<label class="form-label">Return Date <span class="text-danger">*</span></label>
+					<input type="date" id="swal-return-date" class="form-control" value="${today}" required>
+				</div>
+				<div class="text-start">
+					<label class="form-label">Fine Amount (₹)</label>
+					<input type="number" id="swal-fine-amount" class="form-control" value="0" min="0" step="0.01" placeholder="0.00">
+					<small class="text-muted">Due date was: ${dueDate}</small>
+				</div>
+			`,
+			icon: 'question',
+			showCancelButton: true,
+			confirmButtonColor: '#198754',
+			cancelButtonColor: '#6c757d',
+			confirmButtonText: 'Confirm Return',
+			cancelButtonText: 'Cancel',
+			preConfirm: () => {
+				const returnDate = document.getElementById('swal-return-date').value;
+				const fineAmount = document.getElementById('swal-fine-amount').value;
+
+				if (!returnDate) {
+					Swal.showValidationMessage('Please enter the return date');
+					return false;
+				}
+
+				return { returnDate: returnDate, fineAmount: fineAmount || 0 };
+			}
+		}).then((result) => {
+			if (result.isConfirmed) {
+				jQuery('#return-date-' + issueId).val(result.value.returnDate);
+				jQuery('#fine-amount-' + issueId).val(result.value.fineAmount);
+				jQuery('#return-form-' + issueId).submit();
+			}
+		});
+	});
+});
+</script>
+@endpush

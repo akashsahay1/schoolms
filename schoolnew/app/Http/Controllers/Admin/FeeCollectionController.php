@@ -136,6 +136,9 @@ class FeeCollectionController extends Controller
 			$fine = $validated['fine_amount'] ?? 0;
 			$paidAmount = $amount - $discount + $fine;
 
+			// Generate receipt number
+			$receiptNo = 'REC-' . date('Ymd') . '-' . str_pad(FeeCollection::count() + 1, 5, '0', STR_PAD_LEFT);
+
 			// Create fee collection
 			$collection = FeeCollection::create([
 				'student_id' => $validated['student_id'],
@@ -150,6 +153,7 @@ class FeeCollectionController extends Controller
 				'transaction_id' => $validated['transaction_id'] ?? null,
 				'payment_date' => $validated['payment_date'],
 				'remarks' => $validated['remarks'] ?? null,
+				'receipt_no' => $receiptNo,
 			]);
 
 			DB::commit();

@@ -36,7 +36,7 @@
                             </thead>
                             <tbody>
                                 @foreach($periods as $period)
-                                    <tr class="{{ $period->type !== 'class' ? 'bg-light' : '' }}">
+                                    <tr class="{{ $period->type !== 'class' ? 'bg-light text-dark' : '' }}">
                                         <td class="fw-medium">{{ $period->name }}</td>
                                         <td class="text-muted small">
                                             {{ \Carbon\Carbon::parse($period->start_time)->format('h:i A') }}<br>

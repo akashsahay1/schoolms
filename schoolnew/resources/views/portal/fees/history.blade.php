@@ -37,19 +37,12 @@
                                         <tr>
                                             <td>{{ $payment->receipt_no ?? 'N/A' }}</td>
                                             <td>{{ $payment->feeStructure->feeType->name ?? 'N/A' }}</td>
-                                            <td>Rs. {{ number_format($payment->amount_paid, 2) }}</td>
-                                            <td>Rs. {{ number_format($payment->discount ?? 0, 2) }}</td>
+                                            <td>Rs. {{ number_format($payment->paid_amount, 2) }}</td>
+                                            <td>Rs. {{ number_format($payment->discount_amount ?? 0, 2) }}</td>
                                             <td>{{ $payment->payment_date ? $payment->payment_date->format('M d, Y') : 'N/A' }}</td>
                                             <td>{{ ucfirst($payment->payment_mode ?? 'N/A') }}</td>
                                             <td>
-                                                @php
-                                                    $statusClass = match($payment->status) {
-                                                        'paid' => 'success',
-                                                        'partial' => 'warning',
-                                                        default => 'danger'
-                                                    };
-                                                @endphp
-                                                <span class="badge badge-light-{{ $statusClass }}">{{ ucfirst($payment->status) }}</span>
+                                                <span class="badge badge-light-success">Paid</span>
                                             </td>
                                             <td>
                                                 <a href="{{ route('portal.fees.receipt', $payment) }}" class="btn btn-sm btn-outline-info" target="_blank">

@@ -72,6 +72,57 @@
 			margin-top: 8px !important;
 		}
 
+		/* Profile dropdown fix */
+		.profile-dropdown.onhover-show-div {
+			padding: 10px !important;
+			width: 180px !important;
+		}
+		.profile-dropdown.onhover-show-div li {
+			padding: 10px !important;
+			display: block !important;
+		}
+		.profile-dropdown.onhover-show-div li a {
+			display: flex !important;
+			align-items: center !important;
+			gap: 10px;
+			text-decoration: none;
+			color: #3f475a;
+		}
+		.profile-dropdown.onhover-show-div li a svg,
+		.profile-dropdown.onhover-show-div li a i {
+			width: 16px !important;
+			height: 16px !important;
+			min-width: 16px !important;
+			flex-shrink: 0 !important;
+			stroke: #3f475a;
+		}
+		.profile-dropdown.onhover-show-div li a span {
+			color: #3f475a;
+			white-space: nowrap;
+		}
+
+		/* Page title and breadcrumb text fix */
+		.page-title h3 {
+			color: #2c323f !important;
+		}
+		.page-title .breadcrumb-item,
+		.page-title .breadcrumb-item a,
+		.page-title .breadcrumb-item.active {
+			color: #2c323f !important;
+		}
+		.page-title .breadcrumb-item a svg {
+			stroke: #2c323f !important;
+		}
+
+		/* Card text color fix */
+		.card-body span,
+		.card-body strong,
+		.card-body p,
+		.card-body label,
+		.card-body h6,
+		.card-header h5 {
+			color: #2c323f !important;
+		}
 	</style>
 </head>
 <body>

@@ -44,7 +44,7 @@
 
                     <div class="mb-4">
                         <label class="text-muted">Reason</label>
-                        <div class="bg-light p-3 rounded">
+                        <div class="bg-light p-3 rounded text-dark">
                             {{ $leave->reason }}
                         </div>
                     </div>
@@ -78,7 +78,7 @@
                     @if($leave->admin_remarks)
                         <div class="mb-4">
                             <label class="text-muted">Admin Remarks</label>
-                            <div class="bg-light p-3 rounded border-start border-4 border-{{ $leave->status === 'approved' ? 'success' : 'danger' }}">
+                            <div class="bg-light p-3 rounded text-dark border-start border-4 border-{{ $leave->status === 'approved' ? 'success' : 'danger' }}">
                                 {{ $leave->admin_remarks }}
                             </div>
                         </div>

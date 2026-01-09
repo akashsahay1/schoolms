@@ -27,12 +27,12 @@ class AttendanceController extends Controller
 
         // Get attendance for selected month
         $attendance = Attendance::where('student_id', $student->id)
-            ->whereMonth('date', $month)
-            ->whereYear('date', $year)
-            ->orderBy('date')
+            ->whereMonth('attendance_date', $month)
+            ->whereYear('attendance_date', $year)
+            ->orderBy('attendance_date')
             ->get()
             ->keyBy(function ($item) {
-                return $item->date->format('Y-m-d');
+                return $item->attendance_date->format('Y-m-d');
             });
 
         // Calculate stats

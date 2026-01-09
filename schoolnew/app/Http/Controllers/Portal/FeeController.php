@@ -31,16 +31,30 @@ class FeeController extends Controller
             ->with(['feeType', 'feeGroup'])
             ->get();
 
-        // Get fee collections
+        // Get fee structure IDs for this class
+        $feeStructureIds = $feeStructures->pluck('id')->toArray();
+
+        // Get fee collections only for the fee structures of this class
         $feeCollections = FeeCollection::where('student_id', $student->id)
+            ->whereIn('fee_structure_id', $feeStructureIds)
             ->with(['feeStructure.feeType', 'feeStructure.feeGroup'])
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Calculate totals
-        $totalFees = $feeStructures->sum('amount');
-        $totalPaid = $feeCollections->sum('amount_paid');
-        $totalDiscount = $feeCollections->sum('discount');
+        // Calculate totals properly per fee structure
+        $totalFees = 0;
+        $totalPaid = 0;
+        $totalDiscount = 0;
+
+        foreach ($feeStructures as $structure) {
+            $totalFees += $structure->amount;
+
+            // Get payments for this specific structure
+            $structurePayments = $feeCollections->where('fee_structure_id', $structure->id);
+            $totalPaid += $structurePayments->sum('paid_amount');
+            $totalDiscount += $structurePayments->sum('discount_amount');
+        }
+
         $totalDue = $totalFees - $totalPaid - $totalDiscount;
 
         $stats = [

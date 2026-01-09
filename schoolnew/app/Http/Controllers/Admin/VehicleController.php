@@ -33,6 +33,7 @@ class VehicleController extends Controller
 			'vehicle_model' => ['required', 'string', 'max:100'],
 			'year_made' => ['nullable', 'integer', 'min:1900', 'max:' . date('Y')],
 			'registration_no' => ['required', 'string', 'max:50'],
+			'chasis_no' => ['nullable', 'string', 'max:100'],
 			'max_seating_capacity' => ['required', 'integer', 'min:1'],
 			'driver_name' => ['nullable', 'string', 'max:100'],
 			'driver_license' => ['nullable', 'string', 'max:50'],
@@ -44,7 +45,7 @@ class VehicleController extends Controller
 		try {
 			Vehicle::create($validated);
 
-			return redirect()->route('admin.transport.vehicles')->with('success', 'Vehicle added successfully.');
+			return redirect()->route('admin.transport.vehicles.index')->with('success', 'Vehicle added successfully.');
 		} catch (\Exception $e) {
 			return back()->with('error', 'An error occurred: ' . $e->getMessage())->withInput();
 		}
@@ -69,7 +70,7 @@ class VehicleController extends Controller
 		try {
 			$vehicle->update($validated);
 
-			return redirect()->route('admin.transport.vehicles')->with('success', 'Vehicle updated successfully.');
+			return redirect()->route('admin.transport.vehicles.index')->with('success', 'Vehicle updated successfully.');
 		} catch (\Exception $e) {
 			return back()->with('error', 'An error occurred: ' . $e->getMessage())->withInput();
 		}
@@ -84,7 +85,7 @@ class VehicleController extends Controller
 
 			$vehicle->delete();
 
-			return redirect()->route('admin.transport.vehicles')->with('success', 'Vehicle deleted successfully.');
+			return redirect()->route('admin.transport.vehicles.index')->with('success', 'Vehicle deleted successfully.');
 		} catch (\Exception $e) {
 			return back()->with('error', 'An error occurred: ' . $e->getMessage());
 		}

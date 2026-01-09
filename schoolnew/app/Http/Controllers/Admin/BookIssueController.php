@@ -64,7 +64,7 @@ class BookIssueController extends Controller
 
 			DB::commit();
 
-			return redirect()->route('admin.library.issue')->with('success', 'Book issued successfully.');
+			return redirect()->route('admin.library.issue.index')->with('success', 'Book issued successfully.');
 		} catch (\Exception $e) {
 			DB::rollBack();
 			return back()->with('error', 'An error occurred: ' . $e->getMessage())->withInput();

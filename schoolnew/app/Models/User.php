@@ -67,7 +67,7 @@ class User extends Authenticatable
             return asset('storage/' . $this->avatar);
         }
 
-        return asset('assets/images/user/user.png');
+        return asset('assets/images/user/1.jpg');
     }
 
     /**
@@ -84,6 +84,14 @@ class User extends Authenticatable
     public function designation()
     {
         return $this->belongsTo(Designation::class);
+    }
+
+    /**
+     * Get the student record associated with this user.
+     */
+    public function student()
+    {
+        return $this->hasOne(Student::class);
     }
 
     /**

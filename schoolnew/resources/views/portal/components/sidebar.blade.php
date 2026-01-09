@@ -125,8 +125,9 @@
                             </svg>
                             <span>Fees</span>
                         </a>
-                        <ul class="sidebar-submenu" style="{{ request()->routeIs('portal.fees.*') ? 'display: block;' : '' }}">
+                        <ul class="sidebar-submenu" style="{{ request()->routeIs('portal.fees.*') || request()->routeIs('portal.payment.*') ? 'display: block;' : '' }}">
                             <li><a class="{{ request()->routeIs('portal.fees.overview') ? 'active' : '' }}" href="{{ route('portal.fees.overview') }}">Fee Overview</a></li>
+                            <li><a class="{{ request()->routeIs('portal.payment.checkout') ? 'active' : '' }}" href="{{ route('portal.payment.checkout') }}">Pay Online</a></li>
                             <li><a class="{{ request()->routeIs('portal.fees.history') ? 'active' : '' }}" href="{{ route('portal.fees.history') }}">Payment History</a></li>
                         </ul>
                     </li>

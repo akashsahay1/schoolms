@@ -38,7 +38,7 @@
 
                     <div class="mb-4">
                         <label class="text-muted">Your Message</label>
-                        <div class="bg-light p-3 rounded">
+                        <div class="bg-light p-3 rounded text-dark">
                             {{ $message->message }}
                         </div>
                         <small class="text-muted">Sent on {{ $message->created_at->format('F d, Y h:i A') }}</small>
@@ -48,7 +48,7 @@
                         <hr>
                         <div class="mb-4">
                             <label class="text-muted">School's Response</label>
-                            <div class="bg-success bg-opacity-10 p-3 rounded border-start border-4 border-success">
+                            <div class="bg-success bg-opacity-10 p-3 rounded border-start border-4 border-success text-dark">
                                 {{ $message->admin_response }}
                             </div>
                             @if($message->responded_at)
@@ -56,7 +56,7 @@
                             @endif
                         </div>
                     @else
-                        <div class="alert alert-info">
+                        <div class="alert alert-light-info text-dark">
                             <i class="fa fa-info-circle me-2"></i>
                             Your message is being reviewed. We will respond soon.
                         </div>

@@ -88,7 +88,7 @@ class EventController extends Controller
             'color' => $validated['color'] ?? Event::COLORS[$validated['type']] ?? '#3498db',
             'is_holiday' => $request->boolean('is_holiday'),
             'is_public' => $request->boolean('is_public', true),
-            'target_audience' => $validated['target_audience'] ?? ['all'],
+            'target_audience' => !empty($validated['target_audience'] ?? null) ? $validated['target_audience'] : ['all'],
             'target_classes' => $validated['target_classes'] ?? null,
             'image' => $imagePath,
             'created_by' => Auth::id(),
@@ -177,7 +177,7 @@ class EventController extends Controller
             'color' => $validated['color'] ?? Event::COLORS[$validated['type']] ?? '#3498db',
             'is_holiday' => $request->boolean('is_holiday'),
             'is_public' => $request->boolean('is_public', true),
-            'target_audience' => $validated['target_audience'] ?? ['all'],
+            'target_audience' => !empty($validated['target_audience'] ?? null) ? $validated['target_audience'] : ['all'],
             'target_classes' => $validated['target_classes'] ?? null,
             'image' => $imagePath,
         ]);

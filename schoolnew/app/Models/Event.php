@@ -100,7 +100,9 @@ class Event extends Model
     public function scopeForAudience($query, string $audience)
     {
         return $query->where(function ($q) use ($audience) {
-            $q->whereJsonContains('target_audience', 'all')
+            $q->whereNull('target_audience')
+                ->orWhereRaw('JSON_LENGTH(target_audience) = 0')
+                ->orWhereJsonContains('target_audience', 'all')
                 ->orWhereJsonContains('target_audience', $audience);
         });
     }

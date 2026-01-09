@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\Student;
+use App\Models\ParentGuardian;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
@@ -35,6 +37,22 @@ class LoginController extends Controller
 
         $request->session()->regenerate();
 
+        // Check if user is a student or parent and redirect accordingly
+        $user = Auth::user();
+
+        // Check if user is linked to a student
+        $student = Student::where('user_id', $user->id)->first();
+        if ($student) {
+            return redirect()->intended(route('portal.dashboard'));
+        }
+
+        // Check if user is linked to a parent
+        $parent = ParentGuardian::where('user_id', $user->id)->first();
+        if ($parent) {
+            return redirect()->intended(route('portal.dashboard'));
+        }
+
+        // Default to admin dashboard for staff/admin users
         return redirect()->intended(route('admin.dashboard'));
     }
 

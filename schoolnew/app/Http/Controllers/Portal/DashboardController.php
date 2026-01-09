@@ -149,8 +149,8 @@ class DashboardController extends Controller
         $currentYear = now()->year;
 
         $attendance = Attendance::where('student_id', $studentId)
-            ->whereMonth('date', $currentMonth)
-            ->whereYear('date', $currentYear)
+            ->whereMonth('attendance_date', $currentMonth)
+            ->whereYear('attendance_date', $currentYear)
             ->get();
 
         $totalDays = $attendance->count();

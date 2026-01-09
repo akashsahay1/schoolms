@@ -24,6 +24,7 @@ use App\Http\Controllers\FeeStructureController;
 use App\Http\Controllers\FeeCollectionController;
 use App\Http\Controllers\FeeTypeController;
 use App\Http\Controllers\FeeGroupController;
+use App\Http\Controllers\Admin\FeeDiscountController;
 use App\Http\Controllers\Admin\HomeworkController;
 use App\Http\Controllers\Admin\BookController;
 use App\Http\Controllers\Admin\BookIssueController;
@@ -31,6 +32,7 @@ use App\Http\Controllers\Admin\VehicleController;
 use App\Http\Controllers\Admin\TransportRouteController;
 use App\Http\Controllers\Admin\NoticeController;
 use App\Http\Controllers\Admin\EventController;
+use App\Http\Controllers\Admin\LeaveApplicationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -63,8 +65,13 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.update-password');
     Route::get('/profile/delete-avatar', [ProfileController::class, 'deleteAvatar'])->name('profile.delete-avatar');
-    Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
+    Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
     Route::put('/settings', [SettingsController::class, 'update'])->name('settings.update');
+
+    // Payment Gateway Settings
+    Route::get('/settings/payment', [App\Http\Controllers\Admin\PaymentSettingController::class, 'index'])->name('settings.payment');
+    Route::put('/settings/payment', [App\Http\Controllers\Admin\PaymentSettingController::class, 'update'])->name('settings.payment.update');
+    Route::post('/settings/payment/test', [App\Http\Controllers\Admin\PaymentSettingController::class, 'test'])->name('settings.payment.test');
 
     // Academic Years
     Route::resource('academic-years', AcademicYearController::class)->except('show');
@@ -185,17 +192,28 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
         Route::post('/collection', [FeeCollectionController::class, 'store'])->name('collection.store');
         Route::get('/receipts/{feeCollection}', [FeeCollectionController::class, 'receipt'])->name('receipt');
         Route::get('/outstanding', [FeeCollectionController::class, 'outstanding'])->name('outstanding');
-        Route::get('/discounts', function () {
-            return view('admin.coming-soon', ['module' => 'Fee Discounts', 'description' => 'Manage fee discounts and waivers']);
-        })->name('discounts');
+
+        // Fee Discounts
+        Route::get('/discounts', [FeeDiscountController::class, 'index'])->name('discounts.index');
+        Route::get('/discounts/create', [FeeDiscountController::class, 'create'])->name('discounts.create');
+        Route::post('/discounts', [FeeDiscountController::class, 'store'])->name('discounts.store');
+        Route::get('/discounts/{discount}/edit', [FeeDiscountController::class, 'edit'])->name('discounts.edit');
+        Route::put('/discounts/{discount}', [FeeDiscountController::class, 'update'])->name('discounts.update');
+        Route::delete('/discounts/{discount}', [FeeDiscountController::class, 'destroy'])->name('discounts.destroy');
     });
 
     // Staff
     Route::resource('staff', StaffController::class);
     Route::get('staff/{staff}/id-card', [StaffController::class, 'idCard'])->name('staff.id-card');
-    Route::prefix('staff')->name('staff.')->group(function () {
-        Route::get('/attendance', function () { return view('admin.coming-soon'); })->name('attendance');
-        Route::get('/leaves', function () { return view('admin.coming-soon'); })->name('leaves');
+
+    // Leave Applications (Student)
+    Route::prefix('leaves')->name('leaves.')->group(function () {
+        Route::get('/', [LeaveApplicationController::class, 'index'])->name('index');
+        Route::get('/{leave}', [LeaveApplicationController::class, 'show'])->name('show');
+        Route::post('/{leave}/approve', [LeaveApplicationController::class, 'approve'])->name('approve');
+        Route::post('/{leave}/reject', [LeaveApplicationController::class, 'reject'])->name('reject');
+        Route::post('/bulk-approve', [LeaveApplicationController::class, 'bulkApprove'])->name('bulk-approve');
+        Route::post('/bulk-reject', [LeaveApplicationController::class, 'bulkReject'])->name('bulk-reject');
     });
 
     // Departments & Designations
@@ -284,6 +302,16 @@ Route::prefix('portal')->name('portal.')->middleware('auth')->group(function () 
         Route::get('/overview', [App\Http\Controllers\Portal\FeeController::class, 'overview'])->name('overview');
         Route::get('/history', [App\Http\Controllers\Portal\FeeController::class, 'history'])->name('history');
         Route::get('/receipts/{feeCollection}', [App\Http\Controllers\Portal\FeeController::class, 'receipt'])->name('receipt');
+    });
+
+    // Online Payment
+    Route::prefix('payment')->name('payment.')->group(function () {
+        Route::get('/checkout', [App\Http\Controllers\Portal\PaymentController::class, 'checkout'])->name('checkout');
+        Route::post('/create-order', [App\Http\Controllers\Portal\PaymentController::class, 'createOrder'])->name('create-order');
+        Route::post('/success', [App\Http\Controllers\Portal\PaymentController::class, 'success'])->name('success');
+        Route::post('/demo-success', [App\Http\Controllers\Portal\PaymentController::class, 'demoSuccess'])->name('demo-success');
+        Route::post('/failure', [App\Http\Controllers\Portal\PaymentController::class, 'failure'])->name('failure');
+        Route::get('/receipt/{payment}', [App\Http\Controllers\Portal\PaymentController::class, 'receipt'])->name('receipt');
     });
 
     // Notices

@@ -91,8 +91,8 @@
 					</li>
 
 					<!-- Attendance -->
-					<li class="sidebar-list {{ request()->routeIs('admin.attendance.*') || request()->routeIs('admin.staff-attendance.*') ? 'active' : '' }}">
-						<a class="sidebar-link sidebar-title {{ request()->routeIs('admin.attendance.*') || request()->routeIs('admin.staff-attendance.*') ? 'active' : '' }}" href="#">
+					<li class="sidebar-list {{ request()->routeIs('admin.attendance.*') || request()->routeIs('admin.staff-attendance.*') || request()->routeIs('admin.leaves.*') ? 'active' : '' }}">
+						<a class="sidebar-link sidebar-title {{ request()->routeIs('admin.attendance.*') || request()->routeIs('admin.staff-attendance.*') || request()->routeIs('admin.leaves.*') ? 'active' : '' }}" href="#">
 							<svg class="stroke-icon">
 								<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-calendar') }}"></use>
 							</svg>
@@ -101,10 +101,11 @@
 							</svg>
 							<span>Attendance</span>
 						</a>
-						<ul class="sidebar-submenu" style="{{ request()->routeIs('admin.attendance.*') || request()->routeIs('admin.staff-attendance.*') ? 'display: block;' : '' }}">
+						<ul class="sidebar-submenu" style="{{ request()->routeIs('admin.attendance.*') || request()->routeIs('admin.staff-attendance.*') || request()->routeIs('admin.leaves.*') ? 'display: block;' : '' }}">
 							<li><a class="{{ request()->routeIs('admin.attendance.mark') ? 'active' : '' }}" href="{{ route('admin.attendance.mark') }}">Student Attendance</a></li>
 							<li><a class="{{ request()->routeIs('admin.attendance.reports') ? 'active' : '' }}" href="{{ route('admin.attendance.reports') }}">Student Reports</a></li>
 							<li><a class="{{ request()->routeIs('admin.attendance.calendar') ? 'active' : '' }}" href="{{ route('admin.attendance.calendar') }}">Attendance Calendar</a></li>
+							<li><a class="{{ request()->routeIs('admin.leaves.*') ? 'active' : '' }}" href="{{ route('admin.leaves.index') }}">Leave Applications</a></li>
 							<li><a class="{{ request()->routeIs('admin.staff-attendance.mark') ? 'active' : '' }}" href="{{ route('admin.staff-attendance.mark') }}">Staff Attendance</a></li>
 							<li><a class="{{ request()->routeIs('admin.staff-attendance.reports') ? 'active' : '' }}" href="{{ route('admin.staff-attendance.reports') }}">Staff Reports</a></li>
 						</ul>
@@ -163,6 +164,7 @@
 							<li><a class="{{ request()->routeIs('admin.fees.structure*') && !request()->routeIs('admin.fees.structure.*') ? 'active' : '' }}" href="{{ route('admin.fees.structure') }}">Fee Structure</a></li>
 							<li><a class="{{ request()->routeIs('admin.fees.collection*') || request()->routeIs('admin.fees.collect') ? 'active' : '' }}" href="{{ route('admin.fees.collection') }}">Collect Fees</a></li>
 							<li><a class="{{ request()->routeIs('admin.fees.outstanding') ? 'active' : '' }}" href="{{ route('admin.fees.outstanding') }}">Outstanding</a></li>
+							<li><a class="{{ request()->routeIs('admin.fees.discounts.*') ? 'active' : '' }}" href="{{ route('admin.fees.discounts.index') }}">Discounts</a></li>
 						</ul>
 					</li>
 
@@ -270,7 +272,7 @@
 
 					<!-- Settings -->
 					<li class="sidebar-list">
-						<a class="sidebar-link sidebar-title link-nav {{ request()->routeIs('admin.settings*') ? 'active' : '' }}" href="{{ route('admin.settings') }}">
+						<a class="sidebar-link sidebar-title {{ request()->routeIs('admin.settings*') ? 'active' : '' }}" href="#">
 							<svg class="stroke-icon">
 								<use href="{{ asset('assets/svg/icon-sprite.svg#setting') }}"></use>
 							</svg>
@@ -279,6 +281,14 @@
 							</svg>
 							<span>Settings</span>
 						</a>
+						<ul class="sidebar-submenu" style="{{ request()->routeIs('admin.settings*') ? 'display: block;' : '' }}">
+							<li>
+								<a href="{{ route('admin.settings.index') }}" class="{{ request()->routeIs('admin.settings.index') ? 'active' : '' }}">School Settings</a>
+							</li>
+							<li>
+								<a href="{{ route('admin.settings.payment') }}" class="{{ request()->routeIs('admin.settings.payment*') ? 'active' : '' }}">Payment Gateway</a>
+							</li>
+						</ul>
 					</li>
 
 				</ul>
