@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\TransportRoute;
 use App\Models\Vehicle;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class TransportRouteController extends Controller
 {
@@ -19,8 +20,9 @@ class TransportRouteController extends Controller
 
 		$routes = $query->orderBy('route_name')->paginate(15);
 		$vehicles = Vehicle::active()->orderBy('vehicle_no')->get();
+		$trashedCount = TransportRoute::onlyTrashed()->count();
 
-		return view('admin.transport.routes.index', compact('routes', 'vehicles'));
+		return view('admin.transport.routes.index', compact('routes', 'vehicles', 'trashedCount'));
 	}
 
 	public function create()
@@ -101,8 +103,115 @@ class TransportRouteController extends Controller
 	{
 		try {
 			$route->delete();
-			return redirect()->route('admin.transport.routes.index')->with('success', 'Route deleted successfully.');
+			return redirect()->route('admin.transport.routes.index')->with('success', 'Route moved to trash successfully.');
 		} catch (\Exception $e) {
+			return back()->with('error', 'An error occurred: ' . $e->getMessage());
+		}
+	}
+
+	public function bulkDelete(Request $request)
+	{
+		$request->validate([
+			'ids' => ['required', 'array'],
+			'ids.*' => ['exists:transport_routes,id'],
+		]);
+
+		try {
+			DB::beginTransaction();
+			TransportRoute::whereIn('id', $request->ids)->delete();
+			DB::commit();
+
+			return response()->json(['success' => true, 'message' => 'Selected routes moved to trash successfully.']);
+		} catch (\Exception $e) {
+			DB::rollBack();
+			return response()->json(['success' => false, 'message' => 'An error occurred: ' . $e->getMessage()], 500);
+		}
+	}
+
+	public function trash(Request $request)
+	{
+		$query = TransportRoute::onlyTrashed()->with('vehicle');
+
+		if ($request->filled('vehicle')) {
+			$query->where('vehicle_id', $request->vehicle);
+		}
+
+		$routes = $query->orderBy('deleted_at', 'desc')->paginate(15);
+		$vehicles = Vehicle::orderBy('vehicle_no')->get();
+
+		return view('admin.transport.routes.trash', compact('routes', 'vehicles'));
+	}
+
+	public function restore($id)
+	{
+		try {
+			$route = TransportRoute::onlyTrashed()->findOrFail($id);
+			$route->restore();
+
+			return redirect()->route('admin.transport.routes.trash')->with('success', 'Route restored successfully.');
+		} catch (\Exception $e) {
+			return back()->with('error', 'An error occurred: ' . $e->getMessage());
+		}
+	}
+
+	public function forceDelete($id)
+	{
+		try {
+			$route = TransportRoute::onlyTrashed()->findOrFail($id);
+			$route->forceDelete();
+
+			return redirect()->route('admin.transport.routes.trash')->with('success', 'Route permanently deleted.');
+		} catch (\Exception $e) {
+			return back()->with('error', 'An error occurred: ' . $e->getMessage());
+		}
+	}
+
+	public function bulkRestore(Request $request)
+	{
+		$request->validate([
+			'ids' => ['required', 'array'],
+		]);
+
+		try {
+			DB::beginTransaction();
+			TransportRoute::onlyTrashed()->whereIn('id', $request->ids)->restore();
+			DB::commit();
+
+			return response()->json(['success' => true, 'message' => 'Selected routes restored successfully.']);
+		} catch (\Exception $e) {
+			DB::rollBack();
+			return response()->json(['success' => false, 'message' => 'An error occurred: ' . $e->getMessage()], 500);
+		}
+	}
+
+	public function bulkForceDelete(Request $request)
+	{
+		$request->validate([
+			'ids' => ['required', 'array'],
+		]);
+
+		try {
+			DB::beginTransaction();
+			TransportRoute::onlyTrashed()->whereIn('id', $request->ids)->forceDelete();
+			DB::commit();
+
+			return response()->json(['success' => true, 'message' => 'Selected routes permanently deleted.']);
+		} catch (\Exception $e) {
+			DB::rollBack();
+			return response()->json(['success' => false, 'message' => 'An error occurred: ' . $e->getMessage()], 500);
+		}
+	}
+
+	public function emptyTrash()
+	{
+		try {
+			DB::beginTransaction();
+			TransportRoute::onlyTrashed()->forceDelete();
+			DB::commit();
+
+			return redirect()->route('admin.transport.routes.trash')->with('success', 'Trash emptied successfully.');
+		} catch (\Exception $e) {
+			DB::rollBack();
 			return back()->with('error', 'An error occurred: ' . $e->getMessage());
 		}
 	}

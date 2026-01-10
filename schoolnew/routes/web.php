@@ -81,6 +81,14 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::resource('students', StudentController::class);
     Route::get('/students/sections/{classId}', [StudentController::class, 'getSections'])->name('students.sections');
     Route::get('students/{student}/id-card', [StudentController::class, 'idCard'])->name('students.id-card');
+    Route::post('students/bulk-delete', [StudentController::class, 'bulkDelete'])->name('students.bulk-delete');
+    // Student Trash
+    Route::get('students-trash', [StudentController::class, 'trash'])->name('students.trash');
+    Route::post('students/{id}/restore', [StudentController::class, 'restore'])->name('students.restore');
+    Route::delete('students/{id}/force-delete', [StudentController::class, 'forceDelete'])->name('students.force-delete');
+    Route::post('students/bulk-restore', [StudentController::class, 'bulkRestore'])->name('students.bulk-restore');
+    Route::post('students/bulk-force-delete', [StudentController::class, 'bulkForceDelete'])->name('students.bulk-force-delete');
+    Route::delete('students-trash/empty', [StudentController::class, 'emptyTrash'])->name('students.empty-trash');
 
     // Classes
     Route::resource('classes', ClassController::class);
@@ -109,10 +117,26 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
 
     // Teachers
     Route::resource('teachers', TeacherController::class);
+    Route::post('teachers/bulk-delete', [TeacherController::class, 'bulkDelete'])->name('teachers.bulk-delete');
+    // Teacher Trash
+    Route::get('teachers-trash', [TeacherController::class, 'trash'])->name('teachers.trash');
+    Route::post('teachers/{id}/restore', [TeacherController::class, 'restore'])->name('teachers.restore');
+    Route::delete('teachers/{id}/force-delete', [TeacherController::class, 'forceDelete'])->name('teachers.force-delete');
+    Route::post('teachers/bulk-restore', [TeacherController::class, 'bulkRestore'])->name('teachers.bulk-restore');
+    Route::post('teachers/bulk-force-delete', [TeacherController::class, 'bulkForceDelete'])->name('teachers.bulk-force-delete');
+    Route::delete('teachers-trash/empty', [TeacherController::class, 'emptyTrash'])->name('teachers.empty-trash');
 
-    // Parents (view-only)
+    // Parents
     Route::get('parents', [ParentController::class, 'index'])->name('parents.index');
     Route::get('parents/{parent}', [ParentController::class, 'show'])->name('parents.show');
+    Route::delete('parents/{parent}', [ParentController::class, 'destroy'])->name('parents.destroy');
+    Route::post('parents/bulk-delete', [ParentController::class, 'bulkDelete'])->name('parents.bulk-delete');
+    Route::get('parents-trash', [ParentController::class, 'trash'])->name('parents.trash');
+    Route::post('parents/{id}/restore', [ParentController::class, 'restore'])->name('parents.restore');
+    Route::delete('parents/{id}/force-delete', [ParentController::class, 'forceDelete'])->name('parents.force-delete');
+    Route::post('parents/bulk-restore', [ParentController::class, 'bulkRestore'])->name('parents.bulk-restore');
+    Route::post('parents/bulk-force-delete', [ParentController::class, 'bulkForceDelete'])->name('parents.bulk-force-delete');
+    Route::delete('parents-trash/empty', [ParentController::class, 'emptyTrash'])->name('parents.empty-trash');
 
     // Student Attendance
     Route::prefix('attendance')->name('attendance.')->group(function () {
@@ -156,6 +180,13 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
         Route::delete('/{homework}', [HomeworkController::class, 'destroy'])->name('destroy');
         Route::get('/{homework}/submissions', [HomeworkController::class, 'submissions'])->name('submissions');
         Route::get('/sections/{classId}', [HomeworkController::class, 'getSections'])->name('sections');
+        Route::post('/bulk-delete', [HomeworkController::class, 'bulkDelete'])->name('bulk-delete');
+        Route::get('-trash', [HomeworkController::class, 'trash'])->name('trash');
+        Route::post('/{id}/restore', [HomeworkController::class, 'restore'])->name('restore');
+        Route::delete('/{id}/force-delete', [HomeworkController::class, 'forceDelete'])->name('force-delete');
+        Route::post('/bulk-restore', [HomeworkController::class, 'bulkRestore'])->name('bulk-restore');
+        Route::post('/bulk-force-delete', [HomeworkController::class, 'bulkForceDelete'])->name('bulk-force-delete');
+        Route::delete('-trash/empty', [HomeworkController::class, 'emptyTrash'])->name('empty-trash');
     });
 
     // Fees
@@ -167,6 +198,13 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
         Route::get('/types/{feeType}/edit', [FeeTypeController::class, 'edit'])->name('types.edit');
         Route::put('/types/{feeType}', [FeeTypeController::class, 'update'])->name('types.update');
         Route::delete('/types/{feeType}', [FeeTypeController::class, 'destroy'])->name('types.destroy');
+        Route::post('/types/bulk-delete', [FeeTypeController::class, 'bulkDelete'])->name('types.bulk-delete');
+        Route::get('/types-trash', [FeeTypeController::class, 'trash'])->name('types.trash');
+        Route::post('/types/{id}/restore', [FeeTypeController::class, 'restore'])->name('types.restore');
+        Route::delete('/types/{id}/force-delete', [FeeTypeController::class, 'forceDelete'])->name('types.force-delete');
+        Route::post('/types/bulk-restore', [FeeTypeController::class, 'bulkRestore'])->name('types.bulk-restore');
+        Route::post('/types/bulk-force-delete', [FeeTypeController::class, 'bulkForceDelete'])->name('types.bulk-force-delete');
+        Route::delete('/types-trash/empty', [FeeTypeController::class, 'emptyTrash'])->name('types.empty-trash');
 
         // Fee Groups
         Route::get('/groups', [FeeGroupController::class, 'index'])->name('groups.index');
@@ -175,6 +213,13 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
         Route::get('/groups/{feeGroup}/edit', [FeeGroupController::class, 'edit'])->name('groups.edit');
         Route::put('/groups/{feeGroup}', [FeeGroupController::class, 'update'])->name('groups.update');
         Route::delete('/groups/{feeGroup}', [FeeGroupController::class, 'destroy'])->name('groups.destroy');
+        Route::post('/groups/bulk-delete', [FeeGroupController::class, 'bulkDelete'])->name('groups.bulk-delete');
+        Route::get('/groups-trash', [FeeGroupController::class, 'trash'])->name('groups.trash');
+        Route::post('/groups/{id}/restore', [FeeGroupController::class, 'restore'])->name('groups.restore');
+        Route::delete('/groups/{id}/force-delete', [FeeGroupController::class, 'forceDelete'])->name('groups.force-delete');
+        Route::post('/groups/bulk-restore', [FeeGroupController::class, 'bulkRestore'])->name('groups.bulk-restore');
+        Route::post('/groups/bulk-force-delete', [FeeGroupController::class, 'bulkForceDelete'])->name('groups.bulk-force-delete');
+        Route::delete('/groups-trash/empty', [FeeGroupController::class, 'emptyTrash'])->name('groups.empty-trash');
 
         // Fee Structure
         Route::get('/structure', [FeeStructureController::class, 'index'])->name('structure');
@@ -205,6 +250,14 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     // Staff
     Route::resource('staff', StaffController::class);
     Route::get('staff/{staff}/id-card', [StaffController::class, 'idCard'])->name('staff.id-card');
+    Route::post('staff/bulk-delete', [StaffController::class, 'bulkDelete'])->name('staff.bulk-delete');
+    // Staff Trash
+    Route::get('staff-trash', [StaffController::class, 'trash'])->name('staff.trash');
+    Route::post('staff/{id}/restore', [StaffController::class, 'restore'])->name('staff.restore');
+    Route::delete('staff/{id}/force-delete', [StaffController::class, 'forceDelete'])->name('staff.force-delete');
+    Route::post('staff/bulk-restore', [StaffController::class, 'bulkRestore'])->name('staff.bulk-restore');
+    Route::post('staff/bulk-force-delete', [StaffController::class, 'bulkForceDelete'])->name('staff.bulk-force-delete');
+    Route::delete('staff-trash/empty', [StaffController::class, 'emptyTrash'])->name('staff.empty-trash');
 
     // Leave Applications (Student)
     Route::prefix('leaves')->name('leaves.')->group(function () {
@@ -218,7 +271,22 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
 
     // Departments & Designations
     Route::resource('departments', DepartmentController::class);
+    Route::post('departments/bulk-delete', [DepartmentController::class, 'bulkDelete'])->name('departments.bulk-delete');
+    Route::get('departments-trash', [DepartmentController::class, 'trash'])->name('departments.trash');
+    Route::post('departments/{id}/restore', [DepartmentController::class, 'restore'])->name('departments.restore');
+    Route::delete('departments/{id}/force-delete', [DepartmentController::class, 'forceDelete'])->name('departments.force-delete');
+    Route::post('departments/bulk-restore', [DepartmentController::class, 'bulkRestore'])->name('departments.bulk-restore');
+    Route::post('departments/bulk-force-delete', [DepartmentController::class, 'bulkForceDelete'])->name('departments.bulk-force-delete');
+    Route::delete('departments-trash/empty', [DepartmentController::class, 'emptyTrash'])->name('departments.empty-trash');
+
     Route::resource('designations', DesignationController::class);
+    Route::post('designations/bulk-delete', [DesignationController::class, 'bulkDelete'])->name('designations.bulk-delete');
+    Route::get('designations-trash', [DesignationController::class, 'trash'])->name('designations.trash');
+    Route::post('designations/{id}/restore', [DesignationController::class, 'restore'])->name('designations.restore');
+    Route::delete('designations/{id}/force-delete', [DesignationController::class, 'forceDelete'])->name('designations.force-delete');
+    Route::post('designations/bulk-restore', [DesignationController::class, 'bulkRestore'])->name('designations.bulk-restore');
+    Route::post('designations/bulk-force-delete', [DesignationController::class, 'bulkForceDelete'])->name('designations.bulk-force-delete');
+    Route::delete('designations-trash/empty', [DesignationController::class, 'emptyTrash'])->name('designations.empty-trash');
 
     // Library
     Route::prefix('library')->name('library.')->group(function () {
@@ -229,6 +297,13 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
         Route::get('/books/{book}/edit', [BookController::class, 'edit'])->name('books.edit');
         Route::put('/books/{book}', [BookController::class, 'update'])->name('books.update');
         Route::delete('/books/{book}', [BookController::class, 'destroy'])->name('books.destroy');
+        Route::post('/books/bulk-delete', [BookController::class, 'bulkDelete'])->name('books.bulk-delete');
+        Route::get('/books-trash', [BookController::class, 'trash'])->name('books.trash');
+        Route::post('/books/{id}/restore', [BookController::class, 'restore'])->name('books.restore');
+        Route::delete('/books/{id}/force-delete', [BookController::class, 'forceDelete'])->name('books.force-delete');
+        Route::post('/books/bulk-restore', [BookController::class, 'bulkRestore'])->name('books.bulk-restore');
+        Route::post('/books/bulk-force-delete', [BookController::class, 'bulkForceDelete'])->name('books.bulk-force-delete');
+        Route::delete('/books-trash/empty', [BookController::class, 'emptyTrash'])->name('books.empty-trash');
 
         // Book Issue
         Route::get('/issue', [BookIssueController::class, 'index'])->name('issue.index');
@@ -248,6 +323,13 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
         Route::get('/vehicles/{vehicle}/edit', [VehicleController::class, 'edit'])->name('vehicles.edit');
         Route::put('/vehicles/{vehicle}', [VehicleController::class, 'update'])->name('vehicles.update');
         Route::delete('/vehicles/{vehicle}', [VehicleController::class, 'destroy'])->name('vehicles.destroy');
+        Route::post('/vehicles/bulk-delete', [VehicleController::class, 'bulkDelete'])->name('vehicles.bulk-delete');
+        Route::get('/vehicles-trash', [VehicleController::class, 'trash'])->name('vehicles.trash');
+        Route::post('/vehicles/{id}/restore', [VehicleController::class, 'restore'])->name('vehicles.restore');
+        Route::delete('/vehicles/{id}/force-delete', [VehicleController::class, 'forceDelete'])->name('vehicles.force-delete');
+        Route::post('/vehicles/bulk-restore', [VehicleController::class, 'bulkRestore'])->name('vehicles.bulk-restore');
+        Route::post('/vehicles/bulk-force-delete', [VehicleController::class, 'bulkForceDelete'])->name('vehicles.bulk-force-delete');
+        Route::delete('/vehicles-trash/empty', [VehicleController::class, 'emptyTrash'])->name('vehicles.empty-trash');
 
         // Routes
         Route::get('/routes', [TransportRouteController::class, 'index'])->name('routes.index');
@@ -256,16 +338,37 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
         Route::get('/routes/{route}/edit', [TransportRouteController::class, 'edit'])->name('routes.edit');
         Route::put('/routes/{route}', [TransportRouteController::class, 'update'])->name('routes.update');
         Route::delete('/routes/{route}', [TransportRouteController::class, 'destroy'])->name('routes.destroy');
+        Route::post('/routes/bulk-delete', [TransportRouteController::class, 'bulkDelete'])->name('routes.bulk-delete');
+        Route::get('/routes-trash', [TransportRouteController::class, 'trash'])->name('routes.trash');
+        Route::post('/routes/{id}/restore', [TransportRouteController::class, 'restore'])->name('routes.restore');
+        Route::delete('/routes/{id}/force-delete', [TransportRouteController::class, 'forceDelete'])->name('routes.force-delete');
+        Route::post('/routes/bulk-restore', [TransportRouteController::class, 'bulkRestore'])->name('routes.bulk-restore');
+        Route::post('/routes/bulk-force-delete', [TransportRouteController::class, 'bulkForceDelete'])->name('routes.bulk-force-delete');
+        Route::delete('/routes-trash/empty', [TransportRouteController::class, 'emptyTrash'])->name('routes.empty-trash');
 
         Route::get('/drivers', function () { return view('admin.coming-soon'); })->name('drivers');
     });
 
     // Communication - Notices
     Route::resource('notices', App\Http\Controllers\Admin\NoticeController::class);
+    Route::post('notices/bulk-delete', [NoticeController::class, 'bulkDelete'])->name('notices.bulk-delete');
+    Route::get('notices-trash', [NoticeController::class, 'trash'])->name('notices.trash');
+    Route::post('notices/{id}/restore', [NoticeController::class, 'restore'])->name('notices.restore');
+    Route::delete('notices/{id}/force-delete', [NoticeController::class, 'forceDelete'])->name('notices.force-delete');
+    Route::post('notices/bulk-restore', [NoticeController::class, 'bulkRestore'])->name('notices.bulk-restore');
+    Route::post('notices/bulk-force-delete', [NoticeController::class, 'bulkForceDelete'])->name('notices.bulk-force-delete');
+    Route::delete('notices-trash/empty', [NoticeController::class, 'emptyTrash'])->name('notices.empty-trash');
 
     // Communication - Events
     Route::resource('events', App\Http\Controllers\Admin\EventController::class);
     Route::delete('events/photos/{photo}', [App\Http\Controllers\Admin\EventController::class, 'deletePhoto'])->name('events.photos.destroy');
+    Route::post('events/bulk-delete', [EventController::class, 'bulkDelete'])->name('events.bulk-delete');
+    Route::get('events-trash', [EventController::class, 'trash'])->name('events.trash');
+    Route::post('events/{id}/restore', [EventController::class, 'restore'])->name('events.restore');
+    Route::delete('events/{id}/force-delete', [EventController::class, 'forceDelete'])->name('events.force-delete');
+    Route::post('events/bulk-restore', [EventController::class, 'bulkRestore'])->name('events.bulk-restore');
+    Route::post('events/bulk-force-delete', [EventController::class, 'bulkForceDelete'])->name('events.bulk-force-delete');
+    Route::delete('events-trash/empty', [EventController::class, 'emptyTrash'])->name('events.empty-trash');
 
     // Messages
     Route::get('/messages', function () { return view('admin.coming-soon'); })->name('messages.index');
@@ -280,6 +383,15 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
 
     // Users & Roles
     Route::resource('users', UserController::class);
+    Route::post('users/bulk-delete', [UserController::class, 'bulkDelete'])->name('users.bulk-delete');
+    // User Trash
+    Route::get('users-trash', [UserController::class, 'trash'])->name('users.trash');
+    Route::post('users/{id}/restore', [UserController::class, 'restore'])->name('users.restore');
+    Route::delete('users/{id}/force-delete', [UserController::class, 'forceDelete'])->name('users.force-delete');
+    Route::post('users/bulk-restore', [UserController::class, 'bulkRestore'])->name('users.bulk-restore');
+    Route::post('users/bulk-force-delete', [UserController::class, 'bulkForceDelete'])->name('users.bulk-force-delete');
+    Route::delete('users-trash/empty', [UserController::class, 'emptyTrash'])->name('users.empty-trash');
+
     Route::get('/roles', function () { return view('admin.coming-soon'); })->name('roles.index');
 });
 

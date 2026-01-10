@@ -41,8 +41,9 @@ class TeacherController extends Controller
 
 		$teachers = $query->latest()->paginate(15);
 		$departments = Department::active()->orderBy('name')->get();
+		$trashedCount = Staff::onlyTrashed()->teachers()->count();
 
-		return view('admin.teachers.index', compact('teachers', 'departments'));
+		return view('admin.teachers.index', compact('teachers', 'departments', 'trashedCount'));
 	}
 
 	public function create()
@@ -243,17 +244,176 @@ class TeacherController extends Controller
 	public function destroy(Staff $teacher)
 	{
 		try {
+			$teacher->delete();
+
+			return redirect()->route('admin.teachers.index')
+				->with('success', 'Teacher moved to trash successfully.');
+
+		} catch (\Exception $e) {
+			return back()->with('error', 'An error occurred: ' . $e->getMessage());
+		}
+	}
+
+	public function bulkDelete(Request $request)
+	{
+		$request->validate([
+			'teacher_ids' => ['required', 'array', 'min:1'],
+			'teacher_ids.*' => ['exists:staff,id'],
+		]);
+
+		try {
+			$count = Staff::whereIn('id', $request->teacher_ids)->count();
+			Staff::whereIn('id', $request->teacher_ids)->delete();
+
+			return response()->json([
+				'success' => true,
+				'message' => "{$count} teacher(s) moved to trash.",
+			]);
+
+		} catch (\Exception $e) {
+			return response()->json([
+				'success' => false,
+				'message' => 'An error occurred: ' . $e->getMessage(),
+			], 500);
+		}
+	}
+
+	public function trash(Request $request)
+	{
+		$query = Staff::onlyTrashed()->with(['department', 'designation'])->teachers();
+
+		// Search filter
+		if ($request->filled('search')) {
+			$search = $request->search;
+			$query->where(function ($q) use ($search) {
+				$q->where('first_name', 'like', "%{$search}%")
+					->orWhere('last_name', 'like', "%{$search}%")
+					->orWhere('staff_id', 'like', "%{$search}%");
+			});
+		}
+
+		$teachers = $query->latest('deleted_at')->paginate(15);
+		$trashedCount = Staff::onlyTrashed()->teachers()->count();
+
+		return view('admin.teachers.trash', compact('teachers', 'trashedCount'));
+	}
+
+	public function restore($id)
+	{
+		try {
+			$teacher = Staff::onlyTrashed()->findOrFail($id);
+			$teacher->restore();
+
+			return redirect()->route('admin.teachers.trash')
+				->with('success', "Teacher '{$teacher->full_name}' restored successfully.");
+
+		} catch (\Exception $e) {
+			return back()->with('error', 'An error occurred: ' . $e->getMessage());
+		}
+	}
+
+	public function forceDelete($id)
+	{
+		try {
+			$teacher = Staff::onlyTrashed()->findOrFail($id);
+
 			// Delete photo if exists
 			if ($teacher->photo) {
 				Storage::disk('public')->delete($teacher->photo);
 			}
 
-			$teacher->delete();
+			$name = $teacher->full_name;
+			$teacher->forceDelete();
 
-			return redirect()->route('admin.teachers.index')
-				->with('success', 'Teacher deleted successfully.');
+			return redirect()->route('admin.teachers.trash')
+				->with('success', "Teacher '{$name}' permanently deleted.");
 
 		} catch (\Exception $e) {
+			return back()->with('error', 'An error occurred: ' . $e->getMessage());
+		}
+	}
+
+	public function bulkRestore(Request $request)
+	{
+		$request->validate([
+			'teacher_ids' => ['required', 'array', 'min:1'],
+		]);
+
+		try {
+			$count = Staff::onlyTrashed()->whereIn('id', $request->teacher_ids)->count();
+			Staff::onlyTrashed()->whereIn('id', $request->teacher_ids)->restore();
+
+			return response()->json([
+				'success' => true,
+				'message' => "{$count} teacher(s) restored successfully.",
+			]);
+
+		} catch (\Exception $e) {
+			return response()->json([
+				'success' => false,
+				'message' => 'An error occurred: ' . $e->getMessage(),
+			], 500);
+		}
+	}
+
+	public function bulkForceDelete(Request $request)
+	{
+		$request->validate([
+			'teacher_ids' => ['required', 'array', 'min:1'],
+		]);
+
+		try {
+			DB::beginTransaction();
+
+			$teachers = Staff::onlyTrashed()->whereIn('id', $request->teacher_ids)->get();
+			$count = $teachers->count();
+
+			foreach ($teachers as $teacher) {
+				// Delete photo if exists
+				if ($teacher->photo) {
+					Storage::disk('public')->delete($teacher->photo);
+				}
+				$teacher->forceDelete();
+			}
+
+			DB::commit();
+
+			return response()->json([
+				'success' => true,
+				'message' => "{$count} teacher(s) permanently deleted.",
+			]);
+
+		} catch (\Exception $e) {
+			DB::rollBack();
+			return response()->json([
+				'success' => false,
+				'message' => 'An error occurred: ' . $e->getMessage(),
+			], 500);
+		}
+	}
+
+	public function emptyTrash()
+	{
+		try {
+			DB::beginTransaction();
+
+			$teachers = Staff::onlyTrashed()->teachers()->get();
+			$count = $teachers->count();
+
+			foreach ($teachers as $teacher) {
+				if ($teacher->photo) {
+					Storage::disk('public')->delete($teacher->photo);
+				}
+				$teacher->forceDelete();
+			}
+
+			DB::commit();
+
+			return redirect()->route('admin.teachers.trash')
+				->with('success', "{$count} teacher(s) permanently deleted from trash.");
+
+		} catch (\Exception $e) {
+			DB::rollBack();
 			return back()->with('error', 'An error occurred: ' . $e->getMessage());
 		}
 	}

@@ -50,8 +50,9 @@ class StudentController extends Controller
         $students = $query->latest()->paginate(15);
         $classes = SchoolClass::with('sections')->active()->ordered()->get();
         $academicYear = AcademicYear::getActive();
+        $trashedCount = Student::onlyTrashed()->count();
 
-        return view('admin.students.index', compact('students', 'classes', 'academicYear'));
+        return view('admin.students.index', compact('students', 'classes', 'academicYear', 'trashedCount'));
     }
 
     public function create()
@@ -311,15 +312,10 @@ class StudentController extends Controller
     public function destroy(Student $student)
     {
         try {
-            // Delete photo if exists
-            if ($student->photo) {
-                Storage::disk('public')->delete($student->photo);
-            }
-
             $student->delete();
 
             return redirect()->route('admin.students.index')
-                ->with('success', 'Student deleted successfully.');
+                ->with('success', 'Student moved to trash successfully.');
 
         } catch (\Exception $e) {
             return back()->with('error', 'An error occurred: ' . $e->getMessage());
@@ -336,5 +332,169 @@ class StudentController extends Controller
     {
         $student->load(['schoolClass', 'section', 'academicYear', 'parent']);
         return view('admin.students.id-card', compact('student'));
+    }
+
+    public function bulkDelete(Request $request)
+    {
+        $request->validate([
+            'student_ids' => ['required', 'array', 'min:1'],
+            'student_ids.*' => ['exists:students,id'],
+        ]);
+
+        try {
+            $count = Student::whereIn('id', $request->student_ids)->count();
+            Student::whereIn('id', $request->student_ids)->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => "{$count} student(s) moved to trash.",
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function trash(Request $request)
+    {
+        $query = Student::onlyTrashed()->with(['schoolClass', 'section', 'academicYear']);
+
+        // Search filter
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('first_name', 'like', "%{$search}%")
+                    ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhere('admission_no', 'like', "%{$search}%");
+            });
+        }
+
+        $students = $query->latest('deleted_at')->paginate(15);
+        $trashedCount = Student::onlyTrashed()->count();
+
+        return view('admin.students.trash', compact('students', 'trashedCount'));
+    }
+
+    public function restore($id)
+    {
+        try {
+            $student = Student::onlyTrashed()->findOrFail($id);
+            $student->restore();
+
+            return redirect()->route('admin.students.trash')
+                ->with('success', "Student '{$student->full_name}' restored successfully.");
+
+        } catch (\Exception $e) {
+            return back()->with('error', 'An error occurred: ' . $e->getMessage());
+        }
+    }
+
+    public function forceDelete($id)
+    {
+        try {
+            $student = Student::onlyTrashed()->findOrFail($id);
+
+            // Delete photo if exists
+            if ($student->photo) {
+                Storage::disk('public')->delete($student->photo);
+            }
+
+            $name = $student->full_name;
+            $student->forceDelete();
+
+            return redirect()->route('admin.students.trash')
+                ->with('success', "Student '{$name}' permanently deleted.");
+
+        } catch (\Exception $e) {
+            return back()->with('error', 'An error occurred: ' . $e->getMessage());
+        }
+    }
+
+    public function bulkRestore(Request $request)
+    {
+        $request->validate([
+            'student_ids' => ['required', 'array', 'min:1'],
+        ]);
+
+        try {
+            $count = Student::onlyTrashed()->whereIn('id', $request->student_ids)->count();
+            Student::onlyTrashed()->whereIn('id', $request->student_ids)->restore();
+
+            return response()->json([
+                'success' => true,
+                'message' => "{$count} student(s) restored successfully.",
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function bulkForceDelete(Request $request)
+    {
+        $request->validate([
+            'student_ids' => ['required', 'array', 'min:1'],
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $students = Student::onlyTrashed()->whereIn('id', $request->student_ids)->get();
+            $count = $students->count();
+
+            foreach ($students as $student) {
+                // Delete photo if exists
+                if ($student->photo) {
+                    Storage::disk('public')->delete($student->photo);
+                }
+                $student->forceDelete();
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => "{$count} student(s) permanently deleted.",
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function emptyTrash()
+    {
+        try {
+            DB::beginTransaction();
+
+            $students = Student::onlyTrashed()->get();
+            $count = $students->count();
+
+            foreach ($students as $student) {
+                if ($student->photo) {
+                    Storage::disk('public')->delete($student->photo);
+                }
+                $student->forceDelete();
+            }
+
+            DB::commit();
+
+            return redirect()->route('admin.students.trash')
+                ->with('success', "{$count} student(s) permanently deleted from trash.");
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'An error occurred: ' . $e->getMessage());
+        }
     }
 }

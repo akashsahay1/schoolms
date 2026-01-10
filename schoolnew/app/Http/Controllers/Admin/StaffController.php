@@ -42,8 +42,9 @@ class StaffController extends Controller
 
 		$staff = $query->latest()->paginate(15);
 		$departments = Department::active()->orderBy('name')->get();
+		$trashedCount = Staff::onlyTrashed()->count();
 
-		return view('admin.staff.index', compact('staff', 'departments'));
+		return view('admin.staff.index', compact('staff', 'departments', 'trashedCount'));
 	}
 
 	public function create()
@@ -248,17 +249,176 @@ class StaffController extends Controller
 	public function destroy(Staff $staff)
 	{
 		try {
+			$staff->delete();
+
+			return redirect()->route('admin.staff.index')
+				->with('success', 'Staff member moved to trash successfully.');
+
+		} catch (\Exception $e) {
+			return back()->with('error', 'An error occurred: ' . $e->getMessage());
+		}
+	}
+
+	public function bulkDelete(Request $request)
+	{
+		$request->validate([
+			'staff_ids' => ['required', 'array', 'min:1'],
+			'staff_ids.*' => ['exists:staff,id'],
+		]);
+
+		try {
+			$count = Staff::whereIn('id', $request->staff_ids)->count();
+			Staff::whereIn('id', $request->staff_ids)->delete();
+
+			return response()->json([
+				'success' => true,
+				'message' => "{$count} staff member(s) moved to trash.",
+			]);
+
+		} catch (\Exception $e) {
+			return response()->json([
+				'success' => false,
+				'message' => 'An error occurred: ' . $e->getMessage(),
+			], 500);
+		}
+	}
+
+	public function trash(Request $request)
+	{
+		$query = Staff::onlyTrashed()->with(['department', 'designation']);
+
+		// Search filter
+		if ($request->filled('search')) {
+			$search = $request->search;
+			$query->where(function ($q) use ($search) {
+				$q->where('first_name', 'like', "%{$search}%")
+					->orWhere('last_name', 'like', "%{$search}%")
+					->orWhere('staff_id', 'like', "%{$search}%");
+			});
+		}
+
+		$staff = $query->latest('deleted_at')->paginate(15);
+		$trashedCount = Staff::onlyTrashed()->count();
+
+		return view('admin.staff.trash', compact('staff', 'trashedCount'));
+	}
+
+	public function restore($id)
+	{
+		try {
+			$staff = Staff::onlyTrashed()->findOrFail($id);
+			$staff->restore();
+
+			return redirect()->route('admin.staff.trash')
+				->with('success', "Staff member '{$staff->full_name}' restored successfully.");
+
+		} catch (\Exception $e) {
+			return back()->with('error', 'An error occurred: ' . $e->getMessage());
+		}
+	}
+
+	public function forceDelete($id)
+	{
+		try {
+			$staff = Staff::onlyTrashed()->findOrFail($id);
+
 			// Delete photo if exists
 			if ($staff->photo) {
 				Storage::disk('public')->delete($staff->photo);
 			}
 
-			$staff->delete();
+			$name = $staff->full_name;
+			$staff->forceDelete();
 
-			return redirect()->route('admin.staff.index')
-				->with('success', 'Staff member deleted successfully.');
+			return redirect()->route('admin.staff.trash')
+				->with('success', "Staff member '{$name}' permanently deleted.");
 
 		} catch (\Exception $e) {
+			return back()->with('error', 'An error occurred: ' . $e->getMessage());
+		}
+	}
+
+	public function bulkRestore(Request $request)
+	{
+		$request->validate([
+			'staff_ids' => ['required', 'array', 'min:1'],
+		]);
+
+		try {
+			$count = Staff::onlyTrashed()->whereIn('id', $request->staff_ids)->count();
+			Staff::onlyTrashed()->whereIn('id', $request->staff_ids)->restore();
+
+			return response()->json([
+				'success' => true,
+				'message' => "{$count} staff member(s) restored successfully.",
+			]);
+
+		} catch (\Exception $e) {
+			return response()->json([
+				'success' => false,
+				'message' => 'An error occurred: ' . $e->getMessage(),
+			], 500);
+		}
+	}
+
+	public function bulkForceDelete(Request $request)
+	{
+		$request->validate([
+			'staff_ids' => ['required', 'array', 'min:1'],
+		]);
+
+		try {
+			DB::beginTransaction();
+
+			$staffMembers = Staff::onlyTrashed()->whereIn('id', $request->staff_ids)->get();
+			$count = $staffMembers->count();
+
+			foreach ($staffMembers as $staff) {
+				// Delete photo if exists
+				if ($staff->photo) {
+					Storage::disk('public')->delete($staff->photo);
+				}
+				$staff->forceDelete();
+			}
+
+			DB::commit();
+
+			return response()->json([
+				'success' => true,
+				'message' => "{$count} staff member(s) permanently deleted.",
+			]);
+
+		} catch (\Exception $e) {
+			DB::rollBack();
+			return response()->json([
+				'success' => false,
+				'message' => 'An error occurred: ' . $e->getMessage(),
+			], 500);
+		}
+	}
+
+	public function emptyTrash()
+	{
+		try {
+			DB::beginTransaction();
+
+			$staffMembers = Staff::onlyTrashed()->get();
+			$count = $staffMembers->count();
+
+			foreach ($staffMembers as $staff) {
+				if ($staff->photo) {
+					Storage::disk('public')->delete($staff->photo);
+				}
+				$staff->forceDelete();
+			}
+
+			DB::commit();
+
+			return redirect()->route('admin.staff.trash')
+				->with('success', "{$count} staff member(s) permanently deleted from trash.");
+
+		} catch (\Exception $e) {
+			DB::rollBack();
 			return back()->with('error', 'An error occurred: ' . $e->getMessage());
 		}
 	}

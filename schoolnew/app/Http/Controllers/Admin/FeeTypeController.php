@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\FeeType;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class FeeTypeController extends Controller
 {
@@ -27,8 +28,9 @@ class FeeTypeController extends Controller
 		}
 
 		$feeTypes = $query->orderBy('name')->paginate(15);
+		$trashedCount = FeeType::onlyTrashed()->count();
 
-		return view('admin.fees.types.index', compact('feeTypes'));
+		return view('admin.fees.types.index', compact('feeTypes', 'trashedCount'));
 	}
 
 	public function create()
@@ -102,7 +104,141 @@ class FeeTypeController extends Controller
 			$feeType->delete();
 
 			return redirect()->route('admin.fees.types.index')
-				->with('success', 'Fee type deleted successfully.');
+				->with('success', 'Fee type moved to trash successfully.');
+
+		} catch (\Exception $e) {
+			return back()->with('error', 'An error occurred: ' . $e->getMessage());
+		}
+	}
+
+	public function bulkDelete(Request $request)
+	{
+		$request->validate([
+			'ids' => ['required', 'array'],
+			'ids.*' => ['exists:fee_types,id'],
+		]);
+
+		try {
+			DB::beginTransaction();
+
+			$feeTypes = FeeType::whereIn('id', $request->ids)->get();
+			$deletedCount = 0;
+			$skippedCount = 0;
+
+			foreach ($feeTypes as $feeType) {
+				// Check if fee type is used in any fee structure
+				if ($feeType->feeStructures()->count() > 0) {
+					$skippedCount++;
+					continue;
+				}
+
+				$feeType->delete();
+				$deletedCount++;
+			}
+
+			DB::commit();
+
+			if ($skippedCount > 0) {
+				return back()->with('warning', "{$deletedCount} fee type(s) moved to trash. {$skippedCount} fee type(s) skipped because they are used in fee structures.");
+			}
+
+			return back()->with('success', "{$deletedCount} fee type(s) moved to trash successfully.");
+
+		} catch (\Exception $e) {
+			DB::rollBack();
+			return back()->with('error', 'An error occurred: ' . $e->getMessage());
+		}
+	}
+
+	public function trash(Request $request)
+	{
+		$query = FeeType::onlyTrashed();
+
+		// Search filter
+		if ($request->filled('search')) {
+			$search = $request->search;
+			$query->where(function ($q) use ($search) {
+				$q->where('name', 'like', "%{$search}%")
+					->orWhere('code', 'like', "%{$search}%");
+			});
+		}
+
+		$feeTypes = $query->orderBy('deleted_at', 'desc')->paginate(15);
+
+		return view('admin.fees.types.trash', compact('feeTypes'));
+	}
+
+	public function restore($id)
+	{
+		try {
+			$feeType = FeeType::onlyTrashed()->findOrFail($id);
+			$feeType->restore();
+
+			return redirect()->route('admin.fees.types.trash')
+				->with('success', 'Fee type restored successfully.');
+
+		} catch (\Exception $e) {
+			return back()->with('error', 'An error occurred: ' . $e->getMessage());
+		}
+	}
+
+	public function forceDelete($id)
+	{
+		try {
+			$feeType = FeeType::onlyTrashed()->findOrFail($id);
+			$feeType->forceDelete();
+
+			return redirect()->route('admin.fees.types.trash')
+				->with('success', 'Fee type permanently deleted.');
+
+		} catch (\Exception $e) {
+			return back()->with('error', 'An error occurred: ' . $e->getMessage());
+		}
+	}
+
+	public function bulkRestore(Request $request)
+	{
+		$request->validate([
+			'ids' => ['required', 'array'],
+		]);
+
+		try {
+			$restoredCount = FeeType::onlyTrashed()
+				->whereIn('id', $request->ids)
+				->restore();
+
+			return back()->with('success', "{$restoredCount} fee type(s) restored successfully.");
+
+		} catch (\Exception $e) {
+			return back()->with('error', 'An error occurred: ' . $e->getMessage());
+		}
+	}
+
+	public function bulkForceDelete(Request $request)
+	{
+		$request->validate([
+			'ids' => ['required', 'array'],
+		]);
+
+		try {
+			$deletedCount = FeeType::onlyTrashed()
+				->whereIn('id', $request->ids)
+				->forceDelete();
+
+			return back()->with('success', "{$deletedCount} fee type(s) permanently deleted.");
+
+		} catch (\Exception $e) {
+			return back()->with('error', 'An error occurred: ' . $e->getMessage());
+		}
+	}
+
+	public function emptyTrash()
+	{
+		try {
+			$deletedCount = FeeType::onlyTrashed()->forceDelete();
+
+			return redirect()->route('admin.fees.types.trash')
+				->with('success', "{$deletedCount} fee type(s) permanently deleted from trash.");
 
 		} catch (\Exception $e) {
 			return back()->with('error', 'An error occurred: ' . $e->getMessage());

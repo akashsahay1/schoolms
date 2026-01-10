@@ -10,6 +10,7 @@ use App\Models\AcademicYear;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class EventController extends Controller
 {
@@ -30,8 +31,9 @@ class EventController extends Controller
         }
 
         $events = $query->paginate(15);
+        $trashedCount = Event::onlyTrashed()->count();
 
-        return view('admin.events.index', compact('events'));
+        return view('admin.events.index', compact('events', 'trashedCount'));
     }
 
     /**
@@ -200,10 +202,68 @@ class EventController extends Controller
     }
 
     /**
-     * Remove the specified event.
+     * Soft delete the specified event.
      */
     public function destroy(Event $event)
     {
+        $event->delete();
+
+        return redirect()->route('admin.events.index')
+            ->with('success', 'Event moved to trash successfully.');
+    }
+
+    /**
+     * Bulk soft delete events.
+     */
+    public function bulkDelete(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:events,id',
+        ]);
+
+        Event::whereIn('id', $validated['ids'])->delete();
+
+        return redirect()->route('admin.events.index')
+            ->with('success', count($validated['ids']) . ' events moved to trash successfully.');
+    }
+
+    /**
+     * Display trashed events.
+     */
+    public function trash(Request $request)
+    {
+        $query = Event::onlyTrashed()->with('creator')->latest('deleted_at');
+
+        if ($request->filled('type')) {
+            $query->where('type', $request->type);
+        }
+
+        $events = $query->paginate(15);
+
+        return view('admin.events.trash', compact('events'));
+    }
+
+    /**
+     * Restore a trashed event.
+     */
+    public function restore($id)
+    {
+        $event = Event::onlyTrashed()->findOrFail($id);
+        $event->restore();
+
+        return redirect()->route('admin.events.trash')
+            ->with('success', 'Event restored successfully.');
+    }
+
+    /**
+     * Permanently delete an event with image and gallery cleanup.
+     */
+    public function forceDelete($id)
+    {
+        $event = Event::onlyTrashed()->findOrFail($id);
+
+        // Delete main image
         if ($event->image) {
             Storage::disk('public')->delete($event->image);
         }
@@ -211,12 +271,86 @@ class EventController extends Controller
         // Delete gallery photos
         foreach ($event->photos as $photo) {
             Storage::disk('public')->delete($photo->image);
+            $photo->delete();
         }
 
-        $event->delete();
+        $event->forceDelete();
 
-        return redirect()->route('admin.events.index')
-            ->with('success', 'Event deleted successfully.');
+        return redirect()->route('admin.events.trash')
+            ->with('success', 'Event permanently deleted.');
+    }
+
+    /**
+     * Bulk restore trashed events.
+     */
+    public function bulkRestore(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:events,id',
+        ]);
+
+        Event::onlyTrashed()->whereIn('id', $validated['ids'])->restore();
+
+        return redirect()->route('admin.events.trash')
+            ->with('success', count($validated['ids']) . ' events restored successfully.');
+    }
+
+    /**
+     * Bulk permanently delete trashed events with image cleanup.
+     */
+    public function bulkForceDelete(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:events,id',
+        ]);
+
+        $events = Event::onlyTrashed()->whereIn('id', $validated['ids'])->get();
+
+        foreach ($events as $event) {
+            // Delete main image
+            if ($event->image) {
+                Storage::disk('public')->delete($event->image);
+            }
+
+            // Delete gallery photos
+            foreach ($event->photos as $photo) {
+                Storage::disk('public')->delete($photo->image);
+                $photo->delete();
+            }
+
+            $event->forceDelete();
+        }
+
+        return redirect()->route('admin.events.trash')
+            ->with('success', count($validated['ids']) . ' events permanently deleted.');
+    }
+
+    /**
+     * Empty all trash (permanently delete all trashed events).
+     */
+    public function emptyTrash()
+    {
+        $events = Event::onlyTrashed()->get();
+
+        foreach ($events as $event) {
+            // Delete main image
+            if ($event->image) {
+                Storage::disk('public')->delete($event->image);
+            }
+
+            // Delete gallery photos
+            foreach ($event->photos as $photo) {
+                Storage::disk('public')->delete($photo->image);
+                $photo->delete();
+            }
+
+            $event->forceDelete();
+        }
+
+        return redirect()->route('admin.events.trash')
+            ->with('success', 'Trash emptied successfully.');
     }
 
     /**

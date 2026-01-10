@@ -13,6 +13,7 @@ use App\Models\AcademicYear;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class HomeworkController extends Controller
@@ -59,8 +60,9 @@ class HomeworkController extends Controller
 		$academicYears = AcademicYear::orderBy('start_date', 'desc')->get();
 		$classes = SchoolClass::active()->ordered()->get();
 		$subjects = Subject::active()->orderBy('name')->get();
+		$trashedCount = Homework::onlyTrashed()->count();
 
-		return view('admin.homework.index', compact('homeworks', 'academicYears', 'classes', 'subjects'));
+		return view('admin.homework.index', compact('homeworks', 'academicYears', 'classes', 'subjects', 'trashedCount'));
 	}
 
 	public function create()
@@ -199,17 +201,173 @@ class HomeworkController extends Controller
 	public function destroy(Homework $homework)
 	{
 		try {
+			$homework->delete();
+
+			return redirect()->route('admin.homework.index')
+				->with('success', 'Homework moved to trash.');
+
+		} catch (\Exception $e) {
+			return back()->with('error', 'An error occurred: ' . $e->getMessage());
+		}
+	}
+
+	public function bulkDelete(Request $request)
+	{
+		$request->validate([
+			'homework_ids' => ['required', 'array', 'min:1'],
+			'homework_ids.*' => ['exists:homework,id'],
+		]);
+
+		try {
+			$count = Homework::whereIn('id', $request->homework_ids)->count();
+			Homework::whereIn('id', $request->homework_ids)->delete();
+
+			return response()->json([
+				'success' => true,
+				'message' => "{$count} homework(s) moved to trash.",
+			]);
+
+		} catch (\Exception $e) {
+			return response()->json([
+				'success' => false,
+				'message' => 'An error occurred: ' . $e->getMessage(),
+			], 500);
+		}
+	}
+
+	public function trash(Request $request)
+	{
+		$query = Homework::onlyTrashed()->with(['schoolClass', 'section', 'subject', 'teacher']);
+
+		if ($request->filled('search')) {
+			$search = $request->search;
+			$query->where(function ($q) use ($search) {
+				$q->where('title', 'like', "%{$search}%")
+					->orWhere('description', 'like', "%{$search}%");
+			});
+		}
+
+		$homeworks = $query->latest('deleted_at')->paginate(15);
+		$trashedCount = Homework::onlyTrashed()->count();
+
+		return view('admin.homework.trash', compact('homeworks', 'trashedCount'));
+	}
+
+	public function restore($id)
+	{
+		try {
+			$homework = Homework::onlyTrashed()->findOrFail($id);
+			$homework->restore();
+
+			return redirect()->route('admin.homework.trash')
+				->with('success', "'{$homework->title}' restored successfully.");
+
+		} catch (\Exception $e) {
+			return back()->with('error', 'An error occurred: ' . $e->getMessage());
+		}
+	}
+
+	public function forceDelete($id)
+	{
+		try {
+			$homework = Homework::onlyTrashed()->findOrFail($id);
+
 			// Delete attachment if exists
 			if ($homework->attachment) {
 				Storage::disk('public')->delete($homework->attachment);
 			}
 
-			$homework->delete();
+			$title = $homework->title;
+			$homework->forceDelete();
 
-			return redirect()->route('admin.homework.index')
-				->with('success', 'Homework deleted successfully.');
+			return redirect()->route('admin.homework.trash')
+				->with('success', "'{$title}' permanently deleted.");
 
 		} catch (\Exception $e) {
+			return back()->with('error', 'An error occurred: ' . $e->getMessage());
+		}
+	}
+
+	public function bulkRestore(Request $request)
+	{
+		$request->validate([
+			'homework_ids' => ['required', 'array', 'min:1'],
+		]);
+
+		try {
+			$count = Homework::onlyTrashed()->whereIn('id', $request->homework_ids)->count();
+			Homework::onlyTrashed()->whereIn('id', $request->homework_ids)->restore();
+
+			return response()->json([
+				'success' => true,
+				'message' => "{$count} homework(s) restored successfully.",
+			]);
+
+		} catch (\Exception $e) {
+			return response()->json([
+				'success' => false,
+				'message' => 'An error occurred: ' . $e->getMessage(),
+			], 500);
+		}
+	}
+
+	public function bulkForceDelete(Request $request)
+	{
+		$request->validate([
+			'homework_ids' => ['required', 'array', 'min:1'],
+		]);
+
+		try {
+			DB::beginTransaction();
+
+			$homeworks = Homework::onlyTrashed()->whereIn('id', $request->homework_ids)->get();
+			$count = $homeworks->count();
+
+			foreach ($homeworks as $homework) {
+				if ($homework->attachment) {
+					Storage::disk('public')->delete($homework->attachment);
+				}
+				$homework->forceDelete();
+			}
+
+			DB::commit();
+
+			return response()->json([
+				'success' => true,
+				'message' => "{$count} homework(s) permanently deleted.",
+			]);
+
+		} catch (\Exception $e) {
+			DB::rollBack();
+			return response()->json([
+				'success' => false,
+				'message' => 'An error occurred: ' . $e->getMessage(),
+			], 500);
+		}
+	}
+
+	public function emptyTrash()
+	{
+		try {
+			DB::beginTransaction();
+
+			$homeworks = Homework::onlyTrashed()->get();
+			$count = $homeworks->count();
+
+			foreach ($homeworks as $homework) {
+				if ($homework->attachment) {
+					Storage::disk('public')->delete($homework->attachment);
+				}
+				$homework->forceDelete();
+			}
+
+			DB::commit();
+
+			return redirect()->route('admin.homework.trash')
+				->with('success', "{$count} homework(s) permanently deleted from trash.");
+
+		} catch (\Exception $e) {
+			DB::rollBack();
 			return back()->with('error', 'An error occurred: ' . $e->getMessage());
 		}
 	}

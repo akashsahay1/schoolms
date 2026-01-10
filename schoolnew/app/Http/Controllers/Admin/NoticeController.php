@@ -9,6 +9,7 @@ use App\Models\AcademicYear;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class NoticeController extends Controller
 {
@@ -34,8 +35,9 @@ class NoticeController extends Controller
         }
 
         $notices = $query->paginate(15);
+        $trashedCount = Notice::onlyTrashed()->count();
 
-        return view('admin.notices.index', compact('notices'));
+        return view('admin.notices.index', compact('notices', 'trashedCount'));
     }
 
     /**
@@ -162,17 +164,149 @@ class NoticeController extends Controller
     }
 
     /**
-     * Remove the specified notice.
+     * Soft delete the specified notice.
      */
     public function destroy(Notice $notice)
     {
+        $notice->delete();
+
+        return redirect()->route('admin.notices.index')
+            ->with('success', 'Notice moved to trash successfully.');
+    }
+
+    /**
+     * Bulk soft delete notices.
+     */
+    public function bulkDelete(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:notices,id',
+        ]);
+
+        Notice::whereIn('id', $request->ids)->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => count($request->ids) . ' notices moved to trash successfully.',
+        ]);
+    }
+
+    /**
+     * Display trashed notices.
+     */
+    public function trash(Request $request)
+    {
+        $query = Notice::onlyTrashed()->with('creator')->latest('deleted_at');
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                    ->orWhere('content', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('type')) {
+            $query->where('type', $request->type);
+        }
+
+        $notices = $query->paginate(15);
+
+        return view('admin.notices.trash', compact('notices'));
+    }
+
+    /**
+     * Restore a trashed notice.
+     */
+    public function restore($id)
+    {
+        $notice = Notice::onlyTrashed()->findOrFail($id);
+        $notice->restore();
+
+        return redirect()->route('admin.notices.trash')
+            ->with('success', 'Notice restored successfully.');
+    }
+
+    /**
+     * Permanently delete a notice.
+     */
+    public function forceDelete($id)
+    {
+        $notice = Notice::onlyTrashed()->findOrFail($id);
+
         if ($notice->attachment) {
             Storage::disk('public')->delete($notice->attachment);
         }
 
-        $notice->delete();
+        $notice->forceDelete();
 
-        return redirect()->route('admin.notices.index')
-            ->with('success', 'Notice deleted successfully.');
+        return redirect()->route('admin.notices.trash')
+            ->with('success', 'Notice permanently deleted.');
+    }
+
+    /**
+     * Bulk restore notices.
+     */
+    public function bulkRestore(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:notices,id',
+        ]);
+
+        Notice::onlyTrashed()->whereIn('id', $request->ids)->restore();
+
+        return response()->json([
+            'success' => true,
+            'message' => count($request->ids) . ' notices restored successfully.',
+        ]);
+    }
+
+    /**
+     * Bulk permanently delete notices.
+     */
+    public function bulkForceDelete(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:notices,id',
+        ]);
+
+        $notices = Notice::onlyTrashed()->whereIn('id', $request->ids)->get();
+
+        DB::transaction(function () use ($notices) {
+            foreach ($notices as $notice) {
+                if ($notice->attachment) {
+                    Storage::disk('public')->delete($notice->attachment);
+                }
+                $notice->forceDelete();
+            }
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => count($request->ids) . ' notices permanently deleted.',
+        ]);
+    }
+
+    /**
+     * Empty all trash.
+     */
+    public function emptyTrash()
+    {
+        $notices = Notice::onlyTrashed()->get();
+
+        DB::transaction(function () use ($notices) {
+            foreach ($notices as $notice) {
+                if ($notice->attachment) {
+                    Storage::disk('public')->delete($notice->attachment);
+                }
+                $notice->forceDelete();
+            }
+        });
+
+        return redirect()->route('admin.notices.trash')
+            ->with('success', 'Trash emptied successfully.');
     }
 }
