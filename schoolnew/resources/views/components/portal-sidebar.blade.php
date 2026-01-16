@@ -112,8 +112,8 @@
 					</li>
 
 					<!-- Exams & Results -->
-					<li class="sidebar-list">
-						<a class="sidebar-link sidebar-title" href="#">
+					<li class="sidebar-list {{ request()->routeIs('portal.exams*') ? 'active' : '' }}">
+						<a class="sidebar-link sidebar-title {{ request()->routeIs('portal.exams*') ? 'active' : '' }}" href="#">
 							<svg class="stroke-icon">
 								<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-file') }}"></use>
 							</svg>
@@ -122,10 +122,28 @@
 							</svg>
 							<span>Exams & Results</span>
 						</a>
-						<ul class="sidebar-submenu">
-							<li><a href="{{ route('portal.exams') }}">Exam Schedule</a></li>
-							<li><a href="{{ route('portal.results') }}">My Results</a></li>
-							<li><a href="{{ route('portal.report-cards') }}">Report Cards</a></li>
+						<ul class="sidebar-submenu" style="{{ request()->routeIs('portal.exams*') ? 'display: block;' : '' }}">
+							<li><a class="{{ request()->routeIs('portal.exams') && !request()->routeIs('portal.exams.*') ? 'active' : '' }}" href="{{ route('portal.exams') }}">Exam Schedule</a></li>
+							<li><a class="{{ request()->routeIs('portal.exams.results') ? 'active' : '' }}" href="{{ route('portal.exams.results') }}">My Results</a></li>
+							<li><a class="{{ request()->routeIs('portal.exams.report-card') ? 'active' : '' }}" href="{{ route('portal.exams.report-card') }}">Report Card</a></li>
+						</ul>
+					</li>
+
+					<!-- Library -->
+					<li class="sidebar-list {{ request()->routeIs('portal.library.*') ? 'active' : '' }}">
+						<a class="sidebar-link sidebar-title {{ request()->routeIs('portal.library.*') ? 'active' : '' }}" href="#">
+							<svg class="stroke-icon">
+								<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-bookmark') }}"></use>
+							</svg>
+							<svg class="fill-icon">
+								<use href="{{ asset('assets/svg/icon-sprite.svg#fill-bookmark') }}"></use>
+							</svg>
+							<span>Library</span>
+						</a>
+						<ul class="sidebar-submenu" style="{{ request()->routeIs('portal.library.*') ? 'display: block;' : '' }}">
+							<li><a class="{{ request()->routeIs('portal.library.index') ? 'active' : '' }}" href="{{ route('portal.library.index') }}">My Books</a></li>
+							<li><a class="{{ request()->routeIs('portal.library.search') ? 'active' : '' }}" href="{{ route('portal.library.search') }}">Search Books</a></li>
+							<li><a class="{{ request()->routeIs('portal.library.history') ? 'active' : '' }}" href="{{ route('portal.library.history') }}">Borrow History</a></li>
 						</ul>
 					</li>
 
@@ -134,8 +152,8 @@
 						<div><h6>Finance</h6></div>
 					</li>
 
-					<li class="sidebar-list">
-						<a class="sidebar-link sidebar-title" href="#">
+					<li class="sidebar-list {{ request()->routeIs('portal.fees.*') || request()->routeIs('portal.payment.*') ? 'active' : '' }}">
+						<a class="sidebar-link sidebar-title {{ request()->routeIs('portal.fees.*') || request()->routeIs('portal.payment.*') ? 'active' : '' }}" href="#">
 							<svg class="stroke-icon">
 								<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-ecommerce') }}"></use>
 							</svg>
@@ -144,11 +162,10 @@
 							</svg>
 							<span>Fees</span>
 						</a>
-						<ul class="sidebar-submenu">
-							<li><a href="{{ route('portal.fees.overview') }}">Fee Overview</a></li>
-							<li><a href="{{ route('portal.fees.pay') }}">Pay Fees Online</a></li>
-							<li><a href="{{ route('portal.fees.history') }}">Payment History</a></li>
-							<li><a href="{{ route('portal.fees.receipts') }}">Download Receipts</a></li>
+						<ul class="sidebar-submenu" style="{{ request()->routeIs('portal.fees.*') || request()->routeIs('portal.payment.*') ? 'display: block;' : '' }}">
+							<li><a class="{{ request()->routeIs('portal.fees.overview') ? 'active' : '' }}" href="{{ route('portal.fees.overview') }}">Fee Overview</a></li>
+							<li><a class="{{ request()->routeIs('portal.payment.checkout') ? 'active' : '' }}" href="{{ route('portal.payment.checkout') }}">Pay Online</a></li>
+							<li><a class="{{ request()->routeIs('portal.fees.history') ? 'active' : '' }}" href="{{ route('portal.fees.history') }}">Payment History</a></li>
 						</ul>
 					</li>
 
@@ -159,12 +176,12 @@
 
 					<!-- Notices -->
 					<li class="sidebar-list">
-						<a class="sidebar-link sidebar-title" href="{{ route('portal.notices') }}">
+						<a class="sidebar-link sidebar-title link-nav {{ request()->routeIs('portal.notices*') ? 'active' : '' }}" href="{{ route('portal.notices') }}">
 							<svg class="stroke-icon">
-								<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-email') }}"></use>
+								<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-form') }}"></use>
 							</svg>
 							<svg class="fill-icon">
-								<use href="{{ asset('assets/svg/icon-sprite.svg#fill-email') }}"></use>
+								<use href="{{ asset('assets/svg/icon-sprite.svg#fill-form') }}"></use>
 							</svg>
 							<span>Notices</span>
 						</a>
@@ -172,7 +189,7 @@
 
 					<!-- Events -->
 					<li class="sidebar-list">
-						<a class="sidebar-link sidebar-title" href="{{ route('portal.events') }}">
+						<a class="sidebar-link sidebar-title link-nav {{ request()->routeIs('portal.events*') ? 'active' : '' }}" href="{{ route('portal.events') }}">
 							<svg class="stroke-icon">
 								<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-calendar') }}"></use>
 							</svg>
@@ -185,12 +202,12 @@
 
 					<!-- Contact School -->
 					<li class="sidebar-list">
-						<a class="sidebar-link sidebar-title" href="{{ route('portal.contact') }}">
+						<a class="sidebar-link sidebar-title link-nav {{ request()->routeIs('portal.contact*') ? 'active' : '' }}" href="{{ route('portal.contact') }}">
 							<svg class="stroke-icon">
-								<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-contact') }}"></use>
+								<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-email') }}"></use>
 							</svg>
 							<svg class="fill-icon">
-								<use href="{{ asset('assets/svg/icon-sprite.svg#fill-contact') }}"></use>
+								<use href="{{ asset('assets/svg/icon-sprite.svg#fill-email') }}"></use>
 							</svg>
 							<span>Contact School</span>
 						</a>

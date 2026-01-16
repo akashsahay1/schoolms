@@ -64,19 +64,40 @@
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="academic_year_id" class="form-label">Academic Year <span class="text-danger">*</span></label>
-                                <select class="form-select @error('academic_year_id') is-invalid @enderror" 
-                                        id="academic_year_id" 
-                                        name="academic_year_id" 
+                                <select class="form-select @error('academic_year_id') is-invalid @enderror"
+                                        id="academic_year_id"
+                                        name="academic_year_id"
                                         required>
                                     <option value="">Select Academic Year</option>
                                     @foreach($academicYears as $academicYear)
-                                        <option value="{{ $academicYear->id }}" 
+                                        <option value="{{ $academicYear->id }}"
                                                 {{ old('academic_year_id', $exam->academic_year_id) == $academicYear->id ? 'selected' : '' }}>
                                             {{ $academicYear->name }}
                                         </option>
                                     @endforeach
                                 </select>
                                 @error('academic_year_id')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="class_id" class="form-label">Class <span class="text-danger">*</span></label>
+                                <select class="form-select @error('class_id') is-invalid @enderror"
+                                        id="class_id"
+                                        name="class_id"
+                                        required>
+                                    <option value="">Select Class</option>
+                                    @foreach($classes as $class)
+                                        <option value="{{ $class->id }}"
+                                                {{ old('class_id', $exam->class_id) == $class->id ? 'selected' : '' }}>
+                                            {{ $class->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('class_id')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>

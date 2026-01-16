@@ -89,7 +89,16 @@
 						</div>
 						<div class="col-md-4">
 							<label for="religion" class="form-label">Religion</label>
-							<input type="text" class="form-control @error('religion') is-invalid @enderror" id="religion" name="religion" value="{{ old('religion') }}">
+							<select class="form-select @error('religion') is-invalid @enderror" id="religion" name="religion">
+								<option value="">Select Religion</option>
+								<option value="Hindu" {{ old('religion') == 'Hindu' ? 'selected' : '' }}>Hindu</option>
+								<option value="Muslim" {{ old('religion') == 'Muslim' ? 'selected' : '' }}>Muslim</option>
+								<option value="Christian" {{ old('religion') == 'Christian' ? 'selected' : '' }}>Christian</option>
+								<option value="Sikh" {{ old('religion') == 'Sikh' ? 'selected' : '' }}>Sikh</option>
+								<option value="Buddhist" {{ old('religion') == 'Buddhist' ? 'selected' : '' }}>Buddhist</option>
+								<option value="Jain" {{ old('religion') == 'Jain' ? 'selected' : '' }}>Jain</option>
+								<option value="Other" {{ old('religion') == 'Other' ? 'selected' : '' }}>Other</option>
+							</select>
 							@error('religion')
 								<div class="invalid-feedback">{{ $message }}</div>
 							@enderror

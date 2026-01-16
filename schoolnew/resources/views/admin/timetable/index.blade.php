@@ -78,9 +78,11 @@
                 @if($selectedClass && $selectedSection)
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h6 class="mb-0">{{ $selectedClass->name }} - Section {{ $selectedSection->name }}</h6>
-                        <button type="button" class="btn btn-outline-success btn-sm" onclick="window.print()">
-                            <i data-feather="printer" class="icon-xs"></i> Print
-                        </button>
+                        <div>
+                            <a href="{{ route('admin.timetable.print', ['class_id' => $selectedClass->id, 'section_id' => $selectedSection->id]) }}" target="_blank" class="btn btn-outline-success btn-sm">
+                                <i data-feather="printer" class="icon-xs"></i> Printable Version
+                            </a>
+                        </div>
                     </div>
 
                     @if($periods->count() > 0)

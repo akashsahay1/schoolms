@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Carbon\Carbon;
 
 class BookIssue extends Model
 {
@@ -64,5 +65,81 @@ class BookIssue extends Model
 	{
 		return $query->where('status', self::STATUS_ISSUED)
 			->where('due_date', '<', now());
+	}
+
+	public function scopeReturned($query)
+	{
+		return $query->where('status', self::STATUS_RETURNED);
+	}
+
+	/**
+	 * Check if the book is overdue
+	 */
+	public function getIsOverdueAttribute(): bool
+	{
+		if ($this->status === self::STATUS_RETURNED) {
+			return false;
+		}
+		return $this->due_date < now();
+	}
+
+	/**
+	 * Get overdue days count
+	 */
+	public function getOverdueDaysAttribute(): int
+	{
+		if ($this->status === self::STATUS_RETURNED) {
+			// Calculate based on return date
+			if ($this->return_date > $this->due_date) {
+				return $this->due_date->diffInDays($this->return_date);
+			}
+			return 0;
+		}
+
+		if ($this->due_date >= now()) {
+			return 0;
+		}
+
+		return $this->due_date->diffInDays(now());
+	}
+
+	/**
+	 * Calculate fine amount based on overdue days
+	 */
+	public function calculateFine(): float
+	{
+		$overdueDays = $this->overdue_days;
+		if ($overdueDays <= 0) {
+			return 0;
+		}
+
+		// Get fine per day from settings (default: 2 rupees per day)
+		$finePerDay = Setting::get('library_fine_per_day', 2);
+
+		return $overdueDays * $finePerDay;
+	}
+
+	/**
+	 * Get calculated fine attribute
+	 */
+	public function getCalculatedFineAttribute(): float
+	{
+		return $this->calculateFine();
+	}
+
+	/**
+	 * Get days remaining until due date
+	 */
+	public function getDaysRemainingAttribute(): int
+	{
+		if ($this->status === self::STATUS_RETURNED) {
+			return 0;
+		}
+
+		if ($this->due_date < now()) {
+			return 0;
+		}
+
+		return now()->diffInDays($this->due_date);
 	}
 }

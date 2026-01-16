@@ -12,6 +12,7 @@ class Exam extends Model
         'name',
         'exam_type_id',
         'academic_year_id',
+        'class_id',
         'start_date',
         'end_date',
         'description',
@@ -34,6 +35,11 @@ class Exam extends Model
     public function academicYear(): BelongsTo
     {
         return $this->belongsTo(AcademicYear::class);
+    }
+
+    public function schoolClass(): BelongsTo
+    {
+        return $this->belongsTo(SchoolClass::class, 'class_id');
     }
 
     public function schedules(): HasMany

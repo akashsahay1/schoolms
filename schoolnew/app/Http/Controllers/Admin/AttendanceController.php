@@ -135,33 +135,23 @@ class AttendanceController extends Controller
         $reportData = collect();
         $selectedClass = null;
         $selectedSection = null;
-        $selectedMonth = $request->get('month', now()->month);
-        $selectedYear = $request->get('year', now()->year);
-        $reportType = $request->get('report_type', 'monthly');
+        $fromDate = $request->get('from_date', now()->startOfMonth()->format('Y-m-d'));
+        $toDate = $request->get('to_date', now()->format('Y-m-d'));
 
-        if ($request->filled('class_id')) {
+        if ($request->filled('class_id') && $request->filled('from_date') && $request->filled('to_date')) {
             $selectedClass = SchoolClass::with('sections')->find($request->class_id);
 
             if ($request->filled('section_id')) {
                 $selectedSection = Section::find($request->section_id);
             }
 
-            if ($reportType === 'monthly') {
-                $reportData = $this->getMonthlyReport(
-                    $request->class_id,
-                    $request->get('section_id'),
-                    $selectedMonth,
-                    $selectedYear,
-                    $activeYear->id ?? null
-                );
-            } elseif ($reportType === 'daily') {
-                $reportData = $this->getDailyReport(
-                    $request->class_id,
-                    $request->get('section_id'),
-                    $request->get('date', now()->format('Y-m-d')),
-                    $activeYear->id ?? null
-                );
-            }
+            $reportData = $this->getDateRangeReport(
+                $request->class_id,
+                $request->get('section_id'),
+                $fromDate,
+                $toDate,
+                $activeYear->id ?? null
+            );
         }
 
         return view('admin.attendance.reports', compact(
@@ -170,10 +160,53 @@ class AttendanceController extends Controller
             'activeYear',
             'selectedClass',
             'selectedSection',
-            'selectedMonth',
-            'selectedYear',
-            'reportType'
+            'fromDate',
+            'toDate'
         ));
+    }
+
+    private function getDateRangeReport($classId, $sectionId, $fromDate, $toDate, $academicYearId)
+    {
+        if (!$academicYearId) return collect();
+
+        // Get all students in the class/section
+        $studentsQuery = Student::where('class_id', $classId);
+        if ($sectionId) {
+            $studentsQuery->where('section_id', $sectionId);
+        }
+        $students = $studentsQuery->orderBy('roll_no')->get();
+
+        // Get attendance records within date range
+        $attendanceRecords = Attendance::where('academic_year_id', $academicYearId)
+            ->whereBetween('attendance_date', [$fromDate, $toDate])
+            ->whereIn('student_id', $students->pluck('id'))
+            ->get()
+            ->groupBy('student_id');
+
+        // Aggregate data for each student
+        $reportData = collect();
+        foreach ($students as $student) {
+            $studentAttendance = $attendanceRecords->get($student->id, collect());
+
+            $totalDays = $studentAttendance->count();
+            $presentDays = $studentAttendance->where('status', 'present')->count();
+            $absentDays = $studentAttendance->where('status', 'absent')->count();
+            $lateDays = $studentAttendance->where('status', 'late')->count();
+            $halfDays = $studentAttendance->where('status', 'half_day')->count();
+            $percentage = $totalDays > 0 ? round((($presentDays + ($halfDays * 0.5) + ($lateDays * 0.75)) / $totalDays) * 100, 1) : 0;
+
+            $reportData->push((object)[
+                'student' => $student,
+                'total_days' => $totalDays,
+                'present_days' => $presentDays,
+                'absent_days' => $absentDays,
+                'late_days' => $lateDays,
+                'half_days' => $halfDays,
+                'attendance_percentage' => $percentage,
+            ]);
+        }
+
+        return $reportData->sortByDesc('attendance_percentage')->values();
     }
 
     private function getMonthlyReport($classId, $sectionId, $month, $year, $academicYearId)
@@ -208,6 +241,65 @@ class AttendanceController extends Controller
         }
 
         return $query->orderBy('status')->get();
+    }
+
+    private function getYearlyReport($classId, $sectionId, $year, $academicYearId)
+    {
+        if (!$academicYearId) return collect();
+
+        // Get all students in the class/section
+        $studentsQuery = Student::where('class_id', $classId);
+        if ($sectionId) {
+            $studentsQuery->where('section_id', $sectionId);
+        }
+        $students = $studentsQuery->orderBy('roll_no')->get();
+
+        // Get monthly summaries for the entire year
+        $summaries = AttendanceSummary::where('academic_year_id', $academicYearId)
+            ->where('year', $year)
+            ->whereIn('student_id', $students->pluck('id'))
+            ->get()
+            ->groupBy('student_id');
+
+        // Aggregate yearly data for each student
+        $yearlyData = collect();
+        foreach ($students as $student) {
+            $studentSummaries = $summaries->get($student->id, collect());
+
+            $totalDays = $studentSummaries->sum('total_days');
+            $presentDays = $studentSummaries->sum('present_days');
+            $absentDays = $studentSummaries->sum('absent_days');
+            $lateDays = $studentSummaries->sum('late_days');
+            $halfDays = $studentSummaries->sum('half_days');
+            $percentage = $totalDays > 0 ? round((($presentDays + ($halfDays * 0.5)) / $totalDays) * 100, 1) : 0;
+
+            // Get month-wise breakdown
+            $monthlyBreakdown = [];
+            for ($m = 1; $m <= 12; $m++) {
+                $monthSummary = $studentSummaries->firstWhere('month', $m);
+                $monthlyBreakdown[$m] = $monthSummary ? [
+                    'total' => $monthSummary->total_days,
+                    'present' => $monthSummary->present_days,
+                    'absent' => $monthSummary->absent_days,
+                    'late' => $monthSummary->late_days,
+                    'half_day' => $monthSummary->half_days,
+                    'percentage' => $monthSummary->attendance_percentage,
+                ] : null;
+            }
+
+            $yearlyData->push((object)[
+                'student' => $student,
+                'total_days' => $totalDays,
+                'present_days' => $presentDays,
+                'absent_days' => $absentDays,
+                'late_days' => $lateDays,
+                'half_days' => $halfDays,
+                'attendance_percentage' => $percentage,
+                'monthly_breakdown' => $monthlyBreakdown,
+            ]);
+        }
+
+        return $yearlyData->sortByDesc('attendance_percentage')->values();
     }
 
     public function getSections($classId)

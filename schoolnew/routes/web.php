@@ -25,6 +25,8 @@ use App\Http\Controllers\FeeCollectionController;
 use App\Http\Controllers\FeeTypeController;
 use App\Http\Controllers\FeeGroupController;
 use App\Http\Controllers\Admin\FeeDiscountController;
+use App\Http\Controllers\Admin\FeeReportController;
+use App\Http\Controllers\Admin\ReconciliationController;
 use App\Http\Controllers\Admin\HomeworkController;
 use App\Http\Controllers\Admin\BookController;
 use App\Http\Controllers\Admin\BookIssueController;
@@ -73,6 +75,14 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::put('/settings/payment', [App\Http\Controllers\Admin\PaymentSettingController::class, 'update'])->name('settings.payment.update');
     Route::post('/settings/payment/test', [App\Http\Controllers\Admin\PaymentSettingController::class, 'test'])->name('settings.payment.test');
 
+    // School Settings
+    Route::get('/settings/school', [App\Http\Controllers\Admin\SettingController::class, 'school'])->name('settings.school');
+    Route::post('/settings/school', [App\Http\Controllers\Admin\SettingController::class, 'updateSchool'])->name('settings.school.update');
+
+    // Library Settings
+    Route::get('/settings/library', [App\Http\Controllers\Admin\SettingController::class, 'library'])->name('settings.library');
+    Route::post('/settings/library', [App\Http\Controllers\Admin\SettingController::class, 'updateLibrary'])->name('settings.library.update');
+
     // Academic Years
     Route::resource('academic-years', AcademicYearController::class)->except('show');
     Route::post('academic-years/{academicYear}/set-active', [AcademicYearController::class, 'setActive'])->name('academic-years.set-active');
@@ -105,6 +115,11 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
         Route::get('/create', [TimetableController::class, 'create'])->name('create');
         Route::post('/', [TimetableController::class, 'store'])->name('store');
         Route::delete('/{timetable}', [TimetableController::class, 'destroy'])->name('destroy');
+        Route::get('/print', [TimetableController::class, 'print'])->name('print');
+        Route::get('/teacher', [TimetableController::class, 'teacherTimetable'])->name('teacher');
+        Route::get('/teacher/print', [TimetableController::class, 'printTeacherTimetable'])->name('teacher.print');
+        Route::get('/conflicts', [TimetableController::class, 'conflicts'])->name('conflicts');
+        Route::get('/room-availability', [TimetableController::class, 'getRoomAvailability'])->name('room-availability');
         Route::get('/periods', [TimetableController::class, 'periods'])->name('periods');
         Route::get('/periods/create', [TimetableController::class, 'createPeriod'])->name('periods.create');
         Route::post('/periods', [TimetableController::class, 'storePeriod'])->name('periods.store');
@@ -245,6 +260,36 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
         Route::get('/discounts/{discount}/edit', [FeeDiscountController::class, 'edit'])->name('discounts.edit');
         Route::put('/discounts/{discount}', [FeeDiscountController::class, 'update'])->name('discounts.update');
         Route::delete('/discounts/{discount}', [FeeDiscountController::class, 'destroy'])->name('discounts.destroy');
+
+        // Fee Reports & Analytics
+        Route::prefix('reports')->name('reports.')->group(function () {
+            Route::get('/', [FeeReportController::class, 'index'])->name('index');
+            Route::get('/collection', [FeeReportController::class, 'collection'])->name('collection');
+            Route::get('/outstanding', [FeeReportController::class, 'outstanding'])->name('outstanding');
+            Route::get('/fee-type-wise', [FeeReportController::class, 'feeTypeWise'])->name('fee-type-wise');
+            Route::get('/class-wise', [FeeReportController::class, 'classWise'])->name('class-wise');
+            Route::get('/daily', [FeeReportController::class, 'daily'])->name('daily');
+            Route::get('/export', [FeeReportController::class, 'export'])->name('export');
+            Route::get('/export-excel', [FeeReportController::class, 'exportExcel'])->name('export-excel');
+            Route::get('/export-pdf', [FeeReportController::class, 'exportPdf'])->name('export-pdf');
+            Route::get('/chart-data', [FeeReportController::class, 'chartData'])->name('chart-data');
+        });
+
+        // Transaction Reconciliation
+        Route::prefix('reconciliation')->name('reconciliation.')->group(function () {
+            Route::get('/', [ReconciliationController::class, 'index'])->name('index');
+            Route::get('/import', [ReconciliationController::class, 'import'])->name('import');
+            Route::post('/import', [ReconciliationController::class, 'processImport'])->name('process-import');
+            Route::get('/match', [ReconciliationController::class, 'match'])->name('match');
+            Route::post('/auto-match', [ReconciliationController::class, 'autoMatch'])->name('auto-match');
+            Route::post('/manual-match', [ReconciliationController::class, 'manualMatch'])->name('manual-match');
+            Route::post('/unmatch', [ReconciliationController::class, 'unmatch'])->name('unmatch');
+            Route::post('/mark-unmatched', [ReconciliationController::class, 'markUnmatched'])->name('mark-unmatched');
+            Route::post('/ignore', [ReconciliationController::class, 'ignore'])->name('ignore');
+            Route::post('/dispute', [ReconciliationController::class, 'dispute'])->name('dispute');
+            Route::get('/report', [ReconciliationController::class, 'report'])->name('report');
+            Route::get('/search-collections', [ReconciliationController::class, 'searchCollections'])->name('search-collections');
+        });
     });
 
     // Staff
@@ -310,6 +355,16 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
         Route::get('/issue/create', [BookIssueController::class, 'create'])->name('issue.create');
         Route::post('/issue', [BookIssueController::class, 'store'])->name('issue.store');
         Route::post('/issue/{issue}/return', [BookIssueController::class, 'returnBook'])->name('issue.return');
+        Route::get('/issue/{issue}/calculate-fine', [BookIssueController::class, 'calculateFine'])->name('issue.calculate-fine');
+
+        // Library Reports
+        Route::get('/reports', [App\Http\Controllers\Admin\LibraryReportController::class, 'index'])->name('reports.index');
+        Route::get('/reports/issues', [App\Http\Controllers\Admin\LibraryReportController::class, 'issues'])->name('reports.issues');
+        Route::get('/reports/overdue', [App\Http\Controllers\Admin\LibraryReportController::class, 'overdue'])->name('reports.overdue');
+        Route::get('/reports/inventory', [App\Http\Controllers\Admin\LibraryReportController::class, 'inventory'])->name('reports.inventory');
+        Route::get('/reports/fines', [App\Http\Controllers\Admin\LibraryReportController::class, 'fines'])->name('reports.fines');
+        Route::get('/reports/student-wise', [App\Http\Controllers\Admin\LibraryReportController::class, 'studentWise'])->name('reports.student-wise');
+        Route::get('/reports/export', [App\Http\Controllers\Admin\LibraryReportController::class, 'export'])->name('reports.export');
 
         Route::get('/members', function () { return view('admin.coming-soon'); })->name('members');
     });
@@ -381,6 +436,21 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
         Route::get('/exams', function () { return view('admin.coming-soon'); })->name('exams');
     });
 
+    // Student Promotions
+    Route::prefix('promotions')->name('promotions.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\PromotionController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\Admin\PromotionController::class, 'create'])->name('create');
+        Route::post('/process', [App\Http\Controllers\Admin\PromotionController::class, 'process'])->name('process');
+        Route::get('/rules', [App\Http\Controllers\Admin\PromotionController::class, 'rules'])->name('rules');
+        Route::post('/rules', [App\Http\Controllers\Admin\PromotionController::class, 'storeRule'])->name('rules.store');
+        Route::delete('/rules/{rule}', [App\Http\Controllers\Admin\PromotionController::class, 'deleteRule'])->name('rules.delete');
+        Route::get('/history', [App\Http\Controllers\Admin\PromotionController::class, 'history'])->name('history');
+        Route::delete('/rollback/{promotion}', [App\Http\Controllers\Admin\PromotionController::class, 'rollback'])->name('rollback');
+        Route::post('/batches/{batch}/finalize', [App\Http\Controllers\Admin\PromotionController::class, 'finalizeBatch'])->name('batches.finalize');
+        Route::get('/sections/{classId}', [App\Http\Controllers\Admin\PromotionController::class, 'getSections'])->name('sections');
+        Route::get('/students', [App\Http\Controllers\Admin\PromotionController::class, 'getStudents'])->name('students');
+    });
+
     // Users & Roles
     Route::resource('users', UserController::class);
     Route::post('users/bulk-delete', [UserController::class, 'bulkDelete'])->name('users.bulk-delete');
@@ -449,9 +519,27 @@ Route::prefix('portal')->name('portal.')->middleware('auth')->group(function () 
     Route::post('/contact', [App\Http\Controllers\Portal\ContactController::class, 'store'])->name('contact.store');
     Route::get('/contact/{message}', [App\Http\Controllers\Portal\ContactController::class, 'show'])->name('contact.show');
 
-    // Placeholder routes (to be implemented later)
-    Route::get('/homework', function () { return view('admin.coming-soon'); })->name('homework');
-    Route::get('/exams', function () { return view('admin.coming-soon'); })->name('exams');
-    Route::get('/results', function () { return view('admin.coming-soon'); })->name('results');
-    Route::get('/report-cards', function () { return view('admin.coming-soon'); })->name('report-cards');
+    // Exams
+    Route::prefix('exams')->name('exams')->group(function () {
+        Route::get('/', [App\Http\Controllers\Portal\ExamController::class, 'index']);
+        Route::get('/results', [App\Http\Controllers\Portal\ExamController::class, 'results'])->name('.results');
+        Route::get('/report-card', [App\Http\Controllers\Portal\ExamController::class, 'reportCard'])->name('.report-card');
+    });
+
+    // Homework
+    Route::prefix('homework')->name('homework')->group(function () {
+        Route::get('/', [App\Http\Controllers\Portal\HomeworkController::class, 'index']);
+        Route::get('/pending', [App\Http\Controllers\Portal\HomeworkController::class, 'pending'])->name('.pending');
+        Route::get('/submitted', [App\Http\Controllers\Portal\HomeworkController::class, 'submitted'])->name('.submitted');
+        Route::get('/{homework}', [App\Http\Controllers\Portal\HomeworkController::class, 'show'])->name('.show');
+        Route::post('/{homework}/submit', [App\Http\Controllers\Portal\HomeworkController::class, 'submit'])->name('.submit');
+    });
+
+    // Library
+    Route::prefix('library')->name('library.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Portal\LibraryController::class, 'index'])->name('index');
+        Route::get('/history', [App\Http\Controllers\Portal\LibraryController::class, 'history'])->name('history');
+        Route::get('/search', [App\Http\Controllers\Portal\LibraryController::class, 'search'])->name('search');
+        Route::get('/book/{book}', [App\Http\Controllers\Portal\LibraryController::class, 'show'])->name('show');
+    });
 });

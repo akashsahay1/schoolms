@@ -90,7 +90,16 @@
 						</div>
 						<div class="col-md-4">
 							<label for="religion" class="form-label">Religion</label>
-							<input type="text" class="form-control @error('religion') is-invalid @enderror" id="religion" name="religion" value="{{ old('religion', $teacher->religion) }}">
+							<select class="form-select @error('religion') is-invalid @enderror" id="religion" name="religion">
+								<option value="">Select Religion</option>
+								<option value="Hindu" {{ old('religion', $teacher->religion) == 'Hindu' ? 'selected' : '' }}>Hindu</option>
+								<option value="Muslim" {{ old('religion', $teacher->religion) == 'Muslim' ? 'selected' : '' }}>Muslim</option>
+								<option value="Christian" {{ old('religion', $teacher->religion) == 'Christian' ? 'selected' : '' }}>Christian</option>
+								<option value="Sikh" {{ old('religion', $teacher->religion) == 'Sikh' ? 'selected' : '' }}>Sikh</option>
+								<option value="Buddhist" {{ old('religion', $teacher->religion) == 'Buddhist' ? 'selected' : '' }}>Buddhist</option>
+								<option value="Jain" {{ old('religion', $teacher->religion) == 'Jain' ? 'selected' : '' }}>Jain</option>
+								<option value="Other" {{ old('religion', $teacher->religion) == 'Other' ? 'selected' : '' }}>Other</option>
+							</select>
 							@error('religion')
 								<div class="invalid-feedback">{{ $message }}</div>
 							@enderror

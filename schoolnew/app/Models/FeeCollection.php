@@ -24,6 +24,11 @@ class FeeCollection extends Model
         'payment_date',
         'remarks',
         'receipt_no',
+        'reconciliation_status',
+        'bank_statement_id',
+        'reconciled_by',
+        'reconciled_at',
+        'reconciliation_notes',
     ];
 
     protected $casts = [
@@ -32,6 +37,7 @@ class FeeCollection extends Model
         'fine_amount' => 'decimal:2',
         'paid_amount' => 'decimal:2',
         'payment_date' => 'date',
+        'reconciled_at' => 'datetime',
     ];
 
     protected static function boot()
@@ -63,5 +69,35 @@ class FeeCollection extends Model
     public function collectedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'collected_by');
+    }
+
+    public function bankStatement(): BelongsTo
+    {
+        return $this->belongsTo(BankStatement::class);
+    }
+
+    public function reconciledBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'reconciled_by');
+    }
+
+    public function scopePendingReconciliation($query)
+    {
+        return $query->where('reconciliation_status', 'pending');
+    }
+
+    public function scopeReconciled($query)
+    {
+        return $query->where('reconciliation_status', 'reconciled');
+    }
+
+    public function scopeDisputed($query)
+    {
+        return $query->where('reconciliation_status', 'disputed');
+    }
+
+    public function getIsReconciledAttribute()
+    {
+        return $this->reconciliation_status === 'reconciled';
     }
 }

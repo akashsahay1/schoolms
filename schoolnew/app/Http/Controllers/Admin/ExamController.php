@@ -7,16 +7,17 @@ use App\Models\Exam;
 use App\Models\ExamMark;
 use App\Models\ExamType;
 use App\Models\AcademicYear;
+use App\Models\SchoolClass;
 use Illuminate\Http\Request;
 
 class ExamController extends Controller
 {
     public function index()
     {
-        $exams = Exam::with(['examType', 'academicYear'])
+        $exams = Exam::with(['examType', 'academicYear', 'schoolClass'])
             ->latest()
             ->get();
-            
+
         return view('admin.exams.index', compact('exams'));
     }
 
@@ -24,8 +25,9 @@ class ExamController extends Controller
     {
         $examTypes = ExamType::where('is_active', true)->orderBy('order')->get();
         $academicYears = AcademicYear::orderBy('name')->get();
-        
-        return view('admin.exams.create', compact('examTypes', 'academicYears'));
+        $classes = SchoolClass::ordered()->get();
+
+        return view('admin.exams.create', compact('examTypes', 'academicYears', 'classes'));
     }
 
     public function store(Request $request)
@@ -34,10 +36,14 @@ class ExamController extends Controller
             'name' => 'required|string|max:255',
             'exam_type_id' => 'required|exists:exam_types,id',
             'academic_year_id' => 'required|exists:academic_years,id',
+            'class_id' => 'required|exists:classes,id',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
             'description' => 'nullable|string',
         ]);
+
+        $validated['is_active'] = $request->has('is_active');
+        $validated['is_published'] = $request->has('is_published');
 
         Exam::create($validated);
 
@@ -49,8 +55,9 @@ class ExamController extends Controller
     {
         $examTypes = ExamType::where('is_active', true)->orderBy('order')->get();
         $academicYears = AcademicYear::orderBy('name')->get();
-        
-        return view('admin.exams.edit', compact('exam', 'examTypes', 'academicYears'));
+        $classes = SchoolClass::ordered()->get();
+
+        return view('admin.exams.edit', compact('exam', 'examTypes', 'academicYears', 'classes'));
     }
 
     public function update(Request $request, Exam $exam)
@@ -59,10 +66,14 @@ class ExamController extends Controller
             'name' => 'required|string|max:255',
             'exam_type_id' => 'required|exists:exam_types,id',
             'academic_year_id' => 'required|exists:academic_years,id',
+            'class_id' => 'required|exists:classes,id',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
             'description' => 'nullable|string',
         ]);
+
+        $validated['is_active'] = $request->has('is_active');
+        $validated['is_published'] = $request->has('is_published');
 
         $exam->update($validated);
 

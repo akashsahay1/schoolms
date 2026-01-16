@@ -125,29 +125,20 @@ class StaffAttendanceController extends Controller
 
         $reportData = collect();
         $selectedDepartment = null;
-        $selectedMonth = $request->get('month', now()->month);
-        $selectedYear = $request->get('year', now()->year);
-        $reportType = $request->get('report_type', 'monthly');
+        $fromDate = $request->get('from_date', now()->startOfMonth()->format('Y-m-d'));
+        $toDate = $request->get('to_date', now()->format('Y-m-d'));
 
-        if ($request->has('generate')) {
+        if ($request->has('generate') && $request->filled('from_date') && $request->filled('to_date')) {
             if ($request->filled('department_id')) {
                 $selectedDepartment = Department::find($request->department_id);
             }
 
-            if ($reportType === 'monthly') {
-                $reportData = $this->getMonthlyReport(
-                    $request->get('department_id'),
-                    $selectedMonth,
-                    $selectedYear,
-                    $activeYear->id ?? null
-                );
-            } elseif ($reportType === 'daily') {
-                $reportData = $this->getDailyReport(
-                    $request->get('department_id'),
-                    $request->get('date', now()->format('Y-m-d')),
-                    $activeYear->id ?? null
-                );
-            }
+            $reportData = $this->getDateRangeReport(
+                $request->get('department_id'),
+                $fromDate,
+                $toDate,
+                $activeYear->id ?? null
+            );
         }
 
         return view('admin.attendance.staff-reports', compact(
@@ -155,10 +146,55 @@ class StaffAttendanceController extends Controller
             'reportData',
             'activeYear',
             'selectedDepartment',
-            'selectedMonth',
-            'selectedYear',
-            'reportType'
+            'fromDate',
+            'toDate'
         ));
+    }
+
+    private function getDateRangeReport($departmentId, $fromDate, $toDate, $academicYearId)
+    {
+        if (!$academicYearId) return collect();
+
+        // Get all staff members
+        $staffQuery = Staff::with(['department', 'designation'])->active();
+        if ($departmentId) {
+            $staffQuery->where('department_id', $departmentId);
+        }
+        $staffMembers = $staffQuery->orderBy('first_name')->get();
+
+        // Get attendance records within date range
+        $attendanceRecords = StaffAttendance::where('academic_year_id', $academicYearId)
+            ->whereBetween('attendance_date', [$fromDate, $toDate])
+            ->whereIn('staff_id', $staffMembers->pluck('id'))
+            ->get()
+            ->groupBy('staff_id');
+
+        // Aggregate data for each staff member
+        $reportData = collect();
+        foreach ($staffMembers as $staff) {
+            $staffAttendance = $attendanceRecords->get($staff->id, collect());
+
+            $totalDays = $staffAttendance->count();
+            $presentDays = $staffAttendance->where('status', 'present')->count();
+            $absentDays = $staffAttendance->where('status', 'absent')->count();
+            $lateDays = $staffAttendance->where('status', 'late')->count();
+            $halfDays = $staffAttendance->where('status', 'half_day')->count();
+            $leaveDays = $staffAttendance->where('status', 'on_leave')->count();
+            $percentage = $totalDays > 0 ? round((($presentDays + ($halfDays * 0.5) + ($lateDays * 0.75)) / $totalDays) * 100, 1) : 0;
+
+            $reportData->push((object)[
+                'staff' => $staff,
+                'total_days' => $totalDays,
+                'present_days' => $presentDays,
+                'absent_days' => $absentDays,
+                'late_days' => $lateDays,
+                'half_days' => $halfDays,
+                'leave_days' => $leaveDays,
+                'attendance_percentage' => $percentage,
+            ]);
+        }
+
+        return $reportData->sortByDesc('attendance_percentage')->values();
     }
 
     private function getMonthlyReport($departmentId, $month, $year, $academicYearId)
@@ -194,5 +230,67 @@ class StaffAttendanceController extends Controller
         }
 
         return $query->orderBy('status')->get();
+    }
+
+    private function getYearlyReport($departmentId, $year, $academicYearId)
+    {
+        if (!$academicYearId) return collect();
+
+        // Get all staff members
+        $staffQuery = Staff::with(['department', 'designation'])->active();
+        if ($departmentId) {
+            $staffQuery->where('department_id', $departmentId);
+        }
+        $staffMembers = $staffQuery->orderBy('first_name')->get();
+
+        // Get monthly summaries for the entire year
+        $summaries = StaffAttendanceSummary::where('academic_year_id', $academicYearId)
+            ->where('year', $year)
+            ->whereIn('staff_id', $staffMembers->pluck('id'))
+            ->get()
+            ->groupBy('staff_id');
+
+        // Aggregate yearly data for each staff member
+        $yearlyData = collect();
+        foreach ($staffMembers as $staff) {
+            $staffSummaries = $summaries->get($staff->id, collect());
+
+            $totalDays = $staffSummaries->sum('total_days');
+            $presentDays = $staffSummaries->sum('present_days');
+            $absentDays = $staffSummaries->sum('absent_days');
+            $lateDays = $staffSummaries->sum('late_days');
+            $halfDays = $staffSummaries->sum('half_days');
+            $leaveDays = $staffSummaries->sum('leave_days');
+            $percentage = $totalDays > 0 ? round((($presentDays + ($halfDays * 0.5) + ($lateDays * 0.75)) / $totalDays) * 100, 1) : 0;
+
+            // Get month-wise breakdown
+            $monthlyBreakdown = [];
+            for ($m = 1; $m <= 12; $m++) {
+                $monthSummary = $staffSummaries->firstWhere('month', $m);
+                $monthlyBreakdown[$m] = $monthSummary ? [
+                    'total' => $monthSummary->total_days,
+                    'present' => $monthSummary->present_days,
+                    'absent' => $monthSummary->absent_days,
+                    'late' => $monthSummary->late_days,
+                    'half_day' => $monthSummary->half_days,
+                    'leave' => $monthSummary->leave_days,
+                    'percentage' => $monthSummary->attendance_percentage,
+                ] : null;
+            }
+
+            $yearlyData->push((object)[
+                'staff' => $staff,
+                'total_days' => $totalDays,
+                'present_days' => $presentDays,
+                'absent_days' => $absentDays,
+                'late_days' => $lateDays,
+                'half_days' => $halfDays,
+                'leave_days' => $leaveDays,
+                'attendance_percentage' => $percentage,
+                'monthly_breakdown' => $monthlyBreakdown,
+            ]);
+        }
+
+        return $yearlyData->sortByDesc('attendance_percentage')->values();
     }
 }

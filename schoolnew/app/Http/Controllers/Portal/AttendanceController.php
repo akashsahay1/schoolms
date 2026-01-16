@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Portal;
 use App\Http\Controllers\Controller;
 use App\Models\Student;
 use App\Models\Attendance;
+use App\Models\AttendanceSummary;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -22,8 +23,13 @@ class AttendanceController extends Controller
             return redirect()->route('portal.dashboard');
         }
 
+        $viewType = $request->get('view', 'monthly');
         $month = $request->get('month', now()->month);
         $year = $request->get('year', now()->year);
+
+        if ($viewType === 'yearly') {
+            return $this->yearlyView($request, $student, $year);
+        }
 
         // Get attendance for selected month
         $attendance = Attendance::where('student_id', $student->id)
@@ -61,7 +67,72 @@ class AttendanceController extends Controller
             'stats',
             'calendarData',
             'month',
-            'year'
+            'year',
+            'viewType'
+        ));
+    }
+
+    /**
+     * Display yearly attendance view for student.
+     */
+    private function yearlyView(Request $request, $student, $year)
+    {
+        // Get all attendance records for the year
+        $yearlyAttendance = Attendance::where('student_id', $student->id)
+            ->whereYear('attendance_date', $year)
+            ->get();
+
+        // Calculate yearly stats
+        $totalDays = $yearlyAttendance->count();
+        $present = $yearlyAttendance->where('status', 'present')->count();
+        $absent = $yearlyAttendance->where('status', 'absent')->count();
+        $late = $yearlyAttendance->where('status', 'late')->count();
+        $halfDay = $yearlyAttendance->where('status', 'half_day')->count();
+        $percentage = $totalDays > 0 ? round((($present + $halfDay * 0.5) / $totalDays) * 100, 1) : 0;
+
+        $stats = [
+            'total' => $totalDays,
+            'present' => $present,
+            'absent' => $absent,
+            'late' => $late,
+            'half_day' => $halfDay,
+            'percentage' => $percentage,
+        ];
+
+        // Get month-wise breakdown
+        $monthlyBreakdown = [];
+        for ($m = 1; $m <= 12; $m++) {
+            $monthAttendance = $yearlyAttendance->filter(function ($item) use ($m) {
+                return $item->attendance_date->month == $m;
+            });
+
+            $monthTotal = $monthAttendance->count();
+            $monthPresent = $monthAttendance->where('status', 'present')->count();
+            $monthAbsent = $monthAttendance->where('status', 'absent')->count();
+            $monthLate = $monthAttendance->where('status', 'late')->count();
+            $monthHalfDay = $monthAttendance->where('status', 'half_day')->count();
+            $monthPercentage = $monthTotal > 0 ? round((($monthPresent + $monthHalfDay * 0.5) / $monthTotal) * 100, 1) : 0;
+
+            $monthlyBreakdown[$m] = [
+                'total' => $monthTotal,
+                'present' => $monthPresent,
+                'absent' => $monthAbsent,
+                'late' => $monthLate,
+                'half_day' => $monthHalfDay,
+                'percentage' => $monthPercentage,
+            ];
+        }
+
+        $viewType = 'yearly';
+        $month = $request->get('month', now()->month);
+
+        return view('portal.attendance', compact(
+            'student',
+            'stats',
+            'monthlyBreakdown',
+            'month',
+            'year',
+            'viewType'
         ));
     }
 

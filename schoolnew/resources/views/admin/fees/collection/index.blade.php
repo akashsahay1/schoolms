@@ -50,9 +50,31 @@
 				</div>
 			</div>
 			<div class="card-body">
-				<form action="{{ route('admin.fees.collection') }}" method="GET" class="row g-3 mb-3">
+				<form action="{{ route('admin.fees.collection') }}" method="GET" class="row g-3 mb-3" id="filter-form">
 					<div class="col-md-2">
-						<select name="academic_year" class="form-select" onchange="this.form.submit()">
+						<label class="form-label">Quick Filter</label>
+						<select class="form-select" id="quick-filter">
+							<option value="">Custom Range</option>
+							<option value="this_month" {{ request('period') == 'this_month' ? 'selected' : '' }}>This Month</option>
+							<option value="last_month" {{ request('period') == 'last_month' ? 'selected' : '' }}>Last Month</option>
+							<option value="this_quarter" {{ request('period') == 'this_quarter' ? 'selected' : '' }}>This Quarter</option>
+							<option value="last_quarter" {{ request('period') == 'last_quarter' ? 'selected' : '' }}>Last Quarter</option>
+							<option value="this_year" {{ request('period') == 'this_year' ? 'selected' : '' }}>This Year</option>
+							<option value="last_year" {{ request('period') == 'last_year' ? 'selected' : '' }}>Last Year</option>
+						</select>
+						<input type="hidden" name="period" id="period-input" value="{{ request('period') }}">
+					</div>
+					<div class="col-md-2">
+						<label class="form-label">From Date <span class="text-danger">*</span></label>
+						<input type="date" name="from_date" id="from-date" class="form-control" value="{{ request('from_date', Carbon\Carbon::now()->startOfMonth()->format('Y-m-d')) }}" required>
+					</div>
+					<div class="col-md-2">
+						<label class="form-label">To Date <span class="text-danger">*</span></label>
+						<input type="date" name="to_date" id="to-date" class="form-control" value="{{ request('to_date', Carbon\Carbon::now()->format('Y-m-d')) }}" required>
+					</div>
+					<div class="col-md-2">
+						<label class="form-label">Academic Year</label>
+						<select name="academic_year" class="form-select">
 							<option value="">All Years</option>
 							@foreach($academicYears as $year)
 								<option value="{{ $year->id }}" {{ request('academic_year') == $year->id ? 'selected' : '' }}>{{ $year->name }}</option>
@@ -60,7 +82,8 @@
 						</select>
 					</div>
 					<div class="col-md-2">
-						<select name="class" class="form-select" onchange="this.form.submit()">
+						<label class="form-label">Class</label>
+						<select name="class" class="form-select">
 							<option value="">All Classes</option>
 							@foreach($classes as $class)
 								<option value="{{ $class->id }}" {{ request('class') == $class->id ? 'selected' : '' }}>{{ $class->name }}</option>
@@ -68,10 +91,8 @@
 						</select>
 					</div>
 					<div class="col-md-2">
-						<input type="text" name="search" class="form-control" placeholder="Search student..." value="{{ request('search') }}">
-					</div>
-					<div class="col-md-2">
-						<select name="payment_mode" class="form-select" onchange="this.form.submit()">
+						<label class="form-label">Payment Mode</label>
+						<select name="payment_mode" class="form-select">
 							<option value="">All Payments</option>
 							<option value="cash" {{ request('payment_mode') === 'cash' ? 'selected' : '' }}>Cash</option>
 							<option value="cheque" {{ request('payment_mode') === 'cheque' ? 'selected' : '' }}>Cheque</option>
@@ -80,15 +101,18 @@
 							<option value="bank_transfer" {{ request('payment_mode') === 'bank_transfer' ? 'selected' : '' }}>Bank Transfer</option>
 						</select>
 					</div>
-					<div class="col-md-2">
-						<input type="date" name="from_date" class="form-control" placeholder="From Date" value="{{ request('from_date') }}">
+					<div class="col-md-3">
+						<label class="form-label">Search Student</label>
+						<input type="text" name="search" class="form-control" placeholder="Name or Admission No..." value="{{ request('search') }}">
 					</div>
-					<div class="col-md-2">
-						<input type="date" name="to_date" class="form-control" placeholder="To Date" value="{{ request('to_date') }}">
-					</div>
-					<div class="col-12">
-						<button type="submit" class="btn btn-primary">Filter</button>
-						<a href="{{ route('admin.fees.collection') }}" class="btn btn-light">Reset</a>
+					<div class="col-md-3">
+						<label class="form-label">&nbsp;</label>
+						<div>
+							<button type="submit" class="btn btn-primary">
+								<i data-feather="filter" class="me-1"></i> Filter
+							</button>
+							<a href="{{ route('admin.fees.collection') }}" class="btn btn-light">Reset</a>
+						</div>
 					</div>
 				</form>
 
@@ -155,3 +179,64 @@
 	</div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+	jQuery(document).ready(function() {
+		// Quick filter functionality
+		jQuery('#quick-filter').on('change', function() {
+			var period = jQuery(this).val();
+			var today = new Date();
+			var fromDate, toDate;
+
+			jQuery('#period-input').val(period);
+
+			switch(period) {
+				case 'this_month':
+					fromDate = new Date(today.getFullYear(), today.getMonth(), 1);
+					toDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+					break;
+				case 'last_month':
+					fromDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+					toDate = new Date(today.getFullYear(), today.getMonth(), 0);
+					break;
+				case 'this_quarter':
+					var quarter = Math.floor(today.getMonth() / 3);
+					fromDate = new Date(today.getFullYear(), quarter * 3, 1);
+					toDate = new Date(today.getFullYear(), quarter * 3 + 3, 0);
+					break;
+				case 'last_quarter':
+					var quarter = Math.floor(today.getMonth() / 3) - 1;
+					var year = today.getFullYear();
+					if (quarter < 0) {
+						quarter = 3;
+						year--;
+					}
+					fromDate = new Date(year, quarter * 3, 1);
+					toDate = new Date(year, quarter * 3 + 3, 0);
+					break;
+				case 'this_year':
+					fromDate = new Date(today.getFullYear(), 0, 1);
+					toDate = new Date(today.getFullYear(), 11, 31);
+					break;
+				case 'last_year':
+					fromDate = new Date(today.getFullYear() - 1, 0, 1);
+					toDate = new Date(today.getFullYear() - 1, 11, 31);
+					break;
+				default:
+					return;
+			}
+
+			jQuery('#from-date').val(formatDate(fromDate));
+			jQuery('#to-date').val(formatDate(toDate));
+		});
+
+		function formatDate(date) {
+			var year = date.getFullYear();
+			var month = String(date.getMonth() + 1).padStart(2, '0');
+			var day = String(date.getDate()).padStart(2, '0');
+			return year + '-' + month + '-' + day;
+		}
+	});
+</script>
+@endpush

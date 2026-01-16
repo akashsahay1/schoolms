@@ -81,9 +81,17 @@ class BookIssueController extends Controller
 		try {
 			DB::beginTransaction();
 
+			// Auto-calculate fine if not provided
+			$fineAmount = $validated['fine_amount'] ?? null;
+			if ($fineAmount === null) {
+				// Temporarily set return date to calculate fine
+				$issue->return_date = $validated['return_date'];
+				$fineAmount = $issue->calculated_fine;
+			}
+
 			$issue->update([
 				'return_date' => $validated['return_date'],
-				'fine_amount' => $validated['fine_amount'] ?? 0,
+				'fine_amount' => $fineAmount,
 				'status' => BookIssue::STATUS_RETURNED,
 			]);
 
@@ -91,10 +99,27 @@ class BookIssueController extends Controller
 
 			DB::commit();
 
-			return back()->with('success', 'Book returned successfully.');
+			$message = 'Book returned successfully.';
+			if ($fineAmount > 0) {
+				$message .= ' Fine amount: ₹' . number_format($fineAmount, 2);
+			}
+
+			return back()->with('success', $message);
 		} catch (\Exception $e) {
 			DB::rollBack();
 			return back()->with('error', 'An error occurred: ' . $e->getMessage());
 		}
+	}
+
+	/**
+	 * Get calculated fine for AJAX request
+	 */
+	public function calculateFine(BookIssue $issue)
+	{
+		return response()->json([
+			'overdue_days' => $issue->overdue_days,
+			'calculated_fine' => $issue->calculated_fine,
+			'is_overdue' => $issue->is_overdue,
+		]);
 	}
 }

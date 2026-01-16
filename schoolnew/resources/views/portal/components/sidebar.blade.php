@@ -96,17 +96,71 @@
                         </a>
                     </li>
 
-                    <!-- Leave Applications -->
-                    <li class="sidebar-list">
-                        <a class="sidebar-link sidebar-title link-nav {{ request()->routeIs('portal.leaves.*') ? 'active' : '' }}" href="{{ route('portal.leaves.index') }}">
+                    <!-- Exams -->
+                    <li class="sidebar-list {{ request()->routeIs('portal.exams*') ? 'active' : '' }}">
+                        <a class="sidebar-link sidebar-title {{ request()->routeIs('portal.exams*') ? 'active' : '' }}" href="#">
                             <svg class="stroke-icon">
                                 <use href="{{ asset('assets/svg/icon-sprite.svg#stroke-file') }}"></use>
                             </svg>
                             <svg class="fill-icon">
                                 <use href="{{ asset('assets/svg/icon-sprite.svg#fill-file') }}"></use>
                             </svg>
+                            <span>Examinations</span>
+                        </a>
+                        <ul class="sidebar-submenu" style="{{ request()->routeIs('portal.exams*') ? 'display: block;' : '' }}">
+                            <li><a class="{{ request()->routeIs('portal.exams') && !request()->routeIs('portal.exams.*') ? 'active' : '' }}" href="{{ route('portal.exams') }}">Exam Schedule</a></li>
+                            <li><a class="{{ request()->routeIs('portal.exams.results') ? 'active' : '' }}" href="{{ route('portal.exams.results') }}">My Results</a></li>
+                            <li><a class="{{ request()->routeIs('portal.exams.report-card') ? 'active' : '' }}" href="{{ route('portal.exams.report-card') }}">Report Card</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- Homework -->
+                    <li class="sidebar-list {{ request()->routeIs('portal.homework*') ? 'active' : '' }}">
+                        <a class="sidebar-link sidebar-title {{ request()->routeIs('portal.homework*') ? 'active' : '' }}" href="#">
+                            <svg class="stroke-icon">
+                                <use href="{{ asset('assets/svg/icon-sprite.svg#stroke-task') }}"></use>
+                            </svg>
+                            <svg class="fill-icon">
+                                <use href="{{ asset('assets/svg/icon-sprite.svg#fill-task') }}"></use>
+                            </svg>
+                            <span>Homework</span>
+                        </a>
+                        <ul class="sidebar-submenu" style="{{ request()->routeIs('portal.homework*') ? 'display: block;' : '' }}">
+                            <li><a class="{{ request()->routeIs('portal.homework') && !request()->routeIs('portal.homework.*') ? 'active' : '' }}" href="{{ route('portal.homework') }}">All Homework</a></li>
+                            <li><a class="{{ request()->routeIs('portal.homework.pending') ? 'active' : '' }}" href="{{ route('portal.homework.pending') }}">Pending</a></li>
+                            <li><a class="{{ request()->routeIs('portal.homework.submitted') ? 'active' : '' }}" href="{{ route('portal.homework.submitted') }}">Submitted</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- Leave Applications -->
+                    <li class="sidebar-list">
+                        <a class="sidebar-link sidebar-title link-nav {{ request()->routeIs('portal.leaves.*') ? 'active' : '' }}" href="{{ route('portal.leaves.index') }}">
+                            <svg class="stroke-icon">
+                                <use href="{{ asset('assets/svg/icon-sprite.svg#stroke-form') }}"></use>
+                            </svg>
+                            <svg class="fill-icon">
+                                <use href="{{ asset('assets/svg/icon-sprite.svg#fill-form') }}"></use>
+                            </svg>
                             <span>Leave Applications</span>
                         </a>
+                    </li>
+
+                    <!-- Library -->
+                    <li class="sidebar-list {{ request()->routeIs('portal.library.*') ? 'active' : '' }}">
+                        <a class="sidebar-link sidebar-title {{ request()->routeIs('portal.library.*') ? 'active' : '' }}" href="#">
+                            <svg class="stroke-icon">
+                                <use href="{{ asset('assets/svg/icon-sprite.svg#stroke-bookmark') }}"></use>
+                            </svg>
+                            <svg class="fill-icon">
+                                <use href="{{ asset('assets/svg/icon-sprite.svg#fill-bookmark') }}"></use>
+                            </svg>
+                            <span>Library</span>
+                        </a>
+                        <ul class="sidebar-submenu" style="{{ request()->routeIs('portal.library.*') ? 'display: block;' : '' }}">
+                            <li><a class="{{ request()->routeIs('portal.library.index') ? 'active' : '' }}" href="{{ route('portal.library.index') }}">My Books</a></li>
+                            <li><a class="{{ request()->routeIs('portal.library.search') ? 'active' : '' }}" href="{{ route('portal.library.search') }}">Search Books</a></li>
+                            <li><a class="{{ request()->routeIs('portal.library.history') ? 'active' : '' }}" href="{{ route('portal.library.history') }}">Borrow History</a></li>
+                        </ul>
                     </li>
 
                     <!-- Finance -->

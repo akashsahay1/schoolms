@@ -79,6 +79,7 @@
                             <tr>
                                 <th>Exam Name</th>
                                 <th>Type</th>
+                                <th>Class</th>
                                 <th>Academic Year</th>
                                 <th>Start Date</th>
                                 <th>End Date</th>
@@ -96,6 +97,7 @@
                                         @endif
                                     </td>
                                     <td>{{ $exam->examType->name }}</td>
+                                    <td>{{ $exam->schoolClass->name ?? 'N/A' }}</td>
                                     <td>{{ $exam->academicYear->name }}</td>
                                     <td>{{ $exam->start_date->format('d M Y') }}</td>
                                     <td>{{ $exam->end_date->format('d M Y') }}</td>
@@ -122,7 +124,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="text-center text-muted py-4">
+                                    <td colspan="8" class="text-center text-muted py-4">
                                         No exams created yet. Click "Create New Exam" to get started.
                                     </td>
                                 </tr>

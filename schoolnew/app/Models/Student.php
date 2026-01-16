@@ -99,6 +99,11 @@ class Student extends Model
         return $this->belongsTo(AcademicYear::class);
     }
 
+    public function bookIssues()
+    {
+        return $this->hasMany(BookIssue::class);
+    }
+
     public function scopeActive($query)
     {
         return $query->where('status', 'active');

@@ -69,8 +69,40 @@
 				</form>
 
 				@if($selectedExam && $selectedClass)
-					<!-- Results Summary -->
-					<div class="row mb-4">
+					<!-- Print Header - Compact with Logo -->
+					<div class="print-header">
+						<div class="logo-section">
+							@if(\App\Models\Setting::get('school_logo'))
+								<img src="{{ asset('storage/' . \App\Models\Setting::get('school_logo')) }}" alt="" class="school-logo">
+							@else
+								<img src="{{ asset('assets/images/logo/logo-1.png') }}" alt="" class="school-logo" onerror="this.style.display='none'">
+							@endif
+						</div>
+						<div class="school-info">
+							<h1 class="school-name">{{ \App\Models\Setting::get('school_name', config('app.name', 'School Management System')) }}</h1>
+							<p class="school-address">{{ \App\Models\Setting::get('school_address', '123 Education Street, Knowledge City') }} | Phone: {{ \App\Models\Setting::get('school_phone', '+91 1234567890') }}</p>
+							<div class="report-title">EXAMINATION RESULT SHEET</div>
+						</div>
+					</div>
+
+					<!-- Print Exam Info - Single Line -->
+					<div class="print-exam-info">
+						<span><strong>Exam:</strong> {{ $selectedExam->name }} ({{ $selectedExam->examType->name }})</span>
+						<span><strong>Class:</strong> {{ $selectedClass->name }}@if($selectedSection) - {{ $selectedSection->name }}@endif</span>
+						<span><strong>Session:</strong> {{ $selectedExam->academicYear->name ?? 'N/A' }}</span>
+					</div>
+
+					<!-- Print Summary Stats - Compact -->
+					<div class="print-summary">
+						<span class="stat-item">Total: <span class="stat-value">{{ $results->count() }}</span></span>
+						<span class="stat-item">Pass: <span class="stat-value">{{ $results->where('result', 'Pass')->count() }}</span></span>
+						<span class="stat-item">Fail: <span class="stat-value">{{ $results->where('result', 'Fail')->count() }}</span></span>
+						<span class="stat-item">Avg: <span class="stat-value">{{ $results->count() > 0 ? round($results->avg('percentage'), 1) : 0 }}%</span></span>
+						<span class="stat-item">Pass%: <span class="stat-value">{{ $results->count() > 0 ? round(($results->where('result', 'Pass')->count() / $results->count()) * 100, 0) : 0 }}%</span></span>
+					</div>
+
+					<!-- Results Summary (Screen Only) -->
+					<div class="row mb-4 no-print">
 						<div class="col-md-3">
 							<div class="card bg-primary text-white">
 								<div class="card-body text-center py-3">
@@ -176,6 +208,41 @@
 								</tbody>
 							</table>
 						</div>
+
+						<!-- Print Footer - Compact -->
+						<div class="print-footer">
+							<!-- Grade Legend - Inline -->
+							<div class="grade-legend">
+								<span><strong>Grades:</strong></span>
+								<span>A+ (90%+)</span>
+								<span>A (80-89%)</span>
+								<span>B+ (70-79%)</span>
+								<span>B (60-69%)</span>
+								<span>C+ (50-59%)</span>
+								<span>C (40-49%)</span>
+								<span>D (33-39%)</span>
+								<span>F (&lt;33%)</span>
+								<span style="margin-left: 10px;"><strong>Pass Mark: 33%</strong></span>
+							</div>
+
+							<!-- Signature Section -->
+							<div class="signature-section">
+								<div class="signature-box">
+									<div class="signature-line">Class Teacher</div>
+								</div>
+								<div class="signature-box">
+									<div class="signature-line">Exam Controller</div>
+								</div>
+								<div class="signature-box">
+									<div class="signature-line">Principal</div>
+								</div>
+							</div>
+
+							<!-- Print Date -->
+							<div class="print-date">
+								Generated: {{ now()->format('d/m/Y h:i A') }}
+							</div>
+						</div>
 					@else
 						<div class="text-center py-5">
 							<i data-feather="alert-circle" class="text-muted mb-3" style="width: 48px; height: 48px;"></i>
@@ -222,16 +289,233 @@ jQuery(document).ready(function() {
 
 @push('styles')
 <style>
+/* Print Elements - Hidden on screen */
+.print-header, .print-footer, .print-exam-info, .print-summary {
+	display: none;
+}
+
 @media print {
-	.sidebar-wrapper, .page-header, .breadcrumb, .card-header, form, .btn {
+	/* Hide screen elements */
+	.sidebar-wrapper, .page-header, .breadcrumb, .card-header, form, .btn,
+	.no-print, .alert, nav, .page-body-wrapper > .page-header {
 		display: none !important;
 	}
+
+	/* Reset page */
+	* {
+		margin: 0;
+		padding: 0;
+		box-sizing: border-box;
+	}
+
+	body {
+		font-family: Arial, sans-serif;
+		font-size: 9pt;
+		background: white !important;
+		line-height: 1.3;
+	}
+
+	.page-body, .page-body-wrapper, .page-wrapper, .container-fluid {
+		padding: 0 !important;
+		margin: 0 !important;
+	}
+
 	.card {
 		border: none !important;
 		box-shadow: none !important;
+		margin: 0 !important;
 	}
+
+	.card-body {
+		padding: 0 !important;
+	}
+
+	/* Print Header - Compact */
+	.print-header {
+		display: flex !important;
+		align-items: center;
+		border-bottom: 2px solid #000;
+		padding-bottom: 8px;
+		margin-bottom: 8px;
+	}
+
+	.print-header .logo-section {
+		width: 60px;
+		margin-right: 15px;
+	}
+
+	.print-header .school-logo {
+		width: 55px;
+		height: 55px;
+	}
+
+	.print-header .school-info {
+		flex: 1;
+		text-align: center;
+	}
+
+	.print-header .school-name {
+		font-size: 16pt;
+		font-weight: bold;
+		margin: 0;
+		text-transform: uppercase;
+	}
+
+	.print-header .school-address {
+		font-size: 8pt;
+		margin: 2px 0;
+	}
+
+	.print-header .report-title {
+		font-size: 11pt;
+		font-weight: bold;
+		margin-top: 5px;
+		text-decoration: underline;
+	}
+
+	/* Exam Info - Single Line */
+	.print-exam-info {
+		display: flex !important;
+		justify-content: space-between;
+		padding: 5px 0;
+		border-bottom: 1px solid #ccc;
+		margin-bottom: 5px;
+		font-size: 8pt;
+	}
+
+	/* Summary Stats - Compact Inline */
+	.print-summary {
+		display: flex !important;
+		justify-content: flex-end;
+		gap: 15px;
+		padding: 4px 0;
+		font-size: 8pt;
+		border-bottom: 1px solid #000;
+		margin-bottom: 5px;
+	}
+
+	.print-summary .stat-item {
+		display: inline;
+	}
+
+	.print-summary .stat-value {
+		font-weight: bold;
+	}
+
+	/* Hide screen summary cards */
+	.row.mb-4.no-print {
+		display: none !important;
+	}
+
+	/* Hide Results Header on screen */
+	.d-flex.justify-content-between.align-items-center.mb-3 {
+		display: none !important;
+	}
+
+	/* Table Styling - Compact */
+	.table-responsive {
+		overflow: visible !important;
+	}
+
 	.table {
-		font-size: 10px;
+		font-size: 8pt;
+		border-collapse: collapse;
+		width: 100%;
+	}
+
+	.table th, .table td {
+		border: 1px solid #000 !important;
+		padding: 3px 2px !important;
+		text-align: center;
+		vertical-align: middle;
+	}
+
+	.table thead th {
+		background: #d0d0d0 !important;
+		font-weight: bold;
+		font-size: 7pt;
+		-webkit-print-color-adjust: exact;
+		print-color-adjust: exact;
+	}
+
+	.table tbody tr:nth-child(even) {
+		background: #f5f5f5 !important;
+		-webkit-print-color-adjust: exact;
+		print-color-adjust: exact;
+	}
+
+	/* Compact marks display */
+	.table td small {
+		display: none;
+	}
+
+	/* Badge styling for print */
+	.badge {
+		border: none;
+		padding: 1px 3px;
+		font-weight: bold;
+		font-size: 7pt;
+		background: transparent !important;
+		color: #000 !important;
+	}
+
+	.badge.bg-warning {
+		background: #ffc107 !important;
+		-webkit-print-color-adjust: exact;
+		print-color-adjust: exact;
+	}
+
+	/* Print Footer - Compact */
+	.print-footer {
+		display: block !important;
+		margin-top: 10px;
+		font-size: 8pt;
+	}
+
+	.signature-section {
+		display: flex;
+		justify-content: space-between;
+		margin-top: 25px;
+	}
+
+	.signature-box {
+		text-align: center;
+		width: 150px;
+	}
+
+	.signature-line {
+		border-top: 1px solid #000;
+		margin-top: 30px;
+		padding-top: 3px;
+		font-size: 8pt;
+	}
+
+	.print-date {
+		text-align: right;
+		font-size: 7pt;
+		margin-top: 10px;
+		color: #666;
+	}
+
+	/* Grade Legend - Inline Compact */
+	.grade-legend {
+		display: flex;
+		gap: 10px;
+		font-size: 7pt;
+		padding: 3px 0;
+		border-top: 1px dashed #999;
+		margin-top: 8px;
+		flex-wrap: wrap;
+	}
+
+	.grade-legend span {
+		white-space: nowrap;
+	}
+
+	/* Page setup - Landscape A4 */
+	@page {
+		size: A4 landscape;
+		margin: 8mm;
 	}
 }
 </style>
