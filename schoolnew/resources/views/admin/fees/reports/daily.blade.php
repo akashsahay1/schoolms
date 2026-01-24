@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends('layouts.app')
 
 @section('title', 'Daily Collection Report')
 @section('page-title', 'Daily Collection Report')

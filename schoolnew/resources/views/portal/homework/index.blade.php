@@ -79,7 +79,7 @@
                     <h5>Filter Homework</h5>
                 </div>
                 <div class="card-body">
-                    <form method="GET" action="{{ route('portal.homework') }}" class="row g-3 align-items-end">
+                    <form method="GET" action="{{ route('portal.homework.index') }}" class="row g-3 align-items-end">
                         <div class="col-md-4">
                             <label class="form-label">Subject</label>
                             <select name="subject_id" class="form-select">
@@ -101,7 +101,7 @@
                         </div>
                         <div class="col-md-4">
                             <button type="submit" class="btn btn-primary me-2">Apply Filter</button>
-                            <a href="{{ route('portal.homework') }}" class="btn btn-outline-secondary">Reset</a>
+                            <a href="{{ route('portal.homework.index') }}" class="btn btn-outline-secondary">Reset</a>
                         </div>
                     </form>
                 </div>

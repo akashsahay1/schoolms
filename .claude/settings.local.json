@@ -29,7 +29,16 @@
       "Bash(php:*)",
       "Bash(del:*)",
       "Bash(composer require:*)",
-      "WebFetch(domain:127.0.0.1)"
+      "WebFetch(domain:127.0.0.1)",
+      "Bash(powershell -Command \"cd ''F:\\\\schoolms\\\\schoolnew''; php artisan route:list --name=students\")",
+      "Bash(powershell -Command \"cd ''F:\\\\schoolms\\\\schoolnew''; php artisan tinker --execute=\"\"Schema::hasColumn\\(''students'', ''deleted_at''\\)\"\"\")",
+      "Bash(powershell -Command \"cd ''F:\\\\schoolms\\\\schoolnew''; php artisan tinker --execute=\"\"echo Schema::hasColumn\\(''students'', ''deleted_at''\\) ? ''YES'' : ''NO''\"\"\")",
+      "Bash(powershell -Command:*)",
+      "Bash(if not exist \"F:\\\\schoolms\\\\schoolnew\\\\resources\\\\views\\\\admin\\\\transport\\\\vehicles\" mkdir \"F:\\\\schoolms\\\\schoolnew\\\\resources\\\\views\\\\admin\\\\transport\\\\vehicles\")",
+      "Bash(timeout:*)",
+      "Bash(ping:*)",
+      "Bash(curl:*)",
+      "Bash(ren:*)"
     ],
     "deny": []
   }

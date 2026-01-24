@@ -39,6 +39,35 @@ class TransportRoute extends Model
 		return $this->hasMany(RouteAssignment::class);
 	}
 
+	public function fees(): HasMany
+	{
+		return $this->hasMany(TransportFee::class);
+	}
+
+	/**
+	 * Accessor for title to support legacy code.
+	 */
+	public function getTitleAttribute(): string
+	{
+		return $this->route_name;
+	}
+
+	/**
+	 * Accessor for start_point to support legacy code.
+	 */
+	public function getStartPointAttribute(): string
+	{
+		return $this->start_place ?? '';
+	}
+
+	/**
+	 * Accessor for end_point to support legacy code.
+	 */
+	public function getEndPointAttribute(): string
+	{
+		return $this->end_place ?? '';
+	}
+
 	public function scopeActive($query)
 	{
 		return $query->where('is_active', true);

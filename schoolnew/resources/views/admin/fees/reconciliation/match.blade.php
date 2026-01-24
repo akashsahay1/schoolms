@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends('layouts.app')
 
 @section('title', 'Match Transactions')
 @section('page-title', 'Match Transactions')

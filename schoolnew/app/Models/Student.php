@@ -104,6 +104,11 @@ class Student extends Model
         return $this->hasMany(BookIssue::class);
     }
 
+    public function routeAssignments()
+    {
+        return $this->hasMany(RouteAssignment::class);
+    }
+
     public function scopeActive($query)
     {
         return $query->where('status', 'active');

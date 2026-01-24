@@ -1,9 +1,9 @@
-# Phase 6 Progress - Financial & Library Management
+# Phase 6 Completed - Financial & Library Management
 
 ## PHASE 6 STATUS: COMPLETED ✅
 
 **Started:** January 16, 2026
-**Completed:** January 16, 2026
+**Completed:** January 17, 2026
 
 ---
 
@@ -83,6 +83,7 @@
 ## New Files Created (Phase 6)
 
 ### Controllers
+- `app/Http/Controllers/Admin/BookCategoryController.php` - Book categories CRUD with soft delete/trash
 - `app/Http/Controllers/Admin/LibraryReportController.php` - Library reports dashboard & exports
 - `app/Http/Controllers/Portal/LibraryController.php` - Student portal library access
 - `app/Http/Controllers/Admin/FeeReportController.php` - Financial analytics & fee reports
@@ -106,6 +107,12 @@
 - `app/Http/Controllers/Admin/BookIssueController.php` - Added auto fine calculation
 
 ### Views Created
+
+**Book Categories (Admin):**
+- `resources/views/admin/library/categories/index.blade.php` - Categories list with bulk actions
+- `resources/views/admin/library/categories/create.blade.php` - Add new category
+- `resources/views/admin/library/categories/edit.blade.php` - Edit category
+- `resources/views/admin/library/categories/trash.blade.php` - Trash with restore/delete
 
 **Library Reports (Admin):**
 - `resources/views/admin/library/reports/index.blade.php` - Reports dashboard
@@ -153,6 +160,21 @@
 
 ### Admin Routes
 ```php
+// Book Categories
+Route::get('/library/categories', [BookCategoryController::class, 'index'])->name('library.categories.index');
+Route::get('/library/categories/create', [BookCategoryController::class, 'create'])->name('library.categories.create');
+Route::post('/library/categories', [BookCategoryController::class, 'store'])->name('library.categories.store');
+Route::get('/library/categories/{category}/edit', [BookCategoryController::class, 'edit'])->name('library.categories.edit');
+Route::put('/library/categories/{category}', [BookCategoryController::class, 'update'])->name('library.categories.update');
+Route::delete('/library/categories/{category}', [BookCategoryController::class, 'destroy'])->name('library.categories.destroy');
+Route::post('/library/categories/bulk-delete', [BookCategoryController::class, 'bulkDelete'])->name('library.categories.bulk-delete');
+Route::get('/library/categories-trash', [BookCategoryController::class, 'trash'])->name('library.categories.trash');
+Route::post('/library/categories/{id}/restore', [BookCategoryController::class, 'restore'])->name('library.categories.restore');
+Route::delete('/library/categories/{id}/force-delete', [BookCategoryController::class, 'forceDelete'])->name('library.categories.force-delete');
+Route::post('/library/categories/bulk-restore', [BookCategoryController::class, 'bulkRestore'])->name('library.categories.bulk-restore');
+Route::post('/library/categories/bulk-force-delete', [BookCategoryController::class, 'bulkForceDelete'])->name('library.categories.bulk-force-delete');
+Route::delete('/library/categories-trash/empty', [BookCategoryController::class, 'emptyTrash'])->name('library.categories.empty-trash');
+
 // Library Settings
 Route::get('/settings/library', [SettingController::class, 'library'])->name('settings.library');
 Route::post('/settings/library', [SettingController::class, 'updateLibrary'])->name('settings.library.update');

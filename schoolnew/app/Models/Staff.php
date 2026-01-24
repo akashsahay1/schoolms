@@ -90,6 +90,16 @@ class Staff extends Model
         return $this->belongsTo(Designation::class);
     }
 
+    public function leaveBalances()
+    {
+        return $this->hasMany(StaffLeaveBalance::class);
+    }
+
+    public function leaveApplications()
+    {
+        return $this->morphMany(LeaveApplication::class, 'applicant');
+    }
+
     public function scopeActive($query)
     {
         return $query->where('status', 'active');

@@ -4,7 +4,7 @@
 @section('page-title', 'Pending Homework')
 
 @section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('portal.homework') }}">Homework</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('portal.homework.index') }}">Homework</a></li>
     <li class="breadcrumb-item active">Pending</li>
 @endsection
 
@@ -71,7 +71,7 @@
                         </svg>
                         <h6 class="mt-3 text-muted">All Caught Up!</h6>
                         <p class="text-muted">You have no pending homework. Great job!</p>
-                        <a href="{{ route('portal.homework') }}" class="btn btn-outline-primary">
+                        <a href="{{ route('portal.homework.index') }}" class="btn btn-outline-primary">
                             View All Homework
                         </a>
                     </div>

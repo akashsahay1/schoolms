@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Vehicle extends Model
@@ -11,6 +12,7 @@ class Vehicle extends Model
 	use SoftDeletes;
 
 	protected $fillable = [
+		'driver_id',
 		'vehicle_no',
 		'vehicle_model',
 		'year_made',
@@ -27,6 +29,14 @@ class Vehicle extends Model
 	const STATUS_ACTIVE = 'active';
 	const STATUS_INACTIVE = 'inactive';
 	const STATUS_MAINTENANCE = 'maintenance';
+
+	/**
+	 * Get the driver assigned to this vehicle.
+	 */
+	public function driver(): BelongsTo
+	{
+		return $this->belongsTo(Driver::class);
+	}
 
 	public function routes(): HasMany
 	{

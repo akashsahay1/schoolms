@@ -4,7 +4,7 @@
 @section('page-title', 'Homework Details')
 
 @section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('portal.homework') }}">Homework</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('portal.homework.index') }}">Homework</a></li>
     <li class="breadcrumb-item active">{{ Str::limit($homework->title, 20) }}</li>
 @endsection
 
@@ -219,7 +219,7 @@
             <!-- Quick Actions -->
             <div class="card">
                 <div class="card-body">
-                    <a href="{{ route('portal.homework') }}" class="btn btn-outline-secondary w-100 mb-2">
+                    <a href="{{ route('portal.homework.index') }}" class="btn btn-outline-secondary w-100 mb-2">
                         <i class="fa fa-arrow-left me-2"></i> Back to Homework
                     </a>
                     <a href="{{ route('portal.homework.pending') }}" class="btn btn-outline-primary w-100">

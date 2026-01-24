@@ -4,7 +4,7 @@
 @section('page-title', 'My Exam Results')
 
 @section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('portal.exams') }}">Exams</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('portal.exams.index') }}">Exams</a></li>
     <li class="breadcrumb-item active">Results</li>
 @endsection
 

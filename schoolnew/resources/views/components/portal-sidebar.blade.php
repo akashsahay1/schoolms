@@ -100,7 +100,7 @@
 
 					<!-- Homework -->
 					<li class="sidebar-list">
-						<a class="sidebar-link sidebar-title" href="{{ route('portal.homework') }}">
+						<a class="sidebar-link sidebar-title" href="{{ route('portal.homework.index') }}">
 							<svg class="stroke-icon">
 								<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-task') }}"></use>
 							</svg>
@@ -112,8 +112,8 @@
 					</li>
 
 					<!-- Exams & Results -->
-					<li class="sidebar-list {{ request()->routeIs('portal.exams*') ? 'active' : '' }}">
-						<a class="sidebar-link sidebar-title {{ request()->routeIs('portal.exams*') ? 'active' : '' }}" href="#">
+					<li class="sidebar-list {{ request()->routeIs('portal.exams.*') ? 'active' : '' }}">
+						<a class="sidebar-link sidebar-title {{ request()->routeIs('portal.exams.*') ? 'active' : '' }}" href="#">
 							<svg class="stroke-icon">
 								<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-file') }}"></use>
 							</svg>
@@ -122,8 +122,8 @@
 							</svg>
 							<span>Exams & Results</span>
 						</a>
-						<ul class="sidebar-submenu" style="{{ request()->routeIs('portal.exams*') ? 'display: block;' : '' }}">
-							<li><a class="{{ request()->routeIs('portal.exams') && !request()->routeIs('portal.exams.*') ? 'active' : '' }}" href="{{ route('portal.exams') }}">Exam Schedule</a></li>
+						<ul class="sidebar-submenu" style="{{ request()->routeIs('portal.exams.*') ? 'display: block;' : '' }}">
+							<li><a class="{{ request()->routeIs('portal.exams.index') ? 'active' : '' }}" href="{{ route('portal.exams.index') }}">Exam Schedule</a></li>
 							<li><a class="{{ request()->routeIs('portal.exams.results') ? 'active' : '' }}" href="{{ route('portal.exams.results') }}">My Results</a></li>
 							<li><a class="{{ request()->routeIs('portal.exams.report-card') ? 'active' : '' }}" href="{{ route('portal.exams.report-card') }}">Report Card</a></li>
 						</ul>

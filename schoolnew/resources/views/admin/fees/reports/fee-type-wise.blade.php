@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends('layouts.app')
 
 @section('title', 'Fee Type Wise Report')
 @section('page-title', 'Fee Type Wise Collection Report')

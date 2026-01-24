@@ -4,7 +4,7 @@
 @section('page-title', 'Submitted Homework')
 
 @section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('portal.homework') }}">Homework</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('portal.homework.index') }}">Homework</a></li>
     <li class="breadcrumb-item active">Submitted</li>
 @endsection
 

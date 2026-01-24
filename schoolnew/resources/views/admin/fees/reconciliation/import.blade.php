@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends('layouts.app')
 
 @section('title', 'Import Bank Statement')
 @section('page-title', 'Import Bank Statement')

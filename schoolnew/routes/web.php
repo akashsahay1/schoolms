@@ -29,12 +29,23 @@ use App\Http\Controllers\Admin\FeeReportController;
 use App\Http\Controllers\Admin\ReconciliationController;
 use App\Http\Controllers\Admin\HomeworkController;
 use App\Http\Controllers\Admin\BookController;
+use App\Http\Controllers\Admin\BookCategoryController;
 use App\Http\Controllers\Admin\BookIssueController;
 use App\Http\Controllers\Admin\VehicleController;
 use App\Http\Controllers\Admin\TransportRouteController;
+use App\Http\Controllers\Admin\RouteAssignmentController;
+use App\Http\Controllers\Admin\TransportReportController;
+use App\Http\Controllers\Admin\DriverController;
+use App\Http\Controllers\Admin\TransportFeeController;
+use App\Http\Controllers\Admin\SmsSettingController;
 use App\Http\Controllers\Admin\NoticeController;
 use App\Http\Controllers\Admin\EventController;
 use App\Http\Controllers\Admin\LeaveApplicationController;
+use App\Http\Controllers\Admin\LeaveTypeController;
+use App\Http\Controllers\Admin\StaffLeaveController;
+use App\Http\Controllers\Admin\BulkMessagingController;
+use App\Http\Controllers\Admin\MessagingController;
+use App\Http\Controllers\WebsiteController;
 
 /*
 |--------------------------------------------------------------------------
@@ -42,9 +53,19 @@ use App\Http\Controllers\Admin\LeaveApplicationController;
 |--------------------------------------------------------------------------
 */
 
-// Public Routes
-Route::get('/', function () {
-    return redirect()->route('login');
+// Public Website Routes
+Route::name('website.')->group(function () {
+    Route::get('/', [WebsiteController::class, 'index'])->name('home');
+    Route::get('/about', [WebsiteController::class, 'about'])->name('about');
+    Route::get('/academics', [WebsiteController::class, 'academics'])->name('academics');
+    Route::get('/facilities', [WebsiteController::class, 'facilities'])->name('facilities');
+    Route::get('/gallery', [WebsiteController::class, 'gallery'])->name('gallery');
+    Route::get('/news', [WebsiteController::class, 'news'])->name('news');
+    Route::get('/news/{notice}', [WebsiteController::class, 'newsShow'])->name('news.show');
+    Route::get('/events', [WebsiteController::class, 'events'])->name('events');
+    Route::get('/events/{event}', [WebsiteController::class, 'eventShow'])->name('events.show');
+    Route::get('/contact', [WebsiteController::class, 'contact'])->name('contact');
+    Route::post('/contact', [WebsiteController::class, 'contactStore'])->name('contact.store');
 });
 
 // Authentication Routes
@@ -82,6 +103,20 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     // Library Settings
     Route::get('/settings/library', [App\Http\Controllers\Admin\SettingController::class, 'library'])->name('settings.library');
     Route::post('/settings/library', [App\Http\Controllers\Admin\SettingController::class, 'updateLibrary'])->name('settings.library.update');
+
+    // SMS Settings
+    Route::prefix('settings/sms')->name('settings.sms.')->group(function () {
+        Route::get('/', [SmsSettingController::class, 'index'])->name('index');
+        Route::put('/', [SmsSettingController::class, 'update'])->name('update');
+        Route::post('/test', [SmsSettingController::class, 'test'])->name('test');
+        Route::get('/templates', [SmsSettingController::class, 'templates'])->name('templates');
+        Route::get('/templates/create', [SmsSettingController::class, 'createTemplate'])->name('templates.create');
+        Route::post('/templates', [SmsSettingController::class, 'storeTemplate'])->name('templates.store');
+        Route::get('/templates/{template}/edit', [SmsSettingController::class, 'editTemplate'])->name('templates.edit');
+        Route::put('/templates/{template}', [SmsSettingController::class, 'updateTemplate'])->name('templates.update');
+        Route::delete('/templates/{template}', [SmsSettingController::class, 'destroyTemplate'])->name('templates.destroy');
+        Route::get('/logs', [SmsSettingController::class, 'logs'])->name('logs');
+    });
 
     // Academic Years
     Route::resource('academic-years', AcademicYearController::class)->except('show');
@@ -314,6 +349,44 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
         Route::post('/bulk-reject', [LeaveApplicationController::class, 'bulkReject'])->name('bulk-reject');
     });
 
+    // Staff Leave Management
+    Route::prefix('staff-leaves')->name('staff-leaves.')->group(function () {
+        // Leave Types
+        Route::get('/types', [LeaveTypeController::class, 'index'])->name('types.index');
+        Route::get('/types/create', [LeaveTypeController::class, 'create'])->name('types.create');
+        Route::post('/types', [LeaveTypeController::class, 'store'])->name('types.store');
+        Route::get('/types/{type}/edit', [LeaveTypeController::class, 'edit'])->name('types.edit');
+        Route::put('/types/{type}', [LeaveTypeController::class, 'update'])->name('types.update');
+        Route::delete('/types/{type}', [LeaveTypeController::class, 'destroy'])->name('types.destroy');
+        Route::post('/types/bulk-delete', [LeaveTypeController::class, 'bulkDelete'])->name('types.bulk-delete');
+        Route::get('/types-trash', [LeaveTypeController::class, 'trash'])->name('types.trash');
+        Route::post('/types/{id}/restore', [LeaveTypeController::class, 'restore'])->name('types.restore');
+        Route::delete('/types/{id}/force-delete', [LeaveTypeController::class, 'forceDelete'])->name('types.force-delete');
+        Route::post('/types/bulk-restore', [LeaveTypeController::class, 'bulkRestore'])->name('types.bulk-restore');
+        Route::post('/types/bulk-force-delete', [LeaveTypeController::class, 'bulkForceDelete'])->name('types.bulk-force-delete');
+        Route::delete('/types-trash/empty', [LeaveTypeController::class, 'emptyTrash'])->name('types.empty-trash');
+
+        // Staff Leave Applications
+        Route::get('/', [StaffLeaveController::class, 'index'])->name('index');
+        Route::get('/create', [StaffLeaveController::class, 'create'])->name('create');
+        Route::post('/', [StaffLeaveController::class, 'store'])->name('store');
+        Route::get('/{leave}', [StaffLeaveController::class, 'show'])->name('show');
+        Route::get('/{leave}/edit', [StaffLeaveController::class, 'edit'])->name('edit');
+        Route::put('/{leave}', [StaffLeaveController::class, 'update'])->name('update');
+        Route::post('/{leave}/approve', [StaffLeaveController::class, 'approve'])->name('approve');
+        Route::post('/{leave}/reject', [StaffLeaveController::class, 'reject'])->name('reject');
+        Route::post('/{leave}/cancel', [StaffLeaveController::class, 'cancel'])->name('cancel');
+        Route::post('/bulk-approve', [StaffLeaveController::class, 'bulkApprove'])->name('bulk-approve');
+        Route::post('/bulk-reject', [StaffLeaveController::class, 'bulkReject'])->name('bulk-reject');
+
+        // Leave Balances
+        Route::get('/balances', [StaffLeaveController::class, 'balances'])->name('balances');
+        Route::get('/balances/allocate', [StaffLeaveController::class, 'allocate'])->name('balances.allocate');
+        Route::post('/balances/allocate', [StaffLeaveController::class, 'storeAllocation'])->name('balances.store');
+        Route::get('/reports', [StaffLeaveController::class, 'reports'])->name('reports');
+        Route::get('/reports/export', [StaffLeaveController::class, 'exportReport'])->name('reports.export');
+    });
+
     // Departments & Designations
     Route::resource('departments', DepartmentController::class);
     Route::post('departments/bulk-delete', [DepartmentController::class, 'bulkDelete'])->name('departments.bulk-delete');
@@ -349,6 +422,21 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
         Route::post('/books/bulk-restore', [BookController::class, 'bulkRestore'])->name('books.bulk-restore');
         Route::post('/books/bulk-force-delete', [BookController::class, 'bulkForceDelete'])->name('books.bulk-force-delete');
         Route::delete('/books-trash/empty', [BookController::class, 'emptyTrash'])->name('books.empty-trash');
+
+        // Book Categories
+        Route::get('/categories', [BookCategoryController::class, 'index'])->name('categories.index');
+        Route::get('/categories/create', [BookCategoryController::class, 'create'])->name('categories.create');
+        Route::post('/categories', [BookCategoryController::class, 'store'])->name('categories.store');
+        Route::get('/categories/{category}/edit', [BookCategoryController::class, 'edit'])->name('categories.edit');
+        Route::put('/categories/{category}', [BookCategoryController::class, 'update'])->name('categories.update');
+        Route::delete('/categories/{category}', [BookCategoryController::class, 'destroy'])->name('categories.destroy');
+        Route::post('/categories/bulk-delete', [BookCategoryController::class, 'bulkDelete'])->name('categories.bulk-delete');
+        Route::get('/categories-trash', [BookCategoryController::class, 'trash'])->name('categories.trash');
+        Route::post('/categories/{id}/restore', [BookCategoryController::class, 'restore'])->name('categories.restore');
+        Route::delete('/categories/{id}/force-delete', [BookCategoryController::class, 'forceDelete'])->name('categories.force-delete');
+        Route::post('/categories/bulk-restore', [BookCategoryController::class, 'bulkRestore'])->name('categories.bulk-restore');
+        Route::post('/categories/bulk-force-delete', [BookCategoryController::class, 'bulkForceDelete'])->name('categories.bulk-force-delete');
+        Route::delete('/categories-trash/empty', [BookCategoryController::class, 'emptyTrash'])->name('categories.empty-trash');
 
         // Book Issue
         Route::get('/issue', [BookIssueController::class, 'index'])->name('issue.index');
@@ -401,8 +489,57 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
         Route::post('/routes/bulk-force-delete', [TransportRouteController::class, 'bulkForceDelete'])->name('routes.bulk-force-delete');
         Route::delete('/routes-trash/empty', [TransportRouteController::class, 'emptyTrash'])->name('routes.empty-trash');
 
-        Route::get('/drivers', function () { return view('admin.coming-soon'); })->name('drivers');
+        // Route Assignments
+        Route::get('/assignments', [RouteAssignmentController::class, 'index'])->name('assignments.index');
+        Route::get('/assignments/create', [RouteAssignmentController::class, 'create'])->name('assignments.create');
+        Route::post('/assignments', [RouteAssignmentController::class, 'store'])->name('assignments.store');
+        Route::get('/assignments/{assignment}/edit', [RouteAssignmentController::class, 'edit'])->name('assignments.edit');
+        Route::put('/assignments/{assignment}', [RouteAssignmentController::class, 'update'])->name('assignments.update');
+        Route::delete('/assignments/{assignment}', [RouteAssignmentController::class, 'destroy'])->name('assignments.destroy');
+        Route::post('/assignments/bulk-delete', [RouteAssignmentController::class, 'bulkDelete'])->name('assignments.bulk-delete');
+        Route::get('/assignments-trash', [RouteAssignmentController::class, 'trash'])->name('assignments.trash');
+        Route::post('/assignments/{id}/restore', [RouteAssignmentController::class, 'restore'])->name('assignments.restore');
+        Route::delete('/assignments/{id}/force-delete', [RouteAssignmentController::class, 'forceDelete'])->name('assignments.force-delete');
+        Route::post('/assignments/bulk-restore', [RouteAssignmentController::class, 'bulkRestore'])->name('assignments.bulk-restore');
+        Route::post('/assignments/bulk-force-delete', [RouteAssignmentController::class, 'bulkForceDelete'])->name('assignments.bulk-force-delete');
+        Route::delete('/assignments-trash/empty', [RouteAssignmentController::class, 'emptyTrash'])->name('assignments.empty-trash');
+        Route::get('/assignments/students', [RouteAssignmentController::class, 'getStudents'])->name('assignments.students');
+        Route::get('/assignments/sections', [RouteAssignmentController::class, 'getSections'])->name('assignments.sections');
+
+        // Transport Reports
+        Route::get('/reports', [TransportReportController::class, 'index'])->name('reports.index');
+        Route::get('/reports/route-wise', [TransportReportController::class, 'routeWise'])->name('reports.route-wise');
+        Route::get('/reports/class-wise', [TransportReportController::class, 'classWise'])->name('reports.class-wise');
+        Route::get('/reports/vehicle-wise', [TransportReportController::class, 'vehicleWise'])->name('reports.vehicle-wise');
+        Route::get('/reports/export-route', [TransportReportController::class, 'exportRouteWise'])->name('reports.export-route');
+        Route::get('/reports/export-class', [TransportReportController::class, 'exportClassWise'])->name('reports.export-class');
+        Route::get('/reports/export-vehicle', [TransportReportController::class, 'exportVehicleWise'])->name('reports.export-vehicle');
+
+        // Transport Fees
+        Route::get('/fees', [TransportFeeController::class, 'index'])->name('fees.index');
+        Route::get('/fees/create', [TransportFeeController::class, 'create'])->name('fees.create');
+        Route::post('/fees', [TransportFeeController::class, 'store'])->name('fees.store');
+        Route::get('/fees/{fee}/edit', [TransportFeeController::class, 'edit'])->name('fees.edit');
+        Route::put('/fees/{fee}', [TransportFeeController::class, 'update'])->name('fees.update');
+        Route::delete('/fees/{fee}', [TransportFeeController::class, 'destroy'])->name('fees.destroy');
+        Route::get('/fees/collections', [TransportFeeController::class, 'collections'])->name('fees.collections');
+        Route::get('/fees/collect/{student}', [TransportFeeController::class, 'collectForm'])->name('fees.collect-form');
+        Route::post('/fees/collect/{student}', [TransportFeeController::class, 'collect'])->name('fees.collect');
+        Route::post('/fees/generate', [TransportFeeController::class, 'generateMonthlyFees'])->name('fees.generate');
+        Route::get('/fees/reports', [TransportFeeController::class, 'reports'])->name('fees.reports');
+        Route::get('/fees/export-collections', [TransportFeeController::class, 'exportCollections'])->name('fees.export-collections');
     });
+
+    // Drivers
+    Route::resource('drivers', DriverController::class);
+    Route::post('drivers/bulk-delete', [DriverController::class, 'bulkDelete'])->name('drivers.bulk-delete');
+    Route::get('drivers-trash', [DriverController::class, 'trash'])->name('drivers.trash');
+    Route::post('drivers/{id}/restore', [DriverController::class, 'restore'])->name('drivers.restore');
+    Route::delete('drivers/{id}/force-delete', [DriverController::class, 'forceDelete'])->name('drivers.force-delete');
+    Route::delete('drivers-trash/empty', [DriverController::class, 'emptyTrash'])->name('drivers.empty-trash');
+    Route::get('drivers/export', [DriverController::class, 'export'])->name('drivers.export');
+    Route::post('drivers/assign-vehicle', [DriverController::class, 'assignVehicle'])->name('drivers.assign-vehicle');
+    Route::post('drivers/unassign-vehicle', [DriverController::class, 'unassignVehicle'])->name('drivers.unassign-vehicle');
 
     // Communication - Notices
     Route::resource('notices', App\Http\Controllers\Admin\NoticeController::class);
@@ -425,8 +562,33 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::post('events/bulk-force-delete', [EventController::class, 'bulkForceDelete'])->name('events.bulk-force-delete');
     Route::delete('events-trash/empty', [EventController::class, 'emptyTrash'])->name('events.empty-trash');
 
-    // Messages
-    Route::get('/messages', function () { return view('admin.coming-soon'); })->name('messages.index');
+    // Messaging System
+    Route::prefix('messaging')->name('messaging.')->group(function () {
+        // Bulk Messages
+        Route::prefix('bulk')->name('bulk.')->group(function () {
+            Route::get('/', [BulkMessagingController::class, 'index'])->name('index');
+            Route::get('/create', [BulkMessagingController::class, 'create'])->name('create');
+            Route::post('/', [BulkMessagingController::class, 'store'])->name('store');
+            Route::get('/{bulkMessage}', [BulkMessagingController::class, 'show'])->name('show');
+            Route::get('/{bulkMessage}/edit', [BulkMessagingController::class, 'edit'])->name('edit');
+            Route::put('/{bulkMessage}', [BulkMessagingController::class, 'update'])->name('update');
+            Route::delete('/{bulkMessage}', [BulkMessagingController::class, 'destroy'])->name('destroy');
+            Route::post('/{bulkMessage}/send', [BulkMessagingController::class, 'send'])->name('send');
+            Route::get('/{bulkMessage}/logs', [BulkMessagingController::class, 'logs'])->name('logs');
+        });
+
+        // Inbox Messages (Parent-Teacher Communication)
+        Route::prefix('inbox')->name('inbox.')->group(function () {
+            Route::get('/', [MessagingController::class, 'index'])->name('index');
+            Route::get('/create', [MessagingController::class, 'create'])->name('create');
+            Route::post('/', [MessagingController::class, 'store'])->name('store');
+            Route::get('/{message}', [MessagingController::class, 'show'])->name('show');
+            Route::post('/{message}/reply', [MessagingController::class, 'reply'])->name('reply');
+            Route::delete('/{message}', [MessagingController::class, 'destroy'])->name('destroy');
+            Route::post('/{message}/mark-read', [MessagingController::class, 'markAsRead'])->name('mark-read');
+            Route::post('/mark-all-read', [MessagingController::class, 'markAllAsRead'])->name('mark-all-read');
+        });
+    });
 
     // Reports
     Route::prefix('reports')->name('reports.')->group(function () {
@@ -463,6 +625,54 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::delete('users-trash/empty', [UserController::class, 'emptyTrash'])->name('users.empty-trash');
 
     Route::get('/roles', function () { return view('admin.coming-soon'); })->name('roles.index');
+
+    // Website Settings
+    Route::prefix('website')->name('website.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\WebsiteSettingController::class, 'index'])->name('index');
+
+        // Sliders
+        Route::get('/sliders', [App\Http\Controllers\Admin\WebsiteSettingController::class, 'sliders'])->name('sliders');
+        Route::get('/sliders/create', [App\Http\Controllers\Admin\WebsiteSettingController::class, 'createSlider'])->name('sliders.create');
+        Route::post('/sliders', [App\Http\Controllers\Admin\WebsiteSettingController::class, 'storeSlider'])->name('sliders.store');
+        Route::get('/sliders/{slider}/edit', [App\Http\Controllers\Admin\WebsiteSettingController::class, 'editSlider'])->name('sliders.edit');
+        Route::put('/sliders/{slider}', [App\Http\Controllers\Admin\WebsiteSettingController::class, 'updateSlider'])->name('sliders.update');
+        Route::delete('/sliders/{slider}', [App\Http\Controllers\Admin\WebsiteSettingController::class, 'destroySlider'])->name('sliders.destroy');
+
+        // Facilities
+        Route::get('/facilities', [App\Http\Controllers\Admin\WebsiteSettingController::class, 'facilities'])->name('facilities');
+        Route::get('/facilities/create', [App\Http\Controllers\Admin\WebsiteSettingController::class, 'createFacility'])->name('facilities.create');
+        Route::post('/facilities', [App\Http\Controllers\Admin\WebsiteSettingController::class, 'storeFacility'])->name('facilities.store');
+        Route::get('/facilities/{facility}/edit', [App\Http\Controllers\Admin\WebsiteSettingController::class, 'editFacility'])->name('facilities.edit');
+        Route::put('/facilities/{facility}', [App\Http\Controllers\Admin\WebsiteSettingController::class, 'updateFacility'])->name('facilities.update');
+        Route::delete('/facilities/{facility}', [App\Http\Controllers\Admin\WebsiteSettingController::class, 'destroyFacility'])->name('facilities.destroy');
+
+        // Testimonials
+        Route::get('/testimonials', [App\Http\Controllers\Admin\WebsiteSettingController::class, 'testimonials'])->name('testimonials');
+        Route::get('/testimonials/create', [App\Http\Controllers\Admin\WebsiteSettingController::class, 'createTestimonial'])->name('testimonials.create');
+        Route::post('/testimonials', [App\Http\Controllers\Admin\WebsiteSettingController::class, 'storeTestimonial'])->name('testimonials.store');
+        Route::get('/testimonials/{testimonial}/edit', [App\Http\Controllers\Admin\WebsiteSettingController::class, 'editTestimonial'])->name('testimonials.edit');
+        Route::put('/testimonials/{testimonial}', [App\Http\Controllers\Admin\WebsiteSettingController::class, 'updateTestimonial'])->name('testimonials.update');
+        Route::delete('/testimonials/{testimonial}', [App\Http\Controllers\Admin\WebsiteSettingController::class, 'destroyTestimonial'])->name('testimonials.destroy');
+
+        // Gallery
+        Route::get('/gallery', [App\Http\Controllers\Admin\WebsiteSettingController::class, 'gallery'])->name('gallery');
+        Route::get('/gallery/create', [App\Http\Controllers\Admin\WebsiteSettingController::class, 'createGallery'])->name('gallery.create');
+        Route::post('/gallery', [App\Http\Controllers\Admin\WebsiteSettingController::class, 'storeGallery'])->name('gallery.store');
+        Route::get('/gallery/{gallery}/edit', [App\Http\Controllers\Admin\WebsiteSettingController::class, 'editGallery'])->name('gallery.edit');
+        Route::put('/gallery/{gallery}', [App\Http\Controllers\Admin\WebsiteSettingController::class, 'updateGallery'])->name('gallery.update');
+        Route::delete('/gallery/{gallery}', [App\Http\Controllers\Admin\WebsiteSettingController::class, 'destroyGallery'])->name('gallery.destroy');
+
+        // Pages
+        Route::get('/pages', [App\Http\Controllers\Admin\WebsiteSettingController::class, 'pages'])->name('pages');
+        Route::get('/pages/{page}/edit', [App\Http\Controllers\Admin\WebsiteSettingController::class, 'editPage'])->name('pages.edit');
+        Route::put('/pages/{page}', [App\Http\Controllers\Admin\WebsiteSettingController::class, 'updatePage'])->name('pages.update');
+
+        // Contact Messages
+        Route::get('/contacts', [App\Http\Controllers\Admin\WebsiteSettingController::class, 'contacts'])->name('contacts');
+        Route::get('/contacts/{contact}', [App\Http\Controllers\Admin\WebsiteSettingController::class, 'showContact'])->name('contacts.show');
+        Route::post('/contacts/{contact}/reply', [App\Http\Controllers\Admin\WebsiteSettingController::class, 'replyContact'])->name('contacts.reply');
+        Route::delete('/contacts/{contact}', [App\Http\Controllers\Admin\WebsiteSettingController::class, 'destroyContact'])->name('contacts.destroy');
+    });
 });
 
 // Student/Parent Portal Routes
@@ -520,19 +730,19 @@ Route::prefix('portal')->name('portal.')->middleware('auth')->group(function () 
     Route::get('/contact/{message}', [App\Http\Controllers\Portal\ContactController::class, 'show'])->name('contact.show');
 
     // Exams
-    Route::prefix('exams')->name('exams')->group(function () {
-        Route::get('/', [App\Http\Controllers\Portal\ExamController::class, 'index']);
-        Route::get('/results', [App\Http\Controllers\Portal\ExamController::class, 'results'])->name('.results');
-        Route::get('/report-card', [App\Http\Controllers\Portal\ExamController::class, 'reportCard'])->name('.report-card');
+    Route::prefix('exams')->name('exams.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Portal\ExamController::class, 'index'])->name('index');
+        Route::get('/results', [App\Http\Controllers\Portal\ExamController::class, 'results'])->name('results');
+        Route::get('/report-card', [App\Http\Controllers\Portal\ExamController::class, 'reportCard'])->name('report-card');
     });
 
     // Homework
-    Route::prefix('homework')->name('homework')->group(function () {
-        Route::get('/', [App\Http\Controllers\Portal\HomeworkController::class, 'index']);
-        Route::get('/pending', [App\Http\Controllers\Portal\HomeworkController::class, 'pending'])->name('.pending');
-        Route::get('/submitted', [App\Http\Controllers\Portal\HomeworkController::class, 'submitted'])->name('.submitted');
-        Route::get('/{homework}', [App\Http\Controllers\Portal\HomeworkController::class, 'show'])->name('.show');
-        Route::post('/{homework}/submit', [App\Http\Controllers\Portal\HomeworkController::class, 'submit'])->name('.submit');
+    Route::prefix('homework')->name('homework.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Portal\HomeworkController::class, 'index'])->name('index');
+        Route::get('/pending', [App\Http\Controllers\Portal\HomeworkController::class, 'pending'])->name('pending');
+        Route::get('/submitted', [App\Http\Controllers\Portal\HomeworkController::class, 'submitted'])->name('submitted');
+        Route::get('/{homework}', [App\Http\Controllers\Portal\HomeworkController::class, 'show'])->name('show');
+        Route::post('/{homework}/submit', [App\Http\Controllers\Portal\HomeworkController::class, 'submit'])->name('submit');
     });
 
     // Library

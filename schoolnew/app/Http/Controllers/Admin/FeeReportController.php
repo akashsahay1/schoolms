@@ -89,12 +89,12 @@ class FeeReportController extends Controller
             ->get();
 
         // Class-wise collection summary
-        $classWiseData = FeeCollection::select('students.class_id', 'school_classes.name as class_name', DB::raw('SUM(fee_collections.paid_amount) as total'))
+        $classWiseData = FeeCollection::select('students.class_id', 'classes.name as class_name', DB::raw('SUM(fee_collections.paid_amount) as total'))
             ->join('students', 'fee_collections.student_id', '=', 'students.id')
-            ->join('school_classes', 'students.class_id', '=', 'school_classes.id')
+            ->join('classes', 'students.class_id', '=', 'classes.id')
             ->when($activeYear, fn($q) => $q->where('fee_collections.academic_year_id', $activeYear->id))
-            ->groupBy('students.class_id', 'school_classes.name')
-            ->orderBy('school_classes.display_order')
+            ->groupBy('students.class_id', 'classes.name')
+            ->orderBy('classes.order')
             ->get();
 
         return view('admin.fees.reports.index', compact(

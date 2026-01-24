@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends('layouts.app')
 
 @section('title', 'Financial Analytics Dashboard')
 @section('page-title', 'Fee Reports & Analytics')
@@ -11,25 +11,44 @@
 @push('css')
 <style>
     .stat-card {
-        border-radius: 8px;
-        padding: 20px;
+        border-radius: 10px;
         height: 100%;
+        transition: all 0.3s ease;
+    }
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1) !important;
+    }
+    .stat-card .card-body {
+        padding: 1.5rem;
     }
     .stat-card .stat-icon {
-        width: 50px;
-        height: 50px;
-        border-radius: 10px;
+        width: 56px;
+        height: 56px;
+        border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
+        flex-shrink: 0;
+    }
+    .stat-card .stat-icon svg {
+        width: 24px;
+        height: 24px;
     }
     .stat-card .stat-value {
-        font-size: 1.5rem;
-        font-weight: 600;
+        font-size: 1.75rem;
+        font-weight: 700;
+        line-height: 1.2;
+        margin-bottom: 0.25rem;
     }
     .stat-card .stat-label {
         color: #6c757d;
         font-size: 0.875rem;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+    .stat-card small.text-muted {
+        font-size: 0.75rem;
     }
     .chart-container {
         position: relative;
@@ -52,56 +71,64 @@
     <div class="row mb-4">
         <div class="col-xl-3 col-md-6 mb-3">
             <div class="card stat-card border-0 shadow-sm">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="stat-label">Total Collected</div>
-                        <div class="stat-value text-success">{{ number_format($stats['total_collected'], 2) }}</div>
-                        <small class="text-muted">{{ $activeYear->name ?? 'All Years' }}</small>
-                    </div>
-                    <div class="stat-icon bg-success-subtle">
-                        <i data-feather="dollar-sign" class="text-success"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card stat-card border-0 shadow-sm">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="stat-label">Outstanding</div>
-                        <div class="stat-value text-danger">{{ number_format($stats['total_outstanding'], 2) }}</div>
-                        <small class="text-muted">Pending Fees</small>
-                    </div>
-                    <div class="stat-icon bg-danger-subtle">
-                        <i data-feather="alert-circle" class="text-danger"></i>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="stat-label">Total Collected</div>
+                            <div class="stat-value text-success">{{ number_format($stats['total_collected'], 2) }}</div>
+                            <small class="text-muted">{{ $activeYear->name ?? 'All Years' }}</small>
+                        </div>
+                        <div class="stat-icon bg-success-subtle">
+                            <i data-feather="dollar-sign" class="text-success"></i>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
         <div class="col-xl-3 col-md-6 mb-3">
             <div class="card stat-card border-0 shadow-sm">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="stat-label">This Month</div>
-                        <div class="stat-value text-primary">{{ number_format($stats['this_month'], 2) }}</div>
-                        <small class="text-muted">{{ now()->format('F Y') }}</small>
-                    </div>
-                    <div class="stat-icon bg-primary-subtle">
-                        <i data-feather="calendar" class="text-primary"></i>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="stat-label">Outstanding</div>
+                            <div class="stat-value text-danger">{{ number_format($stats['total_outstanding'], 2) }}</div>
+                            <small class="text-muted">Pending Fees</small>
+                        </div>
+                        <div class="stat-icon bg-danger-subtle">
+                            <i data-feather="alert-circle" class="text-danger"></i>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
         <div class="col-xl-3 col-md-6 mb-3">
             <div class="card stat-card border-0 shadow-sm">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="stat-label">Today's Collection</div>
-                        <div class="stat-value text-info">{{ number_format($stats['today'], 2) }}</div>
-                        <small class="text-muted">{{ now()->format('d M Y') }}</small>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="stat-label">This Month</div>
+                            <div class="stat-value text-primary">{{ number_format($stats['this_month'], 2) }}</div>
+                            <small class="text-muted">{{ now()->format('F Y') }}</small>
+                        </div>
+                        <div class="stat-icon bg-primary-subtle">
+                            <i data-feather="calendar" class="text-primary"></i>
+                        </div>
                     </div>
-                    <div class="stat-icon bg-info-subtle">
-                        <i data-feather="trending-up" class="text-info"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card stat-card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="stat-label">Today's Collection</div>
+                            <div class="stat-value text-info">{{ number_format($stats['today'], 2) }}</div>
+                            <small class="text-muted">{{ now()->format('d M Y') }}</small>
+                        </div>
+                        <div class="stat-icon bg-info-subtle">
+                            <i data-feather="trending-up" class="text-info"></i>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -112,39 +139,48 @@
     <div class="row mb-4">
         <div class="col-xl-4 col-md-6 mb-3">
             <div class="card stat-card border-0 shadow-sm">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="stat-label">Total Discount Given</div>
-                        <div class="stat-value text-warning">{{ number_format($stats['total_discount'], 2) }}</div>
-                    </div>
-                    <div class="stat-icon bg-warning-subtle">
-                        <i data-feather="percent" class="text-warning"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-xl-4 col-md-6 mb-3">
-            <div class="card stat-card border-0 shadow-sm">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="stat-label">Fine Collected</div>
-                        <div class="stat-value text-secondary">{{ number_format($stats['total_fine'], 2) }}</div>
-                    </div>
-                    <div class="stat-icon bg-secondary-subtle">
-                        <i data-feather="clock" class="text-secondary"></i>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="stat-label">Total Discount Given</div>
+                            <div class="stat-value text-warning">{{ number_format($stats['total_discount'], 2) }}</div>
+                            <small class="text-muted">{{ $activeYear->name ?? 'All Years' }}</small>
+                        </div>
+                        <div class="stat-icon bg-warning-subtle">
+                            <i data-feather="percent" class="text-warning"></i>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
         <div class="col-xl-4 col-md-6 mb-3">
             <div class="card stat-card border-0 shadow-sm">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="stat-label">Active Students</div>
-                        <div class="stat-value text-dark">{{ number_format($stats['total_students']) }}</div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="stat-label">Fine Collected</div>
+                            <div class="stat-value text-secondary">{{ number_format($stats['total_fine'], 2) }}</div>
+                            <small class="text-muted">Late payment fines</small>
+                        </div>
+                        <div class="stat-icon bg-secondary-subtle">
+                            <i data-feather="clock" class="text-secondary"></i>
+                        </div>
                     </div>
-                    <div class="stat-icon bg-light">
-                        <i data-feather="users" class="text-dark"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-4 col-md-6 mb-3">
+            <div class="card stat-card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="stat-label">Active Students</div>
+                            <div class="stat-value text-dark">{{ number_format($stats['total_students']) }}</div>
+                            <small class="text-muted">Currently enrolled</small>
+                        </div>
+                        <div class="stat-icon bg-light">
+                            <i data-feather="users" class="text-dark"></i>
+                        </div>
                     </div>
                 </div>
             </div>
