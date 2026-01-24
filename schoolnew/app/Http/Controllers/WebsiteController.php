@@ -23,7 +23,7 @@ class WebsiteController extends Controller
         $sliders = WebsiteSlider::active()->ordered()->get();
         $facilities = WebsiteFacility::active()->ordered()->limit(6)->get();
         $testimonials = WebsiteTestimonial::active()->ordered()->limit(6)->get();
-        $events = Event::where('is_published', true)
+        $events = Event::where('is_public', true)
             ->whereDate('start_date', '>=', now())
             ->orderBy('start_date')
             ->limit(3)
@@ -131,7 +131,7 @@ class WebsiteController extends Controller
     {
         $page = WebsitePage::findBySlug('events');
 
-        $events = Event::where('is_published', true)
+        $events = Event::where('is_public', true)
             ->orderBy('start_date', 'desc')
             ->paginate(9);
 
@@ -143,7 +143,7 @@ class WebsiteController extends Controller
      */
     public function eventShow(Event $event)
     {
-        if (!$event->is_published) {
+        if (!$event->is_public) {
             abort(404);
         }
 
