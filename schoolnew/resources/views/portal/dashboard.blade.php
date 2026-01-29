@@ -45,7 +45,7 @@
 								<h3 class="text-white mb-2">Welcome back, {{ $student->first_name }}!</h3>
 								<p class="text-white mb-0" style="opacity: 0.85;">
 									<i class="fa fa-graduation-cap me-1"></i>
-									Class {{ $student->schoolClass->name ?? 'N/A' }} - Section {{ $student->section->name ?? 'N/A' }}
+									{{ $student->schoolClass->name ?? 'N/A' }} - Section {{ $student->section->name ?? 'N/A' }}
 								</p>
 							@endif
 							<p class="text-white mb-0 mt-2" style="opacity: 0.85;">
