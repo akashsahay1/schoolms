@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Portal;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Portal\Traits\PortalStudentTrait;
 use App\Models\Student;
 use App\Models\LeaveApplication;
 use App\Models\AcademicYear;
@@ -12,16 +13,18 @@ use Illuminate\Support\Facades\Storage;
 
 class LeaveController extends Controller
 {
+    use PortalStudentTrait;
+
     /**
      * Display list of leave applications.
      */
     public function index(Request $request)
     {
-        $user = Auth::user();
-        $student = Student::where('user_id', $user->id)->first();
+        $student = $this->getCurrentStudent();
 
         if (!$student) {
-            return redirect()->route('portal.dashboard');
+            return redirect()->route('portal.dashboard')
+                ->with('error', 'No student profile found.');
         }
 
         $query = LeaveApplication::forStudent($student->id)
@@ -42,15 +45,14 @@ class LeaveController extends Controller
      */
     public function create()
     {
-        $user = Auth::user();
-        $student = Student::where('user_id', $user->id)
-            ->with(['schoolClass', 'section'])
-            ->first();
+        $student = $this->getCurrentStudent();
 
         if (!$student) {
-            return redirect()->route('portal.dashboard');
+            return redirect()->route('portal.dashboard')
+                ->with('error', 'No student profile found.');
         }
 
+        $student->load(['schoolClass', 'section']);
         $leaveTypes = LeaveApplication::LEAVE_TYPES;
 
         return view('portal.leaves.create', compact('student', 'leaveTypes'));
@@ -62,10 +64,11 @@ class LeaveController extends Controller
     public function store(Request $request)
     {
         $user = Auth::user();
-        $student = Student::where('user_id', $user->id)->first();
+        $student = $this->getCurrentStudent();
 
         if (!$student) {
-            return redirect()->route('portal.dashboard');
+            return redirect()->route('portal.dashboard')
+                ->with('error', 'No student profile found.');
         }
 
         $validated = $request->validate([
@@ -114,8 +117,7 @@ class LeaveController extends Controller
      */
     public function show(LeaveApplication $leave)
     {
-        $user = Auth::user();
-        $student = Student::where('user_id', $user->id)->first();
+        $student = $this->getCurrentStudent();
 
         // Security check
         if (!$student || $leave->student_id !== $student->id) {
@@ -132,8 +134,7 @@ class LeaveController extends Controller
      */
     public function cancel(LeaveApplication $leave)
     {
-        $user = Auth::user();
-        $student = Student::where('user_id', $user->id)->first();
+        $student = $this->getCurrentStudent();
 
         // Security check
         if (!$student || $leave->student_id !== $student->id) {

@@ -4,86 +4,132 @@
 @section('page-title', 'My Attendance')
 
 @section('breadcrumb')
-    <li class="breadcrumb-item active">Attendance</li>
+	<li class="breadcrumb-item active">Attendance</li>
 @endsection
 
 @section('content')
 <div class="container-fluid">
-    <!-- Filter -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    <form method="GET" action="{{ route('portal.attendance') }}" class="row g-3 align-items-end">
-                        <div class="col-md-2">
-                            <label class="form-label">View Type</label>
-                            <select name="view" class="form-select" id="view-type">
-                                <option value="monthly" {{ ($viewType ?? 'monthly') == 'monthly' ? 'selected' : '' }}>Monthly</option>
-                                <option value="yearly" {{ ($viewType ?? 'monthly') == 'yearly' ? 'selected' : '' }}>Yearly</option>
-                            </select>
-                        </div>
-                        <div class="col-md-2" id="month-field" style="{{ ($viewType ?? 'monthly') == 'yearly' ? 'display: none;' : '' }}">
-                            <label class="form-label">Month</label>
-                            <select name="month" class="form-select">
-                                @for($m = 1; $m <= 12; $m++)
-                                    <option value="{{ $m }}" {{ $month == $m ? 'selected' : '' }}>
-                                        {{ date('F', mktime(0, 0, 0, $m, 1)) }}
-                                    </option>
-                                @endfor
-                            </select>
-                        </div>
-                        <div class="col-md-2">
-                            <label class="form-label">Year</label>
-                            <select name="year" class="form-select">
-                                @for($y = date('Y'); $y >= date('Y') - 5; $y--)
-                                    <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>{{ $y }}</option>
-                                @endfor
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <button type="submit" class="btn btn-primary">View Attendance</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
+	<!-- Help Tip -->
+	<div class="row mb-4">
+		<div class="col-12">
+			<div class="help-tip">
+				<i data-feather="info" class="me-2 text-primary" style="width: 18px; height: 18px;"></i>
+				<strong>Track Your Attendance:</strong> View monthly or yearly attendance records. Green indicates present days, red for absent, and yellow for late arrivals. Maintain above 75% attendance for good standing.
+			</div>
+		</div>
+	</div>
 
-    <!-- Stats -->
-    <div class="row">
-        <div class="col-xl-3 col-sm-6">
-            <div class="card bg-light-success">
-                <div class="card-body text-center">
-                    <h3 class="text-success">{{ $stats['present'] }}</h3>
-                    <p class="mb-0 text-success">Days Present</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-xl-3 col-sm-6">
-            <div class="card bg-light-danger">
-                <div class="card-body text-center">
-                    <h3 class="text-danger">{{ $stats['absent'] }}</h3>
-                    <p class="mb-0 text-danger">Days Absent</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-xl-3 col-sm-6">
-            <div class="card bg-light-warning">
-                <div class="card-body text-center">
-                    <h3 class="text-warning">{{ $stats['late'] }}</h3>
-                    <p class="mb-0 text-warning">Days Late</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-xl-3 col-sm-6">
-            <div class="card bg-light-primary">
-                <div class="card-body text-center">
-                    <h3 class="text-primary">{{ $stats['percentage'] }}%</h3>
-                    <p class="mb-0 text-primary">{{ ($viewType ?? 'monthly') == 'yearly' ? 'Yearly' : 'Monthly' }} Attendance Rate</p>
-                </div>
-            </div>
-        </div>
-    </div>
+	<!-- Filter Card -->
+	<div class="row mb-4">
+		<div class="col-12">
+			<div class="card">
+				<div class="card-body py-3">
+					<form method="GET" action="{{ route('portal.attendance') }}" class="row g-3 align-items-end">
+						<div class="col-md-3 col-6">
+							<label class="form-label">
+								<i data-feather="eye" style="width: 14px; height: 14px;"></i> View Type
+							</label>
+							<select name="view" class="form-select" id="view-type">
+								<option value="monthly" {{ ($viewType ?? 'monthly') == 'monthly' ? 'selected' : '' }}>Monthly View</option>
+								<option value="yearly" {{ ($viewType ?? 'monthly') == 'yearly' ? 'selected' : '' }}>Yearly Summary</option>
+							</select>
+						</div>
+						<div class="col-md-3 col-6" id="month-field" style="{{ ($viewType ?? 'monthly') == 'yearly' ? 'display: none;' : '' }}">
+							<label class="form-label">
+								<i data-feather="calendar" style="width: 14px; height: 14px;"></i> Month
+							</label>
+							<select name="month" class="form-select">
+								@for($m = 1; $m <= 12; $m++)
+									<option value="{{ $m }}" {{ $month == $m ? 'selected' : '' }}>
+										{{ date('F', mktime(0, 0, 0, $m, 1)) }}
+									</option>
+								@endfor
+							</select>
+						</div>
+						<div class="col-md-2 col-6">
+							<label class="form-label">
+								<i data-feather="hash" style="width: 14px; height: 14px;"></i> Year
+							</label>
+							<select name="year" class="form-select">
+								@for($y = date('Y'); $y >= date('Y') - 5; $y--)
+									<option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>{{ $y }}</option>
+								@endfor
+							</select>
+						</div>
+						<div class="col-md-4 col-6">
+							<button type="submit" class="btn btn-primary">
+								<i data-feather="search" style="width: 14px; height: 14px;"></i> View Attendance
+							</button>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Stats Cards -->
+	<div class="row mb-4">
+		<div class="col-xl-3 col-sm-6 mb-3">
+			<div class="card stat-card h-100">
+				<div class="card-body">
+					<div class="d-flex align-items-center">
+						<div class="quick-action-icon bg-light-success me-3">
+							<i data-feather="check-circle" class="text-success" style="width: 28px; height: 28px;"></i>
+						</div>
+						<div>
+							<h3 class="mb-0 text-success">{{ $stats['present'] }}</h3>
+							<small class="text-muted">Days Present</small>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-xl-3 col-sm-6 mb-3">
+			<div class="card stat-card h-100">
+				<div class="card-body">
+					<div class="d-flex align-items-center">
+						<div class="quick-action-icon bg-light-danger me-3">
+							<i data-feather="x-circle" class="text-danger" style="width: 28px; height: 28px;"></i>
+						</div>
+						<div>
+							<h3 class="mb-0 text-danger">{{ $stats['absent'] }}</h3>
+							<small class="text-muted">Days Absent</small>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-xl-3 col-sm-6 mb-3">
+			<div class="card stat-card h-100">
+				<div class="card-body">
+					<div class="d-flex align-items-center">
+						<div class="quick-action-icon bg-light-warning me-3">
+							<i data-feather="clock" class="text-warning" style="width: 28px; height: 28px;"></i>
+						</div>
+						<div>
+							<h3 class="mb-0 text-warning">{{ $stats['late'] }}</h3>
+							<small class="text-muted">Days Late</small>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-xl-3 col-sm-6 mb-3">
+			<div class="card stat-card h-100 {{ $stats['percentage'] >= 75 ? 'border-success' : ($stats['percentage'] >= 50 ? 'border-warning' : 'border-danger') }}" style="border-width: 2px !important;">
+				<div class="card-body">
+					<div class="d-flex align-items-center">
+						<div class="quick-action-icon {{ $stats['percentage'] >= 75 ? 'bg-light-success' : ($stats['percentage'] >= 50 ? 'bg-light-warning' : 'bg-light-danger') }} me-3">
+							<i data-feather="percent" class="{{ $stats['percentage'] >= 75 ? 'text-success' : ($stats['percentage'] >= 50 ? 'text-warning' : 'text-danger') }}" style="width: 28px; height: 28px;"></i>
+						</div>
+						<div>
+							<h3 class="mb-0 {{ $stats['percentage'] >= 75 ? 'text-success' : ($stats['percentage'] >= 50 ? 'text-warning' : 'text-danger') }}">{{ $stats['percentage'] }}%</h3>
+							<small class="text-muted">{{ ($viewType ?? 'monthly') == 'yearly' ? 'Yearly' : 'Monthly' }} Rate</small>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
 
     @if(($viewType ?? 'monthly') == 'yearly')
         <!-- Yearly Month-wise Breakdown -->
@@ -239,35 +285,75 @@
         </div>
     @endif
 
-    <!-- Legend -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    <div class="d-flex flex-wrap gap-3">
-                        <span><span class="badge badge-light-success">Present</span> - Attended full day</span>
-                        <span><span class="badge badge-light-danger">Absent</span> - Did not attend</span>
-                        <span><span class="badge badge-light-warning">Late</span> - Arrived late</span>
-                        <span><span class="badge badge-light-info">Half Day</span> - Attended half day</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+	<!-- Legend -->
+	<div class="row mt-3">
+		<div class="col-12">
+			<div class="card">
+				<div class="card-body py-3">
+					<div class="d-flex flex-wrap gap-4 align-items-center">
+						<strong class="me-2">
+							<i data-feather="info" style="width: 14px; height: 14px;"></i> Legend:
+						</strong>
+						<span class="d-flex align-items-center">
+							<span class="badge badge-light-success me-2">
+								<i data-feather="check" style="width: 12px; height: 12px;"></i> Present
+							</span>
+							Attended full day
+						</span>
+						<span class="d-flex align-items-center">
+							<span class="badge badge-light-danger me-2">
+								<i data-feather="x" style="width: 12px; height: 12px;"></i> Absent
+							</span>
+							Did not attend
+						</span>
+						<span class="d-flex align-items-center">
+							<span class="badge badge-light-warning me-2">
+								<i data-feather="clock" style="width: 12px; height: 12px;"></i> Late
+							</span>
+							Arrived late
+						</span>
+						<span class="d-flex align-items-center">
+							<span class="badge badge-light-info me-2">
+								<i data-feather="sunrise" style="width: 12px; height: 12px;"></i> Half Day
+							</span>
+							Attended half day
+						</span>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
 </div>
+
+@push('styles')
+<style>
+	.quick-action-icon {
+		width: 50px;
+		height: 50px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 10px;
+	}
+	@media print {
+		.help-tip, .btn { display: none !important; }
+		.card { box-shadow: none !important; border: 1px solid #ddd !important; }
+	}
+</style>
+@endpush
 @endsection
 
 @push('scripts')
 <script>
-    jQuery(document).ready(function() {
-        jQuery('#view-type').on('change', function() {
-            var viewType = jQuery(this).val();
-            if (viewType === 'yearly') {
-                jQuery('#month-field').hide();
-            } else {
-                jQuery('#month-field').show();
-            }
-        });
-    });
+	jQuery(document).ready(function() {
+		jQuery('#view-type').on('change', function() {
+			var viewType = jQuery(this).val();
+			if (viewType === 'yearly') {
+				jQuery('#month-field').hide();
+			} else {
+				jQuery('#month-field').show();
+			}
+		});
+	});
 </script>
 @endpush

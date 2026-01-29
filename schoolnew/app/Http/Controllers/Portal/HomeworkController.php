@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Portal;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Portal\Traits\PortalStudentTrait;
 use App\Models\Homework;
 use App\Models\HomeworkSubmission;
 use App\Models\Student;
@@ -12,12 +13,14 @@ use Illuminate\Support\Facades\Storage;
 
 class HomeworkController extends Controller
 {
+    use PortalStudentTrait;
+
     /**
      * Get the authenticated student.
      */
     private function getStudent()
     {
-        return Student::where('user_id', Auth::id())->first();
+        return $this->getCurrentStudent();
     }
 
     /**
@@ -193,6 +196,12 @@ class HomeworkController extends Controller
      */
     public function submit(Request $request, Homework $homework)
     {
+        // Parents cannot submit homework on behalf of students
+        if ($this->isParentUser()) {
+            return redirect()->route('portal.homework.show', $homework)
+                ->with('error', 'Parents cannot submit homework. Only students can submit their own homework.');
+        }
+
         $student = $this->getStudent();
 
         if (!$student) {

@@ -1,57 +1,144 @@
 @php
-    $student = \App\Models\Student::where('user_id', Auth::id())->first();
-    $photoUrl = $student ? $student->photo_url : 'https://ui-avatars.com/api/?name=' . urlencode(Auth::user()->name) . '&background=7366ff&color=fff&size=40';
-    $photoUrl60 = $student ? $student->photo_url : 'https://ui-avatars.com/api/?name=' . urlencode(Auth::user()->name) . '&background=7366ff&color=fff&size=60';
+	$student = \App\Models\Student::where('user_id', Auth::id())->first();
+	$parent = \App\Models\ParentGuardian::where('user_id', Auth::id())
+		->orWhere('father_email', Auth::user()->email)
+		->orWhere('mother_email', Auth::user()->email)
+		->orWhere('guardian_email', Auth::user()->email)
+		->first();
+
+	$isParent = !$student && $parent;
+	$isStudent = (bool) $student;
+
+	if ($isStudent) {
+		$photoUrl = $student->photo_url;
+		$userName = $student->full_name;
+		$userRole = 'Student';
+	} elseif ($isParent) {
+		$userName = $parent->father_name ?? $parent->mother_name ?? $parent->guardian_name ?? Auth::user()->name;
+		$photoUrl = 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=667eea&color=fff&size=40';
+		$userRole = 'Parent';
+	} else {
+		$userName = Auth::user()->name;
+		$photoUrl = 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=7366ff&color=fff&size=40';
+		$userRole = 'User';
+	}
 @endphp
 <div class="page-header">
-    <div class="header-wrapper row m-0">
-        <div class="header-logo-wrapper col-auto p-0">
-            <div class="toggle-sidebar" id="sidebar-toggle-btn">
-                <svg class="stroke-icon sidebar-toggle status_toggle middle" style="color: #2c323f; stroke: #2c323f;">
-                    <use href="{{ asset('assets/svg/icon-sprite.svg#stroke-board') }}"></use>
-                </svg>
-            </div>
-        </div>
-        <div class="left-header col horizontal-wrapper ps-0 d-none d-md-flex align-items-center">
-            <span class="badge bg-light text-primary">Student Portal</span>
-        </div>
-        <div class="nav-right col-xxl-7 col-xl-6 col-md-7 col-8 pull-right right-header p-0 ms-auto">
-            <ul class="nav-menus">
-                <!-- Notifications -->
-                <li class="onhover-dropdown">
-                    <div class="notification-box">
-                        <svg style="stroke: #2c323f;">
-                            <use href="{{ asset('assets/svg/icon-sprite.svg#notification') }}"></use>
-                        </svg>
-                        <span class="badge rounded-pill badge-success">0</span>
-                    </div>
-                    <div class="onhover-show-div notification-dropdown">
-                        <h5 class="mb-0 f-14 dropdown-title">Notifications</h5>
-                        <ul>
-                            <li class="b-l-primary border-4">
-                                <p class="font-primary">No new notifications</p>
-                            </li>
-                        </ul>
-                    </div>
-                </li>
+	<div class="header-wrapper row m-0">
+		<div class="header-logo-wrapper col-auto p-0">
+			<div class="toggle-sidebar" id="sidebar-toggle-btn">
+				<svg class="stroke-icon sidebar-toggle status_toggle middle" style="color: #2c323f; stroke: #2c323f;">
+					<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-board') }}"></use>
+				</svg>
+			</div>
+		</div>
+		<div class="left-header col horizontal-wrapper ps-0 d-none d-md-flex align-items-center">
+			<span class="badge {{ $isStudent ? 'bg-success' : 'bg-primary' }} py-2 px-3">
+				<i data-feather="{{ $isStudent ? 'user' : 'users' }}" style="width: 12px; height: 12px;"></i>
+				{{ $isStudent ? 'Student Portal' : 'Parent Portal' }}
+			</span>
+		</div>
+		<div class="nav-right col-xxl-7 col-xl-6 col-md-7 col-8 pull-right right-header p-0 ms-auto">
+			<ul class="nav-menus">
+				<!-- Quick Actions -->
+				<li class="onhover-dropdown">
+					<div class="notification-box">
+						<svg style="stroke: #2c323f;">
+							<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-board') }}"></use>
+						</svg>
+					</div>
+					<div class="onhover-show-div notification-dropdown" style="width: 280px; padding: 15px;">
+						<h6 class="mb-3 f-14 dropdown-title" style="border-bottom: 1px solid #eee; padding-bottom: 10px;">
+							<i data-feather="zap" style="width: 14px; height: 14px;"></i> Quick Actions
+						</h6>
+						<div class="row g-2">
+							<div class="col-6">
+								<a href="{{ route('portal.attendance') }}" class="d-block p-2 text-center bg-light rounded text-decoration-none">
+									<i data-feather="check-circle" class="text-success d-block mx-auto mb-1" style="width: 20px; height: 20px;"></i>
+									<small class="text-dark">Attendance</small>
+								</a>
+							</div>
+							<div class="col-6">
+								<a href="{{ route('portal.timetable') }}" class="d-block p-2 text-center bg-light rounded text-decoration-none">
+									<i data-feather="clock" class="text-warning d-block mx-auto mb-1" style="width: 20px; height: 20px;"></i>
+									<small class="text-dark">Timetable</small>
+								</a>
+							</div>
+							<div class="col-6">
+								<a href="{{ route('portal.fees.overview') }}" class="d-block p-2 text-center bg-light rounded text-decoration-none">
+									<i data-feather="credit-card" class="text-primary d-block mx-auto mb-1" style="width: 20px; height: 20px;"></i>
+									<small class="text-dark">Fees</small>
+								</a>
+							</div>
+							<div class="col-6">
+								<a href="{{ route('portal.notices') }}" class="d-block p-2 text-center bg-light rounded text-decoration-none">
+									<i data-feather="bell" class="text-info d-block mx-auto mb-1" style="width: 20px; height: 20px;"></i>
+									<small class="text-dark">Notices</small>
+								</a>
+							</div>
+						</div>
+					</div>
+				</li>
 
-                <!-- User Profile -->
-                <li class="profile-nav onhover-dropdown pe-0 py-0 me-0">
-                    <div class="d-flex align-items-center profile-media">
-                        <img class="b-r-10" src="{{ $photoUrl }}" alt="{{ Auth::user()->name }}" width="40" height="40" style="border-radius: 10px; object-fit: cover;" onerror="this.src='https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name) }}&background=7366ff&color=fff&size=40'">
-                        <div class="flex-grow-1 user">
-                            <span style="color: #2c323f !important;">{{ Auth::user()->name }}</span>
-                            <p class="mb-0" style="color: #6c757d !important;">Student<i class="middle fa fa-angle-down" style="color: #2c323f;"></i></p>
-                        </div>
-                    </div>
-                    <ul class="profile-dropdown onhover-show-div">
-                        <li><a href="{{ route('portal.profile') }}"><i data-feather="user"></i><span>My Profile</span></a></li>
-                        <li><a href="{{ route('portal.fees.overview') }}"><i data-feather="credit-card"></i><span>Fee Overview</span></a></li>
-                        <li><a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('portal-logout-form').submit();"><i data-feather="log-out"></i><span>Log out</span></a></li>
-                    </ul>
-                    <form method="POST" action="{{ route('logout') }}" id="portal-logout-form" style="display: none;">@csrf</form>
-                </li>
-            </ul>
-        </div>
-    </div>
+				<!-- Notifications -->
+				<li class="onhover-dropdown">
+					<div class="notification-box">
+						<svg style="stroke: #2c323f;">
+							<use href="{{ asset('assets/svg/icon-sprite.svg#notification') }}"></use>
+						</svg>
+						<span class="badge rounded-pill badge-primary">0</span>
+					</div>
+					<div class="onhover-show-div notification-dropdown">
+						<h6 class="mb-0 f-14 dropdown-title">
+							<i data-feather="bell" style="width: 14px; height: 14px;"></i> Notifications
+						</h6>
+						<ul>
+							<li class="b-l-primary border-4">
+								<p class="font-primary mb-0">No new notifications</p>
+							</li>
+						</ul>
+					</div>
+				</li>
+
+				<!-- User Profile -->
+				<li class="profile-nav onhover-dropdown pe-0 py-0 me-0">
+					<div class="d-flex align-items-center profile-media">
+						<img class="b-r-10" src="{{ $photoUrl }}" alt="{{ $userName }}" width="40" height="40" style="border-radius: 10px; object-fit: cover;" onerror="this.src='https://ui-avatars.com/api/?name={{ urlencode($userName) }}&background=7366ff&color=fff&size=40'">
+						<div class="flex-grow-1 user">
+							<span style="color: #2c323f !important;">{{ Str::limit($userName, 15) }}</span>
+							<p class="mb-0" style="color: #6c757d !important;">{{ $userRole }}<i class="middle fa fa-angle-down ms-1" style="color: #2c323f;"></i></p>
+						</div>
+					</div>
+					<ul class="profile-dropdown onhover-show-div">
+						<li>
+							<a href="{{ route('portal.profile') }}">
+								<i data-feather="user"></i><span>My Profile</span>
+							</a>
+						</li>
+						<li>
+							<a href="{{ route('portal.attendance') }}">
+								<i data-feather="check-circle"></i><span>Attendance</span>
+							</a>
+						</li>
+						<li>
+							<a href="{{ route('portal.fees.overview') }}">
+								<i data-feather="credit-card"></i><span>Fee Overview</span>
+							</a>
+						</li>
+						<li>
+							<a href="{{ route('portal.contact') }}">
+								<i data-feather="message-circle"></i><span>Contact School</span>
+							</a>
+						</li>
+						<li style="border-top: 1px solid #eee; margin-top: 5px; padding-top: 10px;">
+							<a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('portal-logout-form').submit();">
+								<i data-feather="log-out" class="text-danger"></i><span class="text-danger">Log out</span>
+							</a>
+						</li>
+					</ul>
+					<form method="POST" action="{{ route('logout') }}" id="portal-logout-form" style="display: none;">@csrf</form>
+				</li>
+			</ul>
+		</div>
+	</div>
 </div>

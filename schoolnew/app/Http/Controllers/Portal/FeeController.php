@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Portal;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Portal\Traits\PortalStudentTrait;
 use App\Models\Student;
 use App\Models\FeeCollection;
 use App\Models\FeeStructure;
@@ -11,19 +12,21 @@ use Illuminate\Support\Facades\Auth;
 
 class FeeController extends Controller
 {
+    use PortalStudentTrait;
+
     /**
      * Display fee overview.
      */
     public function overview()
     {
-        $user = Auth::user();
-        $student = Student::where('user_id', $user->id)
-            ->with(['schoolClass', 'section'])
-            ->first();
+        $student = $this->getCurrentStudent();
 
         if (!$student) {
-            return redirect()->route('portal.dashboard');
+            return redirect()->route('portal.dashboard')
+                ->with('error', 'No student profile found.');
         }
+
+        $student->load(['schoolClass', 'section']);
 
         // Get fee structure for student's class
         $feeStructures = FeeStructure::where('class_id', $student->class_id)
@@ -77,11 +80,11 @@ class FeeController extends Controller
      */
     public function history()
     {
-        $user = Auth::user();
-        $student = Student::where('user_id', $user->id)->first();
+        $student = $this->getCurrentStudent();
 
         if (!$student) {
-            return redirect()->route('portal.dashboard');
+            return redirect()->route('portal.dashboard')
+                ->with('error', 'No student profile found.');
         }
 
         $payments = FeeCollection::where('student_id', $student->id)
@@ -97,8 +100,7 @@ class FeeController extends Controller
      */
     public function receipt(FeeCollection $feeCollection)
     {
-        $user = Auth::user();
-        $student = Student::where('user_id', $user->id)->first();
+        $student = $this->getCurrentStudent();
 
         // Security check - ensure the receipt belongs to this student
         if (!$student || $feeCollection->student_id !== $student->id) {

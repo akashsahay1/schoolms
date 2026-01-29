@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Portal;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Portal\Traits\PortalStudentTrait;
 use App\Models\Book;
 use App\Models\BookCategory;
 use App\Models\BookIssue;
@@ -13,12 +14,14 @@ use Illuminate\Support\Facades\Auth;
 
 class LibraryController extends Controller
 {
+    use PortalStudentTrait;
+
     /**
      * Get the authenticated student.
      */
     private function getStudent()
     {
-        return Student::where('user_id', Auth::id())->first();
+        return $this->getCurrentStudent();
     }
 
     /**

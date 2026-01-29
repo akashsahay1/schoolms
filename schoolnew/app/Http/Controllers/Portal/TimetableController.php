@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Portal;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Portal\Traits\PortalStudentTrait;
 use App\Models\Student;
 use App\Models\Timetable;
 use App\Models\TimetablePeriod;
@@ -11,18 +12,18 @@ use Illuminate\Support\Facades\Auth;
 
 class TimetableController extends Controller
 {
+    use PortalStudentTrait;
+
     /**
      * Display the timetable.
      */
     public function index()
     {
-        $user = Auth::user();
-        $student = Student::where('user_id', $user->id)
-            ->with(['schoolClass', 'section'])
-            ->first();
+        $student = $this->getCurrentStudent();
 
         if (!$student) {
-            return redirect()->route('portal.dashboard');
+            return redirect()->route('portal.dashboard')
+                ->with('error', 'No student profile found.');
         }
 
         // Get all periods

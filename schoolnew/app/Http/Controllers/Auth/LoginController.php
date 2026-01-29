@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\Student;
 use App\Models\ParentGuardian;
+use App\Models\Staff;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
@@ -46,13 +47,28 @@ class LoginController extends Controller
             return redirect()->intended(route('portal.dashboard'));
         }
 
-        // Check if user is linked to a parent
-        $parent = ParentGuardian::where('user_id', $user->id)->first();
+        // Check if user is linked to a parent (by user_id or email)
+        $parent = ParentGuardian::where('user_id', $user->id)
+            ->orWhere('father_email', $user->email)
+            ->orWhere('mother_email', $user->email)
+            ->orWhere('guardian_email', $user->email)
+            ->first();
         if ($parent) {
             return redirect()->intended(route('portal.dashboard'));
         }
 
-        // Default to admin dashboard for staff/admin users
+        // Check if user is linked to staff (teacher/non-teaching staff)
+        $staff = Staff::where('user_id', $user->id)->first();
+        if ($staff) {
+            // Check user roles - if they have admin-level roles, go to admin dashboard
+            if ($user->hasAnyRole(['Super Admin', 'Admin'])) {
+                return redirect()->intended(route('admin.dashboard'));
+            }
+            // Otherwise go to teacher/staff portal
+            return redirect()->intended(route('teacher.dashboard'));
+        }
+
+        // Default to admin dashboard for admin users
         return redirect()->intended(route('admin.dashboard'));
     }
 

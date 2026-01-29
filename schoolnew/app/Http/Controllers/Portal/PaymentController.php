@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Portal;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Portal\Traits\PortalStudentTrait;
 use App\Models\Student;
 use App\Models\FeeCollection;
 use App\Models\FeeStructure;
@@ -17,6 +18,8 @@ use Razorpay\Api\Errors\SignatureVerificationError;
 
 class PaymentController extends Controller
 {
+    use PortalStudentTrait;
+
     protected $paymentSetting;
 
     public function __construct()
@@ -40,14 +43,13 @@ class PaymentController extends Controller
      */
     public function checkout(Request $request)
     {
-        $user = Auth::user();
-        $student = Student::where('user_id', $user->id)
-            ->with(['schoolClass', 'section'])
-            ->first();
+        $student = $this->getCurrentStudent();
 
         if (!$student) {
             return redirect()->route('portal.dashboard')->with('error', 'Student profile not found.');
         }
+
+        $student->load(['schoolClass', 'section']);
 
         // Get fee structures for student's class
         $feeStructures = FeeStructure::where('class_id', $student->class_id)
@@ -118,7 +120,7 @@ class PaymentController extends Controller
         ]);
 
         $user = Auth::user();
-        $student = Student::where('user_id', $user->id)->first();
+        $student = $this->getCurrentStudent();
 
         if (!$student) {
             return response()->json(['error' => 'Student not found'], 404);
@@ -374,8 +376,7 @@ class PaymentController extends Controller
         ]);
 
         $payment = Payment::find($request->payment_id);
-        $user = Auth::user();
-        $student = Student::where('user_id', $user->id)->first();
+        $student = $this->getCurrentStudent();
 
         if (!$student || $payment->student_id !== $student->id) {
             return redirect()->route('portal.fees.overview')->with('error', 'Unauthorized access.');
@@ -468,8 +469,7 @@ class PaymentController extends Controller
      */
     public function receipt(Payment $payment)
     {
-        $user = Auth::user();
-        $student = Student::where('user_id', $user->id)->first();
+        $student = $this->getCurrentStudent();
 
         if (!$student || $payment->student_id !== $student->id) {
             abort(403, 'Unauthorized access');

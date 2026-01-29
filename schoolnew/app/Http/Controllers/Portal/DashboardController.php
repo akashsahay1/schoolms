@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Portal;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Portal\Traits\PortalStudentTrait;
 use App\Models\Student;
 use App\Models\Attendance;
 use App\Models\FeeCollection;
@@ -16,6 +17,38 @@ use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
+    use PortalStudentTrait;
+
+    /**
+     * Switch the selected child for parent users.
+     */
+    public function switchChild(Request $request)
+    {
+        $request->validate([
+            'child_id' => 'required|integer'
+        ]);
+
+        // Use the trait's getParent method which handles email fallback
+        $parent = $this->getParent();
+
+        if (!$parent) {
+            return response()->json(['success' => false, 'message' => 'Not a parent user']);
+        }
+
+        // Verify the child belongs to this parent
+        $child = Student::where('id', $request->child_id)
+            ->where('parent_id', $parent->id)
+            ->where('status', 'active')
+            ->first();
+
+        if (!$child) {
+            return response()->json(['success' => false, 'message' => 'Invalid child']);
+        }
+
+        session(['selected_child_id' => $child->id]);
+
+        return response()->json(['success' => true]);
+    }
     /**
      * Display the student/parent dashboard.
      */

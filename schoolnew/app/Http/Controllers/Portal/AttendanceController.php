@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Portal;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Portal\Traits\PortalStudentTrait;
 use App\Models\Student;
 use App\Models\Attendance;
 use App\Models\AttendanceSummary;
@@ -11,16 +12,18 @@ use Illuminate\Support\Facades\Auth;
 
 class AttendanceController extends Controller
 {
+    use PortalStudentTrait;
+
     /**
      * Display the student's attendance records.
      */
     public function index(Request $request)
     {
-        $user = Auth::user();
-        $student = Student::where('user_id', $user->id)->first();
+        $student = $this->getCurrentStudent();
 
         if (!$student) {
-            return redirect()->route('portal.dashboard');
+            return redirect()->route('portal.dashboard')
+                ->with('error', 'No student profile found.');
         }
 
         $viewType = $request->get('view', 'monthly');

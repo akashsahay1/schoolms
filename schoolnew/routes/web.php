@@ -45,6 +45,9 @@ use App\Http\Controllers\Admin\LeaveTypeController;
 use App\Http\Controllers\Admin\StaffLeaveController;
 use App\Http\Controllers\Admin\BulkMessagingController;
 use App\Http\Controllers\Admin\MessagingController;
+use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\LibraryMemberController;
+use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\WebsiteController;
 
 /*
@@ -454,7 +457,20 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
         Route::get('/reports/student-wise', [App\Http\Controllers\Admin\LibraryReportController::class, 'studentWise'])->name('reports.student-wise');
         Route::get('/reports/export', [App\Http\Controllers\Admin\LibraryReportController::class, 'export'])->name('reports.export');
 
-        Route::get('/members', function () { return view('admin.coming-soon'); })->name('members');
+        // Library Members
+        Route::get('/members', [LibraryMemberController::class, 'index'])->name('members.index');
+        Route::get('/members/create', [LibraryMemberController::class, 'create'])->name('members.create');
+        Route::post('/members', [LibraryMemberController::class, 'store'])->name('members.store');
+        Route::get('/members/{member}', [LibraryMemberController::class, 'show'])->name('members.show');
+        Route::get('/members/{member}/edit', [LibraryMemberController::class, 'edit'])->name('members.edit');
+        Route::put('/members/{member}', [LibraryMemberController::class, 'update'])->name('members.update');
+        Route::delete('/members/{member}', [LibraryMemberController::class, 'destroy'])->name('members.destroy');
+        Route::post('/members/bulk-delete', [LibraryMemberController::class, 'bulkDelete'])->name('members.bulk-delete');
+        Route::get('/members-trash', [LibraryMemberController::class, 'trash'])->name('members.trash');
+        Route::post('/members/{id}/restore', [LibraryMemberController::class, 'restore'])->name('members.restore');
+        Route::delete('/members/{id}/force-delete', [LibraryMemberController::class, 'forceDelete'])->name('members.force-delete');
+        Route::get('/members/{member}/card', [LibraryMemberController::class, 'card'])->name('members.card');
+        Route::post('/members/{member}/renew', [LibraryMemberController::class, 'renew'])->name('members.renew');
     });
 
     // Transport
@@ -592,10 +608,26 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
 
     // Reports
     Route::prefix('reports')->name('reports.')->group(function () {
-        Route::get('/students', function () { return view('admin.coming-soon'); })->name('students');
-        Route::get('/fees', function () { return view('admin.coming-soon'); })->name('fees');
-        Route::get('/attendance', function () { return view('admin.coming-soon'); })->name('attendance');
-        Route::get('/exams', function () { return view('admin.coming-soon'); })->name('exams');
+        Route::get('/students', [ReportController::class, 'students'])->name('students');
+        Route::get('/students/export', [ReportController::class, 'exportStudents'])->name('students.export');
+        Route::get('/attendance', [ReportController::class, 'attendance'])->name('attendance');
+        Route::get('/attendance/export', [ReportController::class, 'exportAttendance'])->name('attendance.export');
+        Route::get('/exams', [ReportController::class, 'exams'])->name('exams');
+        Route::get('/exams/export', [ReportController::class, 'exportExams'])->name('exams.export');
+        Route::get('/fees', [ReportController::class, 'fees'])->name('fees');
+
+        // Custom Report Builder
+        Route::prefix('builder')->name('builder.')->group(function () {
+            Route::get('/', [App\Http\Controllers\Admin\CustomReportController::class, 'index'])->name('index');
+            Route::get('/create', [App\Http\Controllers\Admin\CustomReportController::class, 'create'])->name('create');
+            Route::post('/preview', [App\Http\Controllers\Admin\CustomReportController::class, 'preview'])->name('preview');
+            Route::post('/export-csv', [App\Http\Controllers\Admin\CustomReportController::class, 'exportCsv'])->name('export-csv');
+            Route::post('/export-pdf', [App\Http\Controllers\Admin\CustomReportController::class, 'exportPdf'])->name('export-pdf');
+            Route::get('/source-config', [App\Http\Controllers\Admin\CustomReportController::class, 'getSourceConfig'])->name('source-config');
+            Route::post('/templates', [App\Http\Controllers\Admin\CustomReportController::class, 'saveTemplate'])->name('save-template');
+            Route::get('/templates/{template}', [App\Http\Controllers\Admin\CustomReportController::class, 'loadTemplate'])->name('load-template');
+            Route::delete('/templates/{template}', [App\Http\Controllers\Admin\CustomReportController::class, 'deleteTemplate'])->name('delete-template');
+        });
     });
 
     // Student Promotions
@@ -624,7 +656,17 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::post('users/bulk-force-delete', [UserController::class, 'bulkForceDelete'])->name('users.bulk-force-delete');
     Route::delete('users-trash/empty', [UserController::class, 'emptyTrash'])->name('users.empty-trash');
 
-    Route::get('/roles', function () { return view('admin.coming-soon'); })->name('roles.index');
+    // Roles Management
+    Route::prefix('roles')->name('roles.')->group(function () {
+        Route::get('/', [RoleController::class, 'index'])->name('index');
+        Route::get('/create', [RoleController::class, 'create'])->name('create');
+        Route::post('/', [RoleController::class, 'store'])->name('store');
+        Route::get('/{role}', [RoleController::class, 'show'])->name('show');
+        Route::get('/{role}/edit', [RoleController::class, 'edit'])->name('edit');
+        Route::put('/{role}', [RoleController::class, 'update'])->name('update');
+        Route::delete('/{role}', [RoleController::class, 'destroy'])->name('destroy');
+        Route::post('/bulk-delete', [RoleController::class, 'bulkDelete'])->name('bulk-delete');
+    });
 
     // Website Settings
     Route::prefix('website')->name('website.')->group(function () {
@@ -679,6 +721,9 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
 Route::prefix('portal')->name('portal.')->middleware('auth')->group(function () {
     // Dashboard
     Route::get('/dashboard', [App\Http\Controllers\Portal\DashboardController::class, 'index'])->name('dashboard');
+
+    // Switch Child (for parents with multiple children)
+    Route::post('/switch-child', [App\Http\Controllers\Portal\DashboardController::class, 'switchChild'])->name('switch-child');
 
     // Profile
     Route::get('/profile', [App\Http\Controllers\Portal\ProfileController::class, 'index'])->name('profile');
@@ -751,5 +796,73 @@ Route::prefix('portal')->name('portal.')->middleware('auth')->group(function () 
         Route::get('/history', [App\Http\Controllers\Portal\LibraryController::class, 'history'])->name('history');
         Route::get('/search', [App\Http\Controllers\Portal\LibraryController::class, 'search'])->name('search');
         Route::get('/book/{book}', [App\Http\Controllers\Portal\LibraryController::class, 'show'])->name('show');
+    });
+});
+
+// Teacher/Staff Portal Routes
+Route::prefix('teacher')->name('teacher.')->middleware('auth')->group(function () {
+    // Dashboard
+    Route::get('/dashboard', [App\Http\Controllers\Teacher\DashboardController::class, 'index'])->name('dashboard');
+
+    // Profile
+    Route::get('/profile', [App\Http\Controllers\Teacher\DashboardController::class, 'profile'])->name('profile');
+
+    // Timetable
+    Route::get('/timetable', [App\Http\Controllers\Teacher\DashboardController::class, 'timetable'])->name('timetable');
+
+    // My Classes
+    Route::get('/my-classes', [App\Http\Controllers\Teacher\DashboardController::class, 'myClasses'])->name('my-classes');
+    Route::get('/class-students/{classId}/{sectionId}', [App\Http\Controllers\Teacher\DashboardController::class, 'classStudents'])->name('class-students');
+
+    // Homework
+    Route::prefix('homework')->name('homework.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Teacher\HomeworkController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\Teacher\HomeworkController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\Teacher\HomeworkController::class, 'store'])->name('store');
+        Route::get('/submissions', [App\Http\Controllers\Teacher\HomeworkController::class, 'submissions'])->name('submissions');
+        Route::post('/submissions/{submission}/grade', [App\Http\Controllers\Teacher\HomeworkController::class, 'grade'])->name('grade');
+        Route::get('/sections/{classId}', [App\Http\Controllers\Teacher\HomeworkController::class, 'getSections'])->name('sections');
+    });
+
+    // Attendance
+    Route::prefix('attendance')->name('attendance.')->group(function () {
+        Route::get('/mark', [App\Http\Controllers\Teacher\AttendanceController::class, 'mark'])->name('mark');
+        Route::post('/mark', [App\Http\Controllers\Teacher\AttendanceController::class, 'store'])->name('store');
+        Route::get('/reports', [App\Http\Controllers\Teacher\AttendanceController::class, 'reports'])->name('reports');
+        Route::get('/sections/{classId}', [App\Http\Controllers\Teacher\AttendanceController::class, 'getSections'])->name('sections');
+    });
+
+    // Exams
+    Route::prefix('exams')->name('exams.')->group(function () {
+        Route::get('/schedule', [App\Http\Controllers\Teacher\ExamController::class, 'schedule'])->name('schedule');
+        Route::get('/marks', [App\Http\Controllers\Teacher\ExamController::class, 'marks'])->name('marks');
+        Route::post('/marks', [App\Http\Controllers\Teacher\ExamController::class, 'storeMarks'])->name('marks.store');
+    });
+
+    // Leave Applications
+    Route::prefix('leaves')->name('leaves.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Teacher\LeaveController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\Teacher\LeaveController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\Teacher\LeaveController::class, 'store'])->name('store');
+        Route::get('/balance', [App\Http\Controllers\Teacher\LeaveController::class, 'balance'])->name('balance');
+        Route::get('/{leave}', [App\Http\Controllers\Teacher\LeaveController::class, 'show'])->name('show');
+        Route::post('/{leave}/cancel', [App\Http\Controllers\Teacher\LeaveController::class, 'cancel'])->name('cancel');
+    });
+
+    // Notices
+    Route::get('/notices', [App\Http\Controllers\Teacher\NoticeController::class, 'index'])->name('notices');
+    Route::get('/notices/{notice}', [App\Http\Controllers\Teacher\NoticeController::class, 'show'])->name('notices.show');
+
+    // Events
+    Route::get('/events', [App\Http\Controllers\Teacher\EventController::class, 'index'])->name('events');
+    Route::get('/events/{event}', [App\Http\Controllers\Teacher\EventController::class, 'show'])->name('events.show');
+
+    // Messages
+    Route::prefix('messages')->name('messages.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Teacher\MessageController::class, 'index'])->name('index');
+        Route::get('/compose', [App\Http\Controllers\Teacher\MessageController::class, 'compose'])->name('compose');
+        Route::post('/', [App\Http\Controllers\Teacher\MessageController::class, 'store'])->name('store');
+        Route::get('/{message}', [App\Http\Controllers\Teacher\MessageController::class, 'show'])->name('show');
+        Route::post('/{message}/reply', [App\Http\Controllers\Teacher\MessageController::class, 'reply'])->name('reply');
     });
 });
