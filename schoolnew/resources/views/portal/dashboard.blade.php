@@ -28,27 +28,27 @@
 	<!-- Welcome Card -->
 	<div class="row mb-4">
 		<div class="col-12">
-			<div class="card welcome-card {{ $isParentUser ? 'parent-theme' : 'student-theme' }} text-white">
+			<div class="card welcome-card {{ $isParentUser ? 'parent-theme' : 'student-theme' }}">
 				<div class="card-body py-4">
 					<div class="row align-items-center">
 						<div class="col-md-8">
 							@if($isParentUser)
-								<p class="mb-1 opacity-75"><i class="fa fa-user-friends me-2"></i>Parent Portal</p>
+								<p class="text-white mb-1" style="opacity: 0.85;"><i class="fa fa-user-friends me-2"></i>Parent Portal</p>
 								<h3 class="text-white mb-2">Welcome, {{ $user->name }}!</h3>
-								<p class="mb-0 opacity-75">Viewing: <strong>{{ $student->full_name }}</strong></p>
-								<p class="mb-0 opacity-75">
+								<p class="text-white mb-0" style="opacity: 0.85;">Viewing: <strong>{{ $student->full_name }}</strong></p>
+								<p class="text-white mb-0" style="opacity: 0.85;">
 									<i class="fa fa-graduation-cap me-1"></i>
 									{{ $student->schoolClass->name ?? 'N/A' }} - Section {{ $student->section->name ?? 'N/A' }}
 								</p>
 							@else
-								<p class="mb-1 opacity-75"><i class="fa fa-user-graduate me-2"></i>Student Portal</p>
+								<p class="text-white mb-1" style="opacity: 0.85;"><i class="fa fa-user-graduate me-2"></i>Student Portal</p>
 								<h3 class="text-white mb-2">Welcome back, {{ $student->first_name }}!</h3>
-								<p class="mb-0 opacity-75">
+								<p class="text-white mb-0" style="opacity: 0.85;">
 									<i class="fa fa-graduation-cap me-1"></i>
 									Class {{ $student->schoolClass->name ?? 'N/A' }} - Section {{ $student->section->name ?? 'N/A' }}
 								</p>
 							@endif
-							<p class="mb-0 mt-2 opacity-75">
+							<p class="text-white mb-0 mt-2" style="opacity: 0.85;">
 								<i class="fa fa-calendar me-1"></i> {{ now()->format('l, F j, Y') }}
 							</p>
 						</div>
@@ -56,7 +56,7 @@
 							@if($student->photo)
 								<img src="{{ asset('storage/' . $student->photo) }}" alt="{{ $student->full_name }}" class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover; border: 4px solid rgba(255,255,255,0.3);">
 							@else
-								<div class="rounded-circle bg-white bg-opacity-25 d-inline-flex align-items-center justify-content-center" style="width: 100px; height: 100px; font-size: 36px;">
+								<div class="rounded-circle bg-white bg-opacity-25 d-inline-flex align-items-center justify-content-center text-white" style="width: 100px; height: 100px; font-size: 36px;">
 									{{ strtoupper(substr($student->first_name, 0, 1)) }}
 								</div>
 							@endif

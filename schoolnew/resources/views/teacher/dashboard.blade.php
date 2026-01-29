@@ -7,12 +7,12 @@
 <div class="row">
 	<!-- Welcome Card -->
 	<div class="col-12 mb-4">
-		<div class="card welcome-card text-white">
+		<div class="card welcome-card">
 			<div class="card-body">
 				<div class="row align-items-center">
 					<div class="col-md-8">
 						<h4 class="text-white mb-2">Welcome back, {{ $user->name }}!</h4>
-						<p class="mb-0 opacity-75">
+						<p class="text-white mb-0" style="opacity: 0.85;">
 							@if($staff->designation)
 								{{ $staff->designation->name }}
 								@if($staff->department)
@@ -20,7 +20,7 @@
 								@endif
 							@endif
 						</p>
-						<p class="mb-0 mt-2 opacity-75">
+						<p class="text-white mb-0 mt-2" style="opacity: 0.85;">
 							<i class="fa fa-calendar me-1"></i> {{ now()->format('l, F j, Y') }}
 						</p>
 					</div>

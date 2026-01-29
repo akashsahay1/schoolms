@@ -20,7 +20,7 @@
 								<i data-feather="sun" style="width: 24px; height: 24px;"></i>
 								Welcome back, {{ $parent->father_name ?? $parent->mother_name ?? $parent->guardian_name ?? 'Parent' }}!
 							</h4>
-							<p class="text-white mb-0 opacity-75">
+							<p class="text-white mb-0" style="opacity: 0.85;">
 								<i data-feather="calendar" style="width: 16px; height: 16px;"></i>
 								{{ now()->format('l, F d, Y') }} | Academic Year: {{ $currentAcademicYear->name ?? 'Current' }}
 							</p>
