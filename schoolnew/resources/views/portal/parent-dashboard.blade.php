@@ -65,7 +65,7 @@
 			</a>
 		</div>
 		<div class="col-6 col-md-4 col-lg-2 mb-3">
-			<a href="{{ route('portal.fees') }}" class="card quick-action-card h-100 text-center text-decoration-none">
+			<a href="{{ route('portal.fees.overview') }}" class="card quick-action-card h-100 text-center text-decoration-none">
 				<div class="card-body py-3">
 					<div class="quick-action-icon bg-light-primary mx-auto mb-2" style="width: 50px; height: 50px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
 						<i data-feather="credit-card" class="text-primary" style="width: 24px; height: 24px;"></i>
