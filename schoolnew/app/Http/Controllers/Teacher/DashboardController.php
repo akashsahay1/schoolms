@@ -15,6 +15,8 @@ use App\Models\SchoolClass;
 use App\Models\Subject;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules;
 
 class DashboardController extends Controller
 {
@@ -55,7 +57,7 @@ class DashboardController extends Controller
             });
 
         // Pending homework to review
-        $pendingHomework = Homework::where('teacher_id', $staff->id)
+        $pendingHomework = Homework::where('teacher_id', $user->id)
             ->where('submission_date', '>=', now()->subDays(7))
             ->withCount(['submissions' => function ($q) {
                 $q->where('status', 'submitted');
@@ -76,9 +78,9 @@ class DashboardController extends Controller
         $notices = Notice::published()
             ->active()
             ->where(function ($q) {
-                $q->where('audience', 'all')
-                    ->orWhere('audience', 'staff')
-                    ->orWhere('audience', 'teachers');
+                $q->whereJsonContains('target_audience', 'all')
+                    ->orWhereJsonContains('target_audience', 'staff')
+                    ->orWhereJsonContains('target_audience', 'teachers');
             })
             ->latest('publish_date')
             ->take(5)
@@ -87,9 +89,10 @@ class DashboardController extends Controller
         // Upcoming events
         $upcomingEvents = Event::upcoming()
             ->where(function ($q) {
-                $q->where('audience', 'all')
-                    ->orWhere('audience', 'staff')
-                    ->orWhere('audience', 'teachers');
+                $q->whereNull('target_audience')
+                    ->orWhereJsonContains('target_audience', 'all')
+                    ->orWhereJsonContains('target_audience', 'staff')
+                    ->orWhereJsonContains('target_audience', 'teachers');
             })
             ->orderBy('start_date')
             ->take(3)
@@ -228,5 +231,24 @@ class DashboardController extends Controller
         $staff->load(['department', 'designation']);
 
         return view('teacher.profile', compact('user', 'staff'));
+    }
+
+    /**
+     * Update the user's password.
+     */
+    public function updatePassword(Request $request)
+    {
+        $validated = $request->validate([
+            'current_password' => 'required|current_password',
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+        ]);
+
+        Auth::user()->update([
+            'password' => Hash::make($validated['password']),
+            'plain_password' => $validated['password'],
+        ]);
+
+        return redirect()->route('teacher.profile')
+            ->with('success', 'Password updated successfully!');
     }
 }

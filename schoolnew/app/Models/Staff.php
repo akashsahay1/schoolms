@@ -100,6 +100,11 @@ class Staff extends Model
         return $this->morphMany(LeaveApplication::class, 'applicant');
     }
 
+    public function libraryMember()
+    {
+        return $this->morphOne(LibraryMember::class, 'memberable');
+    }
+
     public function scopeActive($query)
     {
         return $query->where('status', 'active');

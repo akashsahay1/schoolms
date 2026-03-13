@@ -11,8 +11,10 @@
 <div class="row">
 	<div class="col-12">
 		<div class="card">
-			<div class="card-header pb-0">
-				<h5 class="mb-0">School Notices</h5>
+			<div class="card-header pb-0 border-0">
+				<h5 class="mb-0">
+					<i data-feather="bell" style="width: 18px; height: 18px;" class="me-2"></i>School Notices
+				</h5>
 			</div>
 			<div class="card-body">
 				@if($notices->count() > 0)

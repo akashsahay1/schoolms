@@ -23,6 +23,10 @@
 	line-height: 1.5;
 	border-radius: 5px;
 	background-color: transparent;
+	max-width: 160px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 .card-header-right-icon .dropdown-toggle::after {
 	display: none;
@@ -36,11 +40,430 @@
 	font-size: 10px;
 	vertical-align: middle;
 }
+/* Student class filter dropdown */
+.student-header .dropdown-menu {
+	max-height: 300px;
+	overflow-y: auto;
+}
+/* New Enrolled Students - Admission Date header no wrap */
+.new-enroll-student th {
+	white-space: nowrap;
+}
 </style>
 @endpush
 
 @section('content')
 <div class="container-fluid dashboard-7">
+    {{-- Welcome Banner for non-admin roles --}}
+    @if(!in_array($userRole, ['Super Admin', 'Admin']))
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="card bg-primary">
+                <div class="card-body py-3">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <h5 class="text-white mb-1">Welcome, {{ Auth::user()->name }}!</h5>
+                            <p class="text-white mb-0" style="opacity: 0.8;">You are logged in as <strong>{{ $userRole }}</strong></p>
+                        </div>
+                        <div>
+                            <span class="badge fs-6" style="background: rgba(255,255,255,0.25); color: #fff;">{{ $userRole }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    {{-- Librarian Dashboard --}}
+    @if($userRole === 'Librarian')
+    <div class="row">
+        <div class="col-sm-6 col-xl-3">
+            <div class="card widget-hover overflow-hidden">
+                <div class="card-header card-no-border pb-2">
+                    <h5>Total Books</h5>
+                </div>
+                <div class="card-body pt-0 count-student">
+                    <div class="school-wrapper">
+                        <div class="school-header">
+                            <h4 class="txt-primary">{{ $stats['total_books'] ?? 0 }}</h4>
+                        </div>
+                        <div class="school-body">
+                            <svg class="stroke-icon" style="width: 50px; height: 50px;">
+                                <use href="{{ asset('assets/svg/icon-sprite.svg#stroke-bookmark') }}"></use>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="card widget-hover overflow-hidden">
+                <div class="card-header card-no-border pb-2">
+                    <h5>Issued Books</h5>
+                </div>
+                <div class="card-body pt-0 count-student">
+                    <div class="school-wrapper">
+                        <div class="school-header">
+                            <h4 class="txt-warning">{{ $stats['issued_books'] ?? 0 }}</h4>
+                        </div>
+                        <div class="school-body">
+                            <svg class="stroke-icon" style="width: 50px; height: 50px;">
+                                <use href="{{ asset('assets/svg/icon-sprite.svg#stroke-file') }}"></use>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="card widget-hover overflow-hidden">
+                <div class="card-header card-no-border pb-2">
+                    <h5>Available Books</h5>
+                </div>
+                <div class="card-body pt-0 count-student">
+                    <div class="school-wrapper">
+                        <div class="school-header">
+                            <h4 class="txt-success">{{ $stats['available_books'] ?? 0 }}</h4>
+                        </div>
+                        <div class="school-body">
+                            <svg class="stroke-icon" style="width: 50px; height: 50px;">
+                                <use href="{{ asset('assets/svg/icon-sprite.svg#stroke-learning') }}"></use>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="card widget-hover overflow-hidden">
+                <div class="card-header card-no-border pb-2">
+                    <h5>Overdue Books</h5>
+                </div>
+                <div class="card-body pt-0 count-student">
+                    <div class="school-wrapper">
+                        <div class="school-header">
+                            <h4 class="txt-danger">{{ $stats['overdue_books'] ?? 0 }}</h4>
+                        </div>
+                        <div class="school-body">
+                            <svg class="stroke-icon" style="width: 50px; height: 50px;">
+                                <use href="{{ asset('assets/svg/icon-sprite.svg#stroke-calendar') }}"></use>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex gap-3 flex-wrap">
+                        <a href="{{ route('admin.library.books.index') }}" class="btn btn-primary"><i data-feather="book-open" class="me-2"></i>Manage Books</a>
+                        <a href="{{ route('admin.library.issue.index') }}" class="btn btn-warning"><i data-feather="refresh-cw" class="me-2"></i>Issue / Return</a>
+                        <a href="{{ route('admin.library.categories.index') }}" class="btn btn-info"><i data-feather="layers" class="me-2"></i>Categories</a>
+                        <a href="{{ route('admin.library.reports.index') }}" class="btn btn-success"><i data-feather="bar-chart-2" class="me-2"></i>Reports</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Receptionist Dashboard --}}
+    @elseif($userRole === 'Receptionist')
+    <div class="row">
+        <div class="col-sm-6 col-xl-4">
+            <div class="card widget-hover overflow-hidden">
+                <div class="card-header card-no-border pb-2">
+                    <h5>Total Students</h5>
+                </div>
+                <div class="card-body pt-0 count-student">
+                    <div class="school-wrapper">
+                        <div class="school-header">
+                            <h4 class="txt-primary">{{ $stats['total_students'] ?? 0 }}</h4>
+                        </div>
+                        <div class="school-body">
+                            <img src="{{ asset('assets/images/dashboard-7/icon1.svg') }}" alt="total students">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-4">
+            <div class="card widget-hover overflow-hidden">
+                <div class="card-header card-no-border pb-2">
+                    <h5>Total Notices</h5>
+                </div>
+                <div class="card-body pt-0 count-student">
+                    <div class="school-wrapper">
+                        <div class="school-header">
+                            <h4 class="txt-warning">{{ $communicationStats['total_notices'] ?? 0 }}</h4>
+                        </div>
+                        <div class="school-body">
+                            <svg class="stroke-icon" style="width: 50px; height: 50px;">
+                                <use href="{{ asset('assets/svg/icon-sprite.svg#stroke-form') }}"></use>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-4">
+            <div class="card widget-hover overflow-hidden">
+                <div class="card-header card-no-border pb-2">
+                    <h5>Total Events</h5>
+                </div>
+                <div class="card-body pt-0 count-student">
+                    <div class="school-wrapper">
+                        <div class="school-header">
+                            <h4 class="txt-success">{{ $communicationStats['total_events'] ?? 0 }}</h4>
+                        </div>
+                        <div class="school-body">
+                            <svg class="stroke-icon" style="width: 50px; height: 50px;">
+                                <use href="{{ asset('assets/svg/icon-sprite.svg#stroke-calendar') }}"></use>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex gap-3 flex-wrap">
+                        <a href="{{ route('admin.students.index') }}" class="btn btn-primary"><i data-feather="users" class="me-2"></i>View Students</a>
+                        <a href="{{ route('admin.notices.index') }}" class="btn btn-warning"><i data-feather="bell" class="me-2"></i>Notices</a>
+                        <a href="{{ route('admin.events.index') }}" class="btn btn-info"><i data-feather="calendar" class="me-2"></i>Events</a>
+                        <a href="{{ route('admin.messaging.bulk.index') }}" class="btn btn-success"><i data-feather="mail" class="me-2"></i>Send Messages</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{-- Notice Board for Receptionist --}}
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header card-no-border">
+                    <div class="header-top">
+                        <h5>Notice Board</h5>
+                        <a href="{{ route('admin.notices.index') }}" class="f-light text-decoration-underline">View All</a>
+                    </div>
+                </div>
+                <div class="card-body pt-0 notice-board">
+                    <ul>
+                        @forelse($notices ?? [] as $notice)
+                        <li class="d-flex {{ $loop->last ? 'pb-0' : '' }}">
+                            <div class="activity-dot-{{ ['primary', 'secondary', 'success', 'warning'][$loop->index % 4] }}"></div>
+                            <div class="ms-3">
+                                <p class="d-flex mb-2">
+                                    <span class="date-content light-background">{{ $notice->publish_date ? $notice->publish_date->format('d M, Y') : date('d M, Y') }}</span>
+                                </p>
+                                <h6>{{ $notice->title ?? 'Notice Title' }}</h6>
+                                <p class="f-light">{{ $notice->creator->name ?? 'Admin' }}</p>
+                            </div>
+                        </li>
+                        @empty
+                        <li class="d-flex">
+                            <div class="activity-dot-primary"></div>
+                            <div class="ms-3"><p class="text-muted">No notices available</p></div>
+                        </li>
+                        @endforelse
+                    </ul>
+                </div>
+            </div>
+        </div>
+        {{-- Upcoming Events for Receptionist --}}
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header card-no-border">
+                    <div class="header-top">
+                        <h5>Upcoming Events</h5>
+                        <a href="{{ route('admin.events.index') }}" class="f-light text-decoration-underline">View All</a>
+                    </div>
+                </div>
+                <div class="card-body pt-0">
+                    <ul class="list-group list-group-flush">
+                        @forelse($upcomingEvents ?? [] as $event)
+                        <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">{{ $event->title }}</h6>
+                                <small class="text-muted">{{ $event->start_date->format('M d, Y') }}</small>
+                            </div>
+                            <span class="badge bg-primary">{{ $event->start_date->diffForHumans() }}</span>
+                        </li>
+                        @empty
+                        <li class="list-group-item px-0 text-center text-muted">No upcoming events</li>
+                        @endforelse
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Accountant Dashboard --}}
+    @elseif($userRole === 'Accountant')
+    <div class="row">
+        <div class="col-sm-6 col-xl-3">
+            <div class="card widget-hover overflow-hidden">
+                <div class="card-header card-no-border pb-2">
+                    <h5>Total Collection</h5>
+                </div>
+                <div class="card-body pt-0 count-student">
+                    <div class="school-wrapper">
+                        <div class="school-header">
+                            <h4 class="txt-primary">₹{{ number_format($stats['total_income'] ?? 0) }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="card widget-hover overflow-hidden">
+                <div class="card-header card-no-border pb-2">
+                    <h5>Today's Collection</h5>
+                </div>
+                <div class="card-body pt-0 count-student">
+                    <div class="school-wrapper">
+                        <div class="school-header">
+                            <h4 class="txt-success">₹{{ number_format($stats['today_collection'] ?? 0) }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="card widget-hover overflow-hidden">
+                <div class="card-header card-no-border pb-2">
+                    <h5>This Month</h5>
+                </div>
+                <div class="card-body pt-0 count-student">
+                    <div class="school-wrapper">
+                        <div class="school-header">
+                            <h4 class="txt-warning">₹{{ number_format($stats['month_collection'] ?? 0) }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="card widget-hover overflow-hidden">
+                <div class="card-header card-no-border pb-2">
+                    <h5>Total Students</h5>
+                </div>
+                <div class="card-body pt-0 count-student">
+                    <div class="school-wrapper">
+                        <div class="school-header">
+                            <h4 class="txt-info">{{ $stats['total_students'] ?? 0 }}</h4>
+                        </div>
+                        <div class="school-body">
+                            <img src="{{ asset('assets/images/dashboard-7/icon1.svg') }}" alt="total students">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex gap-3 flex-wrap">
+                        <a href="{{ route('admin.fees.collection') }}" class="btn btn-primary"><span style="font-size: 16px; font-weight: bold;" class="me-2">₹</span>Collect Fees</a>
+                        <a href="{{ route('admin.fees.outstanding') }}" class="btn btn-warning"><i data-feather="alert-circle" class="me-2"></i>Outstanding Fees</a>
+                        <a href="{{ route('admin.fees.reports.index') }}" class="btn btn-success"><i data-feather="bar-chart-2" class="me-2"></i>Fee Reports</a>
+                        <a href="{{ route('admin.fees.reconciliation.index') }}" class="btn btn-info"><i data-feather="check-square" class="me-2"></i>Reconciliation</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{-- Unpaid Fees Table for Accountant --}}
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header card-no-border">
+                    <div class="header-top">
+                        <h5>Unpaid Fees</h5>
+                        <a href="{{ route('admin.fees.outstanding') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                    </div>
+                </div>
+                <div class="card-body px-0 pt-0">
+                    <div class="recent-table table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Class</th>
+                                    <th>Fees</th>
+                                    <th>Fine</th>
+                                    <th>Total Due</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($unpaidFees ?? [] as $fee)
+                                <tr>
+                                    <td>
+                                        <div class="common-align justify-content-start">
+                                            <img class="rounded-circle me-2" src="{{ $fee->student->photo_url ?? asset('assets/images/dashboard/profile.png') }}" alt="user" style="width: 40px; height: 40px; object-fit: cover;">
+                                            <div class="img-content-box">
+                                                <span class="f-w-500">{{ $fee->student->full_name ?? 'Student Name' }}</span>
+                                                <small class="text-muted d-block">{{ $fee->student->schoolClass->name ?? '' }} - {{ $fee->student->section->name ?? '' }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>₹{{ number_format($fee->total_fees ?? 0, 2) }}</td>
+                                    <td class="{{ ($fee->fine_amount ?? 0) > 0 ? 'text-warning fw-bold' : '' }}">₹{{ number_format($fee->fine_amount ?? 0, 2) }}</td>
+                                    <td class="text-danger fw-bold">₹{{ number_format($fee->pending_amount ?? 0, 2) }}</td>
+                                    <td>
+                                        <a href="{{ route('admin.fees.collect', $fee->student->id) }}" class="btn btn-sm btn-primary">Collect</a>
+                                    </td>
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="6" class="text-center py-4"><p class="text-muted">No unpaid fees</p></td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{-- Notices for Accountant --}}
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header card-no-border">
+                    <h5>Recent Notices</h5>
+                </div>
+                <div class="card-body pt-0 notice-board">
+                    <ul>
+                        @forelse($notices ?? [] as $notice)
+                        <li class="d-flex {{ $loop->last ? 'pb-0' : '' }}">
+                            <div class="activity-dot-{{ ['primary', 'secondary', 'success', 'warning'][$loop->index % 4] }}"></div>
+                            <div class="ms-3">
+                                <p class="d-flex mb-2"><span class="date-content light-background">{{ $notice->publish_date ? $notice->publish_date->format('d M, Y') : date('d M, Y') }}</span></p>
+                                <h6>{{ $notice->title ?? 'Notice Title' }}</h6>
+                                <p class="f-light">{{ $notice->creator->name ?? 'Admin' }}</p>
+                            </div>
+                        </li>
+                        @empty
+                        <li class="d-flex">
+                            <div class="activity-dot-primary"></div>
+                            <div class="ms-3"><p class="text-muted">No notices available</p></div>
+                        </li>
+                        @endforelse
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @else
+    {{-- Super Admin / Admin Full Dashboard --}}
     <div class="row">
         <div class="col-xxl-9 box-col-12">
             <div class="row">
@@ -595,7 +1018,6 @@
                         <table class="table" id="unpaid-fees">
                             <thead>
                                 <tr>
-                                    <th></th>
                                     <th>Name</th>
                                     <th>Class</th>
                                     <th>Fees</th>
@@ -607,11 +1029,6 @@
                             <tbody>
                                 @forelse($unpaidFees ?? [] as $fee)
                                 <tr>
-                                    <td>
-                                        @if($fee->is_overdue ?? false)
-                                            <span class="badge badge-light-danger" title="Overdue">!</span>
-                                        @endif
-                                    </td>
                                     <td>
                                         <div class="common-align justify-content-start">
                                             <img class="rounded-circle me-2" src="{{ $fee->student->photo_url ?? asset('assets/images/dashboard/profile.png') }}" alt="user" style="width: 40px; height: 40px; object-fit: cover;">
@@ -634,7 +1051,7 @@
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="7" class="text-center py-4">
+                                    <td colspan="6" class="text-center py-4">
                                         <p class="text-muted">No unpaid fees</p>
                                     </td>
                                 </tr>
@@ -863,10 +1280,12 @@
             </div>
         </div>
     </div>
+    @endif
 </div>
 @endsection
 
 @push('scripts')
+@if(in_array($userRole, ['Super Admin', 'Admin']))
 <script src="{{ asset('assets/js/chart/apex-chart/apex-chart.js') }}"></script>
 <script src="{{ asset('assets/js/chart/apex-chart/stock-prices.js') }}"></script>
 <script src="{{ asset('assets/js/counter/counter-custom.js') }}"></script>
@@ -906,8 +1325,8 @@
 			var classId = jQuery(this).data('class-id') || '';
 			var className = jQuery(this).text();
 
-			// Update button text
-			jQuery('#classDropdown').text(className);
+			// Update button text with icon
+			jQuery('#classDropdown').html(className + ' <i class="fa fa-angle-down ms-1"></i>');
 
 			// Mark active
 			jQuery('.student-filter-class').removeClass('active');
@@ -948,4 +1367,5 @@
 	});
 </script>
 <script src="{{ asset('assets/js/dashboard/dashboard_7.js') }}"></script>
+@endif
 @endpush

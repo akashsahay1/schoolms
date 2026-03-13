@@ -31,7 +31,7 @@
 		<!-- Contact Form -->
 		<div class="col-xl-6 mb-4">
 			<div class="card h-100">
-				<div class="card-header pb-0 bg-primary">
+				<div class="card-header bg-primary" style="padding: 15px 20px;">
 					<h5 class="text-white mb-0">
 						<i data-feather="send" style="width: 18px; height: 18px;"></i> Send a Message
 					</h5>

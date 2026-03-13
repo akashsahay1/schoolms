@@ -42,7 +42,7 @@
 							@endif
 						</a>
 						<a href="{{ route('admin.notices.create') }}" class="btn btn-primary">
-							<i class="fa fa-plus me-1"></i> Add Notice
+							<i class="fa fa-plus me-1"></i> Add New
 						</a>
 					</div>
 				</div>
@@ -244,7 +244,7 @@ jQuery(document).ready(function() {
 					type: 'POST',
 					data: {
 						_token: '{{ csrf_token() }}',
-						notice_ids: selectedIds
+						ids: selectedIds
 					},
 					beforeSend: function() {
 						Swal.fire({

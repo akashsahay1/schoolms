@@ -12,8 +12,10 @@
 <div class="row">
 	<div class="col-lg-8">
 		<div class="card">
-			<div class="card-header pb-0">
-				<h5 class="mb-0">Assign New Homework</h5>
+			<div class="card-header pb-0 border-0">
+				<h5 class="mb-0">
+					<i data-feather="file-plus" style="width: 18px; height: 18px;" class="me-2"></i>Assign New Homework
+				</h5>
 			</div>
 			<div class="card-body">
 				<form action="{{ route('teacher.homework.store') }}" method="POST" enctype="multipart/form-data">
@@ -107,8 +109,10 @@
 
 	<div class="col-lg-4">
 		<div class="card">
-			<div class="card-header pb-0">
-				<h6 class="mb-0">Tips</h6>
+			<div class="card-header pb-0 border-0">
+				<h6 class="mb-0">
+					<i data-feather="help-circle" style="width: 16px; height: 16px;" class="me-2"></i>Tips
+				</h6>
 			</div>
 			<div class="card-body">
 				<ul class="list-unstyled mb-0">

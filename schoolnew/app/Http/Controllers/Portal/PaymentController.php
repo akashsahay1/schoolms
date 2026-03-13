@@ -8,7 +8,6 @@ use App\Models\Student;
 use App\Models\FeeCollection;
 use App\Models\FeeStructure;
 use App\Models\Payment;
-use App\Models\PaymentSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -20,22 +19,27 @@ class PaymentController extends Controller
 {
     use PortalStudentTrait;
 
-    protected $paymentSetting;
-
-    public function __construct()
-    {
-        $this->paymentSetting = PaymentSetting::getActive();
-    }
-
     /**
-     * Get Razorpay API instance.
+     * Get Razorpay API instance using .env config.
      */
     protected function getRazorpayApi()
     {
-        if (!$this->paymentSetting || $this->paymentSetting->gateway !== 'razorpay') {
+        $keyId = config('razorpay.key_id');
+        $keySecret = config('razorpay.key_secret');
+
+        if (empty($keyId) || empty($keySecret)) {
             return null;
         }
-        return new Api($this->paymentSetting->key_id, $this->paymentSetting->key_secret);
+
+        return new Api($keyId, $keySecret);
+    }
+
+    /**
+     * Check if payment gateway is configured.
+     */
+    protected function isGatewayConfigured(): bool
+    {
+        return !empty(config('razorpay.key_id')) && !empty(config('razorpay.key_secret'));
     }
 
     /**
@@ -102,8 +106,8 @@ class PaymentController extends Controller
             return redirect()->route('portal.fees.overview')->with('success', 'All fees are already paid!');
         }
 
-        // Check if payment gateway is active from database settings
-        $razorpayConfigured = $this->paymentSetting && $this->paymentSetting->is_active;
+        // Check if payment gateway is configured via .env
+        $razorpayConfigured = $this->isGatewayConfigured();
 
         return view('portal.fees.checkout', compact('student', 'pendingFees', 'totalDue', 'razorpayConfigured'));
     }
@@ -127,14 +131,11 @@ class PaymentController extends Controller
         }
 
         $amount = $request->amount;
-        $currency = $this->paymentSetting->currency ?? 'INR';
+        $currency = 'INR';
         $amountInSmallestUnit = $amount * 100; // Convert to smallest currency unit (paise for INR)
 
-        // Check if demo mode is enabled or credentials are missing
-        $isDemoMode = !$this->paymentSetting
-            || $this->paymentSetting->is_demo_mode
-            || empty($this->paymentSetting->key_id)
-            || empty($this->paymentSetting->key_secret);
+        // Check if credentials are configured in .env
+        $isDemoMode = !$this->isGatewayConfigured();
 
         if ($isDemoMode) {
             // Demo mode - create fake order for simulation
@@ -166,21 +167,8 @@ class PaymentController extends Controller
             ]);
         }
 
-        // Handle based on gateway type
-        $gateway = $this->paymentSetting->gateway;
-
         try {
-            switch ($gateway) {
-                case 'razorpay':
-                    return $this->createRazorpayOrder($student, $user, $request, $amount, $amountInSmallestUnit, $currency);
-                case 'stripe':
-                    return $this->createStripeOrder($student, $user, $request, $amount, $amountInSmallestUnit, $currency);
-                default:
-                    // For other gateways, use demo mode
-                    return response()->json([
-                        'error' => 'Gateway "' . $this->paymentSetting->gateway_name . '" is not yet fully implemented. Please use demo mode.'
-                    ], 400);
-            }
+            return $this->createRazorpayOrder($student, $user, $request, $amount, $amountInSmallestUnit, $currency);
         } catch (\Exception $e) {
             Log::error('Payment order creation failed: ' . $e->getMessage());
             return response()->json(['error' => 'Failed to create order. Please try again.'], 500);
@@ -220,7 +208,7 @@ class PaymentController extends Controller
             'order_id' => $order->id,
             'amount' => $amountInSmallestUnit,
             'currency' => $currency,
-            'key' => $this->paymentSetting->key_id,
+            'key' => config('razorpay.key_id'),
             'name' => config('app.name'),
             'description' => 'Fee Payment',
             'prefill' => [
@@ -229,18 +217,6 @@ class PaymentController extends Controller
                 'contact' => $student->phone ?? '',
             ],
         ]);
-    }
-
-    /**
-     * Create Stripe payment intent (placeholder for future implementation).
-     */
-    protected function createStripeOrder($student, $user, $request, $amount, $amountInSmallestUnit, $currency)
-    {
-        // Stripe implementation would go here
-        // For now, return error
-        return response()->json([
-            'error' => 'Stripe integration coming soon. Please use demo mode for testing.'
-        ], 400);
     }
 
     /**

@@ -1,3 +1,17 @@
+@php
+	$headerUser = Auth::user();
+	$isStudentUser = \App\Models\Student::where('user_id', $headerUser->id)->exists();
+
+	// Check if parent by user_id OR by email match
+	$isParentHeader = false;
+	if (!$isStudentUser) {
+		$isParentHeader = \App\Models\ParentGuardian::where('user_id', $headerUser->id)->exists()
+			|| \App\Models\ParentGuardian::where('father_email', $headerUser->email)->exists()
+			|| \App\Models\ParentGuardian::where('mother_email', $headerUser->email)->exists()
+			|| \App\Models\ParentGuardian::where('guardian_email', $headerUser->email)->exists();
+	}
+@endphp
+
 <div class="page-header">
 	<div class="header-wrapper row m-0">
 		<!-- Search Form -->
@@ -30,7 +44,7 @@
 			<div class="notification-slider">
 				<div class="d-flex h-100">
 					<h6 class="mb-0 f-w-400">
-						<span class="font-primary">Student Portal - {{ config('app.name') }}</span>
+						<span class="font-primary">{{ $isParentHeader ? 'Parent' : 'Student' }} Portal - {{ config('app.name') }}</span>
 					</h6>
 				</div>
 			</div>
@@ -48,29 +62,25 @@
 					</span>
 				</li>
 
-				<!-- Dark/Light Mode Toggle -->
-				<li>
-					<div class="mode">
-						<svg>
-							<use href="{{ asset('assets/svg/icon-sprite.svg#moon') }}"></use>
-						</svg>
-					</div>
-				</li>
-
 				<!-- Notifications -->
-				<li class="onhover-dropdown">
+				<li class="onhover-dropdown" id="notification-dropdown">
 					<div class="notification-box">
 						<svg>
 							<use href="{{ asset('assets/svg/icon-sprite.svg#notification') }}"></use>
 						</svg>
-						<span class="badge rounded-pill badge-success">0</span>
+						<span class="badge rounded-pill badge-success notification-badge" style="{{ ($unreadNotificationCount ?? 0) == 0 ? 'display:none;' : '' }}">{{ $unreadNotificationCount ?? 0 }}</span>
 					</div>
 					<div class="onhover-show-div notification-dropdown">
-						<h6 class="f-18 mb-0 dropdown-title">Notifications</h6>
-						<ul>
-							<li class="text-center">
-								<p class="text-muted">No new notifications</p>
-							</li>
+						<h6 class="f-18 mb-0 dropdown-title d-flex justify-content-between align-items-center">
+							Notifications
+							<a href="javascript:void(0)" class="mark-all-read text-primary f-12" style="{{ ($unreadNotificationCount ?? 0) == 0 ? 'display:none;' : '' }}">Mark all read</a>
+						</h6>
+						<ul id="notification-list">
+							@if(($unreadNotificationCount ?? 0) == 0)
+								<li class="text-center no-notifications">
+									<p class="text-muted">No new notifications</p>
+								</li>
+							@endif
 						</ul>
 					</div>
 				</li>
@@ -80,9 +90,9 @@
 					<div class="d-flex profile-media">
 						<img class="b-r-10" src="{{ asset('assets/images/dashboard/profile.png') }}" alt="">
 						<div class="flex-grow-1">
-							<span>{{ Auth::check() ? Auth::user()->name : 'Student' }}</span>
+							<span>{{ Auth::check() ? Auth::user()->name : 'User' }}</span>
 							<p class="mb-0">
-								Student
+								{{ $isParentHeader ? 'Parent' : 'Student' }}
 								<i class="middle fa-solid fa-angle-down"></i>
 							</p>
 						</div>
@@ -91,7 +101,7 @@
 						<li>
 							<a href="{{ route('portal.profile') }}">
 								<i data-feather="user"></i>
-								<span>My Profile</span>
+								<span>{{ $isParentHeader ? 'Child Profile' : 'My Profile' }}</span>
 							</a>
 						</li>
 						<li>

@@ -51,8 +51,8 @@
 			<div class="card-body">
 				<ul class="list-unstyled mb-0">
 					<li class="d-flex align-items-center mb-3">
-						<i data-feather="mail" class="text-primary me-3" style="width: 18px;"></i>
-						<span>{{ $staff->email }}</span>
+						<i data-feather="mail" class="text-primary me-3 flex-shrink-0" style="width: 18px;"></i>
+						<span style="word-break: break-all; min-width: 0;">{{ $staff->email }}</span>
 					</li>
 					<li class="d-flex align-items-center mb-3">
 						<i data-feather="phone" class="text-primary me-3" style="width: 18px;"></i>
@@ -66,11 +66,86 @@
 					@endif
 					@if($staff->current_address)
 						<li class="d-flex align-items-start">
-							<i data-feather="map-pin" class="text-primary me-3 mt-1" style="width: 18px;"></i>
-							<span>{{ $staff->current_address }}</span>
+							<i data-feather="map-pin" class="text-primary me-3 mt-1 flex-shrink-0" style="width: 18px;"></i>
+							<span style="min-width: 0; overflow-wrap: break-word;">{{ $staff->current_address }}</span>
 						</li>
 					@endif
 				</ul>
+			</div>
+		</div>
+
+		<!-- Portal Login Credentials -->
+		<div class="card border-primary">
+			<div class="card-header bg-primary">
+				<h5 class="text-white mb-0"><i data-feather="key" class="me-2"></i>Portal Login Credentials</h5>
+			</div>
+			<div class="card-body">
+				@if($staff->user)
+					@if(session('success'))
+						<div class="alert alert-success alert-dismissible fade show" role="alert">
+							{{ session('success') }}
+							<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+						</div>
+					@endif
+					@if(session('error'))
+						<div class="alert alert-danger alert-dismissible fade show" role="alert">
+							{{ session('error') }}
+							<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+						</div>
+					@endif
+					<div class="mb-3">
+						<label class="text-muted small">Login Email</label>
+						<div class="input-group">
+							<input type="text" class="form-control" id="loginEmail" value="{{ $staff->user->email }}" readonly>
+							<button class="btn btn-outline-primary copy-btn" type="button" data-target="loginEmail">
+								<i data-feather="copy"></i>
+							</button>
+						</div>
+					</div>
+					<div class="mb-3">
+						<label class="text-muted small">Current Password</label>
+						<div class="input-group">
+							<input type="text" class="form-control" id="currentPassword" value="{{ $staff->user->plain_password ?? 'N/A' }}" readonly>
+							<button class="btn btn-outline-primary copy-btn" type="button" data-target="currentPassword">
+								<i data-feather="copy"></i>
+							</button>
+						</div>
+					</div>
+					<hr>
+					@if(!$staff->user->hasRole('Super Admin') || auth()->user()->hasRole('Super Admin'))
+						<h6 class="mb-3"><i data-feather="refresh-cw" style="width: 14px; height: 14px;" class="me-1"></i> Reset Password</h6>
+						<form action="{{ route('admin.staff.reset-password', $staff) }}" method="POST">
+							@csrf
+							<div class="mb-3">
+								<label class="text-muted small">New Password</label>
+								<div class="input-group">
+									<input type="text" class="form-control @error('new_password') is-invalid @enderror" name="new_password" id="newPassword" placeholder="Enter new password" required minlength="6">
+									<button class="btn btn-outline-secondary" type="button" id="generatePassword">
+										<i data-feather="zap"></i>
+									</button>
+								</div>
+								@error('new_password')
+									<div class="invalid-feedback d-block">{{ $message }}</div>
+								@enderror
+								<small class="text-muted">Min 6 characters. Click <i data-feather="zap" style="width: 12px; height: 12px;"></i> to auto-generate.</small>
+							</div>
+							<button type="submit" class="btn btn-warning w-100">
+								<i data-feather="lock" class="me-2"></i>Reset Password
+							</button>
+						</form>
+					@else
+						<div class="text-center text-muted py-2">
+							<i data-feather="shield" class="mb-2" style="width: 30px; height: 30px;"></i>
+							<p class="mb-0 small">Super Admin account - password changes restricted</p>
+						</div>
+					@endif
+				@else
+					<div class="text-center text-muted py-3">
+						<i data-feather="alert-circle" class="mb-2" style="width: 40px; height: 40px;"></i>
+						<p class="mb-0">No login account linked</p>
+						<small>Staff member cannot access the portal</small>
+					</div>
+				@endif
 			</div>
 		</div>
 
@@ -78,9 +153,11 @@
 		<div class="card">
 			<div class="card-body">
 				<div class="d-grid gap-2">
-					<a href="{{ route('admin.staff.edit', $staff) }}" class="btn btn-primary">
-						<i data-feather="edit" class="me-1"></i> Edit Staff
-					</a>
+					@if(!($staff->user && $staff->user->hasRole('Super Admin')) || auth()->user()->hasRole('Super Admin'))
+						<a href="{{ route('admin.staff.edit', $staff) }}" class="btn btn-primary">
+							<i data-feather="edit" class="me-1"></i> Edit Staff
+						</a>
+					@endif
 					<a href="{{ route('admin.staff.id-card', $staff) }}" class="btn btn-info">
 						<i data-feather="credit-card" class="me-1"></i> Print ID Card
 					</a>
@@ -251,3 +328,35 @@
 	</div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+jQuery(document).ready(function() {
+	jQuery('.copy-btn').click(function() {
+		var targetId = jQuery(this).data('target');
+		var input = document.getElementById(targetId);
+		var text = input.value;
+
+		if (navigator.clipboard && window.isSecureContext) {
+			navigator.clipboard.writeText(text).then(function() {
+				Swal.fire({ icon: 'success', title: 'Copied!', text: 'Copied to clipboard', timer: 1500, showConfirmButton: false });
+			});
+		} else {
+			input.select();
+			input.setSelectionRange(0, 99999);
+			document.execCommand('copy');
+			Swal.fire({ icon: 'success', title: 'Copied!', text: 'Copied to clipboard', timer: 1500, showConfirmButton: false });
+		}
+	});
+
+	jQuery('#generatePassword').click(function() {
+		var chars = 'abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789@#$';
+		var password = '';
+		for (var i = 0; i < 10; i++) {
+			password += chars.charAt(Math.floor(Math.random() * chars.length));
+		}
+		jQuery('#newPassword').val(password);
+	});
+});
+</script>
+@endpush

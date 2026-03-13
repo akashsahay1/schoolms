@@ -6,7 +6,7 @@
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('admin.settings.sms') }}">SMS Settings</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('admin.settings.sms.index') }}">SMS Settings</a></li>
     <li class="breadcrumb-item active">Templates</li>
 @endsection
 

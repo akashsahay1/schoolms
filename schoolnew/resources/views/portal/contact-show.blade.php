@@ -88,7 +88,7 @@
 							<label class="text-muted small d-block mb-2">
 								<i data-feather="message-circle" style="width: 12px; height: 12px;"></i> School's Response
 							</label>
-							<div class="bg-success bg-opacity-10 p-4 rounded border-start border-4 border-success" style="line-height: 1.8;">
+							<div class="p-4 rounded border-start border-4 border-success" style="line-height: 1.8; background-color: #e8f5e9; color: #2c323f;">
 								{{ $message->admin_response }}
 							</div>
 							@if($message->responded_at)

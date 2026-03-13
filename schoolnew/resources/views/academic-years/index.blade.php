@@ -16,7 +16,7 @@
             <div></div>
             <div>
                 <a href="{{ route('admin.academic-years.create') }}" class="btn btn-primary">
-                    <i class="icofont icofont-plus"></i> Add Academic Year
+                    <i class="icofont icofont-plus"></i> Add New
                 </a>
             </div>
         </div>

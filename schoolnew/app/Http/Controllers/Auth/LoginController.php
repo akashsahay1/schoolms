@@ -60,8 +60,8 @@ class LoginController extends Controller
         // Check if user is linked to staff (teacher/non-teaching staff)
         $staff = Staff::where('user_id', $user->id)->first();
         if ($staff) {
-            // Check user roles - if they have admin-level roles, go to admin dashboard
-            if ($user->hasAnyRole(['Super Admin', 'Admin'])) {
+            // Check user roles - if they have admin panel roles, go to admin dashboard
+            if ($user->hasAnyRole(['Super Admin', 'Admin', 'Accountant', 'Librarian', 'Receptionist'])) {
                 return redirect()->intended(route('admin.dashboard'));
             }
             // Otherwise go to teacher/staff portal

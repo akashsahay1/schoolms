@@ -4,14 +4,17 @@ namespace App\Http\Controllers\Teacher;
 
 use App\Http\Controllers\Controller;
 use App\Models\Staff;
+use App\Models\Student;
 use App\Models\Homework;
 use App\Models\HomeworkSubmission;
 use App\Models\SchoolClass;
 use App\Models\Section;
 use App\Models\Subject;
 use App\Models\Timetable;
+use App\Notifications\HomeworkAssigned;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Notification;
 
 class HomeworkController extends Controller
 {
@@ -30,7 +33,7 @@ class HomeworkController extends Controller
             return redirect()->route('teacher.dashboard')->with('error', 'Staff profile not found.');
         }
 
-        $homework = Homework::where('teacher_id', $staff->id)
+        $homework = Homework::where('teacher_id', Auth::id())
             ->with(['schoolClass', 'section', 'subject'])
             ->withCount('submissions')
             ->latest()
@@ -50,7 +53,7 @@ class HomeworkController extends Controller
         }
 
         // Get classes this teacher teaches
-        $myClassIds = Timetable::where('teacher_id', $staff->id)
+        $myClassIds = Timetable::where('teacher_id', Auth::id())
             ->pluck('class_id')
             ->unique();
 
@@ -80,14 +83,23 @@ class HomeworkController extends Controller
             'attachment' => 'nullable|file|max:10240',
         ]);
 
-        $validated['teacher_id'] = $staff->id;
-        $validated['assigned_date'] = now();
+        $validated['teacher_id'] = Auth::id();
+        $validated['homework_date'] = now()->toDateString();
 
         if ($request->hasFile('attachment')) {
             $validated['attachment'] = $request->file('attachment')->store('homework', 'public');
         }
 
-        Homework::create($validated);
+        $homework = Homework::create($validated);
+
+        // Notify students in this class
+        $studentQuery = Student::where('class_id', $validated['class_id'])->where('status', 'active');
+        if (!empty($validated['section_id'])) {
+            $studentQuery->where('section_id', $validated['section_id']);
+        }
+        $studentUserIds = $studentQuery->whereNotNull('user_id')->pluck('user_id');
+        $users = \App\Models\User::whereIn('id', $studentUserIds)->get();
+        Notification::send($users, new HomeworkAssigned($homework));
 
         return redirect()->route('teacher.homework.index')
             ->with('success', 'Homework assigned successfully.');
@@ -103,7 +115,7 @@ class HomeworkController extends Controller
             return redirect()->route('teacher.dashboard')->with('error', 'Staff profile not found.');
         }
 
-        $homeworkList = Homework::where('teacher_id', $staff->id)
+        $homeworkList = Homework::where('teacher_id', Auth::id())
             ->with(['schoolClass', 'section', 'subject'])
             ->withCount(['submissions' => function ($q) {
                 $q->where('status', 'submitted');
@@ -116,7 +128,7 @@ class HomeworkController extends Controller
 
         if ($request->homework_id) {
             $selectedHomework = Homework::where('id', $request->homework_id)
-                ->where('teacher_id', $staff->id)
+                ->where('teacher_id', Auth::id())
                 ->first();
 
             if ($selectedHomework) {
@@ -141,7 +153,7 @@ class HomeworkController extends Controller
 
         // Verify this submission belongs to teacher's homework
         $homework = Homework::where('id', $submission->homework_id)
-            ->where('teacher_id', $staff->id)
+            ->where('teacher_id', Auth::id())
             ->first();
 
         if (!$homework) {

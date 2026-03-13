@@ -109,7 +109,8 @@ class DesignationController extends Controller
     public function trash()
     {
         $designations = Designation::onlyTrashed()->latest()->paginate(10);
-        return view('designations.trash', compact('designations'));
+        $trashedCount = Designation::onlyTrashed()->count();
+        return view('designations.trash', compact('designations', 'trashedCount'));
     }
 
     public function restore($id)

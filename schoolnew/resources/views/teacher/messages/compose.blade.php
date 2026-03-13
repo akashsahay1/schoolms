@@ -12,8 +12,10 @@
 <div class="row">
 	<div class="col-lg-8">
 		<div class="card">
-			<div class="card-header pb-0">
-				<h5 class="mb-0">New Message</h5>
+			<div class="card-header pb-0 border-0">
+				<h5 class="mb-0">
+					<i data-feather="edit" style="width: 18px; height: 18px;" class="me-2"></i>New Message
+				</h5>
 			</div>
 			<div class="card-body">
 				<form action="{{ route('teacher.messages.store') }}" method="POST">
@@ -21,18 +23,18 @@
 
 					<div class="mb-3">
 						<label class="form-label">To (Student's Parent) <span class="text-danger">*</span></label>
-						<select name="receiver_id" class="form-select @error('receiver_id') is-invalid @enderror" required>
+						<select name="recipient_id" class="form-select @error('recipient_id') is-invalid @enderror" required>
 							<option value="">Select Recipient</option>
 							@foreach($students as $student)
 								@if($student->parent && $student->parent->user_id)
-									<option value="{{ $student->parent->user_id }}" {{ old('receiver_id') == $student->parent->user_id ? 'selected' : '' }}>
+									<option value="{{ $student->parent->user_id }}" {{ old('recipient_id') == $student->parent->user_id ? 'selected' : '' }}>
 										{{ $student->full_name }}'s Parent
 										({{ $student->schoolClass->name ?? '' }} - {{ $student->section->name ?? '' }})
 									</option>
 								@endif
 							@endforeach
 						</select>
-						@error('receiver_id')
+						@error('recipient_id')
 							<div class="invalid-feedback">{{ $message }}</div>
 						@enderror
 					</div>
@@ -66,8 +68,10 @@
 
 	<div class="col-lg-4">
 		<div class="card">
-			<div class="card-header pb-0">
-				<h6 class="mb-0">Quick Tips</h6>
+			<div class="card-header pb-0 border-0">
+				<h6 class="mb-0">
+					<i data-feather="help-circle" style="width: 16px; height: 16px;" class="me-2"></i>Quick Tips
+				</h6>
 			</div>
 			<div class="card-body">
 				<ul class="list-unstyled mb-0">

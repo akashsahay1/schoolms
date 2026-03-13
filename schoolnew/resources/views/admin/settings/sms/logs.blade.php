@@ -6,7 +6,7 @@
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('admin.settings.sms') }}">SMS Settings</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('admin.settings.sms.index') }}">SMS Settings</a></li>
     <li class="breadcrumb-item active">Logs</li>
 @endsection
 
@@ -17,7 +17,7 @@
             <div class="card-header">
                 <div class="d-flex justify-content-between align-items-center">
                     <h5>SMS Logs</h5>
-                    <a href="{{ route('admin.settings.sms') }}" class="btn btn-outline-secondary">
+                    <a href="{{ route('admin.settings.sms.index') }}" class="btn btn-outline-secondary">
                         <i data-feather="arrow-left" class="me-1"></i> Back to Settings
                     </a>
                 </div>

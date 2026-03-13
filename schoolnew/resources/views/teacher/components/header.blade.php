@@ -1,156 +1,140 @@
 @php
 	$user = Auth::user();
 	$staff = \App\Models\Staff::where('user_id', $user->id)->first();
-@endphp
 
+	$userName = $staff ? ($staff->first_name . ' ' . $staff->last_name) : $user->name;
+	$userRole = $staff ? ($staff->designation->name ?? 'Staff') : 'Staff';
+
+	if ($staff && $staff->photo) {
+		$photoUrl = asset('storage/' . $staff->photo);
+	} else {
+		$photoUrl = 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=667eea&color=fff&size=40';
+	}
+@endphp
 <div class="page-header">
 	<div class="header-wrapper row m-0">
-		<!-- Search Form -->
-		<form class="form-inline search-full col" action="#" method="get">
-			<div class="form-group w-100">
-				<div class="Typeahead Typeahead--twitterUsers">
-					<div class="u-posRelative">
-						<input class="demo-input Typeahead-input form-control-plaintext w-100" type="text" placeholder="Search students, classes..." name="q" title="" autofocus>
-						<i class="close-search" data-feather="x"></i>
-					</div>
-				</div>
-			</div>
-		</form>
-
 		<!-- Logo Wrapper -->
 		<div class="header-logo-wrapper col-auto p-0">
-			<div class="logo-wrapper">
+			<div id="sidebar-toggle-btn" class="d-lg-none">
+				<svg style="width: 24px; height: 24px; stroke: #2c323f; cursor: pointer;">
+					<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-animation') }}"></use>
+				</svg>
+			</div>
+			<div class="logo-wrapper d-lg-none">
 				<a href="{{ route('teacher.dashboard') }}">
 					<img class="img-fluid for-light" src="{{ asset('assets/images/logo/logo.png') }}" alt="">
 					<img class="img-fluid for-dark" src="{{ asset('assets/images/logo/logo_dark.png') }}" alt="">
 				</a>
 			</div>
-			<div class="toggle-sidebar">
-				<i class="status_toggle middle sidebar-toggle" data-feather="align-center"></i>
-			</div>
 		</div>
-
-		<!-- Left Header -->
-		<div class="left-header col-xxl-5 col-xl-6 col-lg-5 col-md-4 col-sm-3 p-0">
-			<div class="notification-slider">
-				<div class="d-flex h-100">
-					<h6 class="mb-0 f-w-400">
-						<span class="font-primary">Staff Portal - {{ config('app.name') }}</span>
-					</h6>
-				</div>
-			</div>
+		<div class="left-header col horizontal-wrapper ps-0 d-none d-md-flex align-items-center">
+			<span class="badge bg-primary py-2 px-3">
+				<i data-feather="briefcase" style="width: 12px; height: 12px;"></i>
+				Staff Portal
+			</span>
 		</div>
-
-		<!-- Right Header -->
 		<div class="nav-right col-xxl-7 col-xl-6 col-md-7 col-8 pull-right right-header p-0 ms-auto">
 			<ul class="nav-menus">
-				<!-- Search Toggle -->
-				<li>
-					<span class="header-search">
-						<svg>
-							<use href="{{ asset('assets/svg/icon-sprite.svg#search') }}"></use>
-						</svg>
-					</span>
-				</li>
-
-				<!-- Dark/Light Mode Toggle -->
-				<li>
-					<div class="mode">
-						<svg>
-							<use href="{{ asset('assets/svg/icon-sprite.svg#moon') }}"></use>
-						</svg>
-					</div>
-				</li>
-
 				<!-- Quick Actions -->
 				<li class="onhover-dropdown">
 					<div class="notification-box">
-						<svg>
+						<svg style="stroke: #2c323f;">
 							<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-board') }}"></use>
 						</svg>
 					</div>
-					<div class="onhover-show-div notification-dropdown">
-						<h6 class="f-18 mb-0 dropdown-title">Quick Actions</h6>
-						<ul>
-							<li>
-								<a href="{{ route('teacher.timetable') }}" class="d-flex align-items-center gap-2">
-									<i data-feather="calendar" class="text-primary"></i>
-									<span>My Timetable</span>
+					<div class="onhover-show-div notification-dropdown" style="width: 280px; padding: 15px;">
+						<h6 class="mb-3 f-14 dropdown-title" style="border-bottom: 1px solid #eee; padding-bottom: 10px;">
+							<i data-feather="zap" style="width: 14px; height: 14px;"></i> Quick Actions
+						</h6>
+						<div class="row g-2">
+							<div class="col-6">
+								<a href="{{ route('teacher.timetable') }}" class="d-block p-2 text-center bg-light rounded text-decoration-none">
+									<i data-feather="calendar" class="text-primary d-block mx-auto mb-1" style="width: 20px; height: 20px;"></i>
+									<small class="text-dark">Timetable</small>
 								</a>
-							</li>
-							<li>
-								<a href="{{ route('teacher.my-classes') }}" class="d-flex align-items-center gap-2">
-									<i data-feather="users" class="text-success"></i>
-									<span>My Classes</span>
+							</div>
+							<div class="col-6">
+								<a href="{{ route('teacher.my-classes') }}" class="d-block p-2 text-center bg-light rounded text-decoration-none">
+									<i data-feather="users" class="text-success d-block mx-auto mb-1" style="width: 20px; height: 20px;"></i>
+									<small class="text-dark">My Classes</small>
 								</a>
-							</li>
-							<li>
-								<a href="{{ route('teacher.profile') }}" class="d-flex align-items-center gap-2">
-									<i data-feather="user" class="text-info"></i>
-									<span>My Profile</span>
+							</div>
+							<div class="col-6">
+								<a href="{{ route('teacher.leaves.index') }}" class="d-block p-2 text-center bg-light rounded text-decoration-none">
+									<i data-feather="file-text" class="text-warning d-block mx-auto mb-1" style="width: 20px; height: 20px;"></i>
+									<small class="text-dark">Leaves</small>
 								</a>
-							</li>
-						</ul>
+							</div>
+							<div class="col-6">
+								<a href="{{ route('teacher.notices') }}" class="d-block p-2 text-center bg-light rounded text-decoration-none">
+									<i data-feather="bell" class="text-info d-block mx-auto mb-1" style="width: 20px; height: 20px;"></i>
+									<small class="text-dark">Notices</small>
+								</a>
+							</div>
+						</div>
 					</div>
 				</li>
 
 				<!-- Notifications -->
-				<li class="onhover-dropdown">
+				<li class="onhover-dropdown" id="notification-dropdown">
 					<div class="notification-box">
-						<svg>
+						<svg style="stroke: #2c323f;">
 							<use href="{{ asset('assets/svg/icon-sprite.svg#notification') }}"></use>
 						</svg>
-						<span class="badge rounded-pill badge-success">0</span>
+						<span class="badge rounded-pill badge-primary notification-badge" style="{{ ($unreadNotificationCount ?? 0) == 0 ? 'display:none;' : '' }}">{{ $unreadNotificationCount ?? 0 }}</span>
 					</div>
 					<div class="onhover-show-div notification-dropdown">
-						<h6 class="f-18 mb-0 dropdown-title">Notifications</h6>
-						<ul>
-							<li class="text-center">
-								<p class="text-muted">No new notifications</p>
-							</li>
+						<h6 class="mb-0 f-14 dropdown-title d-flex justify-content-between align-items-center">
+							<span><i data-feather="bell" style="width: 14px; height: 14px;"></i> Notifications</span>
+							<a href="javascript:void(0)" class="mark-all-read text-primary f-12" style="{{ ($unreadNotificationCount ?? 0) == 0 ? 'display:none;' : '' }}">Mark all read</a>
+						</h6>
+						<ul id="notification-list">
+							@if(($unreadNotificationCount ?? 0) == 0)
+								<li class="b-l-primary border-4">
+									<p class="font-primary mb-0">No new notifications</p>
+								</li>
+							@endif
 						</ul>
 					</div>
 				</li>
 
-				<!-- Profile Dropdown -->
-				<li class="profile-nav onhover-dropdown pe-0 py-0">
-					<div class="d-flex profile-media">
-						@if($staff && $staff->photo)
-							<img class="b-r-10" src="{{ asset('storage/' . $staff->photo) }}" alt="" style="width: 40px; height: 40px; object-fit: cover;">
-						@else
-							<img class="b-r-10" src="{{ asset('assets/images/dashboard/profile.png') }}" alt="">
-						@endif
-						<div class="flex-grow-1">
-							<span>{{ $user->name }}</span>
-							<p class="mb-0">
-								{{ $staff ? ($staff->designation->name ?? 'Staff') : 'Staff' }}
-								<i class="middle fa-solid fa-angle-down"></i>
-							</p>
+				<!-- User Profile -->
+				<li class="profile-nav onhover-dropdown pe-0 py-0 me-0">
+					<div class="d-flex align-items-center profile-media">
+						<img class="b-r-10" src="{{ $photoUrl }}" alt="{{ $userName }}" width="40" height="40" style="border-radius: 10px; object-fit: cover;" onerror="this.src='https://ui-avatars.com/api/?name={{ urlencode($userName) }}&background=667eea&color=fff&size=40'">
+						<div class="flex-grow-1 user">
+							<span style="color: #2c323f !important;">{{ Str::limit($userName, 15) }}</span>
+							<p class="mb-0" style="color: #6c757d !important;">{{ $userRole }}<i class="middle fa fa-angle-down ms-1" style="color: #2c323f;"></i></p>
 						</div>
 					</div>
 					<ul class="profile-dropdown onhover-show-div">
 						<li>
 							<a href="{{ route('teacher.profile') }}">
-								<i data-feather="user"></i>
-								<span>My Profile</span>
+								<i data-feather="user"></i><span>My Profile</span>
 							</a>
 						</li>
 						<li>
 							<a href="{{ route('teacher.timetable') }}">
-								<i data-feather="calendar"></i>
-								<span>My Timetable</span>
+								<i data-feather="calendar"></i><span>My Timetable</span>
 							</a>
 						</li>
 						<li>
-							<form method="POST" action="{{ route('logout') }}">
-								@csrf
-								<a href="{{ route('logout') }}" onclick="event.preventDefault(); this.closest('form').submit();">
-									<i data-feather="log-out"></i>
-									<span>Log out</span>
-								</a>
-							</form>
+							<a href="{{ route('teacher.my-classes') }}">
+								<i data-feather="users"></i><span>My Classes</span>
+							</a>
+						</li>
+						<li>
+							<a href="{{ route('teacher.leaves.index') }}">
+								<i data-feather="file-text"></i><span>Leave Applications</span>
+							</a>
+						</li>
+						<li style="border-top: 1px solid #eee; margin-top: 5px; padding-top: 10px;">
+							<a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('teacher-logout-form').submit();">
+								<i data-feather="log-out" class="text-danger"></i><span class="text-danger">Log out</span>
+							</a>
 						</li>
 					</ul>
+					<form method="POST" action="{{ route('logout') }}" id="teacher-logout-form" style="display: none;">@csrf</form>
 				</li>
 			</ul>
 		</div>

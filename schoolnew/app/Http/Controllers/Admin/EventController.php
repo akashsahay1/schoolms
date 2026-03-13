@@ -240,8 +240,9 @@ class EventController extends Controller
         }
 
         $events = $query->paginate(15);
+        $trashedCount = Event::onlyTrashed()->count();
 
-        return view('admin.events.trash', compact('events'));
+        return view('admin.events.trash', compact('events', 'trashedCount'));
     }
 
     /**
@@ -276,6 +277,10 @@ class EventController extends Controller
 
         $event->forceDelete();
 
+        if (request()->ajax()) {
+            return response()->json(['success' => true, 'message' => 'Event permanently deleted.']);
+        }
+
         return redirect()->route('admin.events.trash')
             ->with('success', 'Event permanently deleted.');
     }
@@ -292,8 +297,10 @@ class EventController extends Controller
 
         Event::onlyTrashed()->whereIn('id', $validated['ids'])->restore();
 
-        return redirect()->route('admin.events.trash')
-            ->with('success', count($validated['ids']) . ' events restored successfully.');
+        return response()->json([
+            'success' => true,
+            'message' => count($validated['ids']) . ' events restored successfully.',
+        ]);
     }
 
     /**
@@ -323,8 +330,10 @@ class EventController extends Controller
             $event->forceDelete();
         }
 
-        return redirect()->route('admin.events.trash')
-            ->with('success', count($validated['ids']) . ' events permanently deleted.');
+        return response()->json([
+            'success' => true,
+            'message' => count($validated['ids']) . ' events permanently deleted.',
+        ]);
     }
 
     /**

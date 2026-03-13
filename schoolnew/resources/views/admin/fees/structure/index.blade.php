@@ -32,7 +32,7 @@
 				<div class="d-flex justify-content-between align-items-center">
 					<h5>Fee Structure</h5>
 					<a href="{{ route('admin.fees.structure.create') }}" class="btn btn-primary">
-						<i data-feather="plus" class="me-1"></i> Add Fee Structure
+						<i data-feather="plus" class="me-1"></i> Add New
 					</a>
 				</div>
 			</div>
@@ -112,7 +112,7 @@
 											<form action="{{ route('admin.fees.structure.destroy', $structure) }}" method="POST" class="d-inline delete-form">
 												@csrf
 												@method('DELETE')
-												<button type="button" class="square-white trash-7 border-0 bg-transparent p-0 delete-confirm" title="Delete" data-name="{{ $structure->feeType->name }} for {{ $structure->schoolClass->name }}">
+												<button type="button" class="square-white trash-7 border-0 bg-transparent p-0 fee-delete-confirm" title="Delete" data-name="{{ $structure->feeType->name }} for {{ $structure->schoolClass->name }}" data-collections="{{ $structure->collections_count ?? 0 }}">
 													<svg><use href="{{ asset('assets/svg/icon-sprite.svg#trash1') }}"></use></svg>
 												</button>
 											</form>
@@ -144,3 +144,36 @@
 	</div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+jQuery(document).ready(function() {
+	jQuery('.fee-delete-confirm').on('click', function() {
+		var button = jQuery(this);
+		var form = button.closest('form');
+		var name = button.data('name');
+		var collections = parseInt(button.data('collections')) || 0;
+
+		var warningText = 'Are you sure you want to delete "' + name + '"?';
+		if (collections > 0) {
+			warningText = 'This fee structure has <strong>' + collections + ' fee collection(s)</strong> recorded against it. Deleting will also remove all associated payment records.<br><br>Are you sure you want to delete "' + name + '"?';
+		}
+
+		Swal.fire({
+			title: 'Delete Fee Structure?',
+			html: warningText,
+			icon: 'warning',
+			showCancelButton: true,
+			confirmButtonColor: '#d33',
+			cancelButtonColor: '#6c757d',
+			confirmButtonText: 'Yes, delete it!',
+			cancelButtonText: 'Cancel'
+		}).then(function(result) {
+			if (result.isConfirmed) {
+				form.submit();
+			}
+		});
+	});
+});
+</script>
+@endpush

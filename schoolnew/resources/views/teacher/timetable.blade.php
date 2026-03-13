@@ -20,9 +20,11 @@
 	<!-- Timetable Card -->
 	<div class="col-12">
 		<div class="card">
-			<div class="card-header pb-0">
+			<div class="card-header pb-0 border-0">
 				<div class="d-flex justify-content-between align-items-center">
-					<h5 class="mb-0">Weekly Timetable</h5>
+					<h5 class="mb-0">
+						<i data-feather="calendar" style="width: 18px; height: 18px;" class="me-2"></i>Weekly Timetable
+					</h5>
 					<span class="badge bg-primary">{{ now()->format('l, M d, Y') }}</span>
 				</div>
 			</div>

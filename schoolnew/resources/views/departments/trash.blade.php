@@ -352,7 +352,7 @@ jQuery(document).ready(function() {
 		}).then((result) => {
 			if (result.isConfirmed) {
 				jQuery.ajax({
-					url: '{{ route("admin.departments.force-delete", "") }}/' + id,
+					url: '{{ url("admin/departments") }}/' + id + '/force-delete',
 					type: 'DELETE',
 					data: {
 						_token: '{{ csrf_token() }}'

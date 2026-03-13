@@ -138,8 +138,9 @@ class TransportRouteController extends Controller
 
 		$routes = $query->orderBy('deleted_at', 'desc')->paginate(15);
 		$vehicles = Vehicle::orderBy('vehicle_no')->get();
+		$trashedCount = TransportRoute::onlyTrashed()->count();
 
-		return view('admin.transport.routes.trash', compact('routes', 'vehicles'));
+		return view('admin.transport.routes.trash', compact('routes', 'vehicles', 'trashedCount'));
 	}
 
 	public function restore($id)

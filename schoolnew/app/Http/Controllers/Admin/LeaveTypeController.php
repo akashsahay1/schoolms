@@ -132,8 +132,9 @@ class LeaveTypeController extends Controller
     public function trash(Request $request)
     {
         $leaveTypes = LeaveType::onlyTrashed()->orderBy('deleted_at', 'desc')->paginate(15);
+        $trashedCount = LeaveType::onlyTrashed()->count();
 
-        return view('admin.staff-leaves.types.trash', compact('leaveTypes'));
+        return view('admin.staff-leaves.types.trash', compact('leaveTypes', 'trashedCount'));
     }
 
     public function restore($id)

@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Mail\LeaveStatusNotification;
 use App\Models\LeaveApplication;
 use App\Models\SchoolClass;
+use App\Models\User;
+use App\Notifications\LeaveStatusChanged;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
@@ -140,6 +142,19 @@ class LeaveApplicationController extends Controller
     {
         // Reload the leave with relationships
         $leave->load(['student.user', 'approvedByUser']);
+
+        // Send in-app notification
+        $notifyUser = null;
+        if ($leave->applicant_type === \App\Models\Staff::class) {
+            $staff = \App\Models\Staff::find($leave->applicant_id);
+            $notifyUser = $staff?->user_id ? User::find($staff->user_id) : null;
+        } else {
+            $notifyUser = $leave->student?->user;
+        }
+
+        if ($notifyUser) {
+            $notifyUser->notify(new LeaveStatusChanged($leave, $status));
+        }
 
         // Get student's email
         $studentEmail = $leave->student?->user?->email;

@@ -92,28 +92,71 @@
 			</div>
 			<div class="card-body">
 				@if($student->user)
+					@if(session('success'))
+						<div class="alert alert-success alert-dismissible fade show" role="alert">
+							{{ session('success') }}
+							<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+						</div>
+					@endif
+					@if(session('error'))
+						<div class="alert alert-danger alert-dismissible fade show" role="alert">
+							{{ session('error') }}
+							<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+						</div>
+					@endif
 					<div class="mb-3">
 						<label class="text-muted small">Login Email</label>
 						<div class="input-group">
 							<input type="text" class="form-control" id="loginEmail" value="{{ $student->user->email }}" readonly>
-							<button class="btn btn-outline-primary" type="button" onclick="copyToClipboard('loginEmail')">
+							<button class="btn btn-outline-primary copy-btn" type="button" data-target="loginEmail">
 								<i data-feather="copy"></i>
 							</button>
+							<button class="btn btn-outline-warning" type="button" id="editEmailBtn" title="Change Email">
+								<i data-feather="edit-2"></i>
+							</button>
 						</div>
+						<form action="{{ route('admin.students.update-email', $student) }}" method="POST" id="editEmailForm" class="d-none mt-2">
+							@csrf
+							<div class="input-group">
+								<input type="email" class="form-control @error('new_email') is-invalid @enderror" name="new_email" placeholder="Enter new login email" required value="{{ old('new_email') }}">
+								<button type="submit" class="btn btn-success">Save</button>
+								<button type="button" class="btn btn-outline-secondary" id="cancelEmailEdit">Cancel</button>
+							</div>
+							@error('new_email')
+								<div class="text-danger small mt-1">{{ $message }}</div>
+							@enderror
+						</form>
 					</div>
 					<div class="mb-3">
-						<label class="text-muted small">Password</label>
+						<label class="text-muted small">Current Password</label>
 						<div class="input-group">
-							<input type="text" class="form-control" id="loginPassword" value="{{ $student->admission_no }}" readonly>
-							<button class="btn btn-outline-primary" type="button" onclick="copyToClipboard('loginPassword')">
+							<input type="text" class="form-control" id="currentPassword" value="{{ $student->user->plain_password ?? 'N/A' }}" readonly>
+							<button class="btn btn-outline-primary copy-btn" type="button" data-target="currentPassword">
 								<i data-feather="copy"></i>
 							</button>
 						</div>
-						<small class="text-muted">Default password is Admission Number</small>
 					</div>
-					<button class="btn btn-primary w-100" onclick="copyAllCredentials()">
-						<i data-feather="clipboard" class="me-2"></i>Copy All Credentials
-					</button>
+					<hr>
+					<h6 class="mb-3"><i data-feather="refresh-cw" style="width: 14px; height: 14px;" class="me-1"></i> Reset Password</h6>
+					<form action="{{ route('admin.students.reset-password', $student) }}" method="POST">
+						@csrf
+						<div class="mb-3">
+							<label class="text-muted small">New Password</label>
+							<div class="input-group">
+								<input type="text" class="form-control @error('new_password') is-invalid @enderror" name="new_password" id="newPassword" placeholder="Enter new password" required minlength="6">
+								<button class="btn btn-outline-secondary" type="button" id="generatePassword">
+									<i data-feather="zap"></i>
+								</button>
+							</div>
+							@error('new_password')
+								<div class="invalid-feedback d-block">{{ $message }}</div>
+							@enderror
+							<small class="text-muted">Min 6 characters. Click <i data-feather="zap" style="width: 12px; height: 12px;"></i> to auto-generate.</small>
+						</div>
+						<button type="submit" class="btn btn-warning w-100">
+							<i data-feather="lock" class="me-2"></i>Reset Password
+						</button>
+					</form>
 				@else
 					<div class="text-center text-muted py-3">
 						<i data-feather="alert-circle" class="mb-2" style="width: 40px; height: 40px;"></i>
@@ -189,7 +232,7 @@
 						<table class="table table-borderless">
 							<tr>
 								<td class="text-muted" width="40%">Email</td>
-								<td>{{ $student->email ?? 'N/A' }}</td>
+								<td style="word-break: break-all;">{{ $student->email ?? 'N/A' }}</td>
 							</tr>
 							<tr>
 								<td class="text-muted">Phone</td>
@@ -234,7 +277,7 @@
 							</tr>
 							<tr>
 								<td class="text-muted">Email</td>
-								<td>{{ $student->parent->father_email ?? 'N/A' }}</td>
+								<td style="word-break: break-all;">{{ $student->parent->father_email ?? 'N/A' }}</td>
 							</tr>
 							<tr>
 								<td class="text-muted">Occupation</td>
@@ -255,7 +298,7 @@
 							</tr>
 							<tr>
 								<td class="text-muted">Email</td>
-								<td>{{ $student->parent->mother_email ?? 'N/A' }}</td>
+								<td style="word-break: break-all;">{{ $student->parent->mother_email ?? 'N/A' }}</td>
 							</tr>
 							<tr>
 								<td class="text-muted">Occupation</td>
@@ -273,39 +316,45 @@
 
 @push('scripts')
 <script>
-function copyToClipboard(elementId) {
-	var input = document.getElementById(elementId);
-	input.select();
-	input.setSelectionRange(0, 99999);
-	navigator.clipboard.writeText(input.value);
+jQuery(document).ready(function() {
+	jQuery('.copy-btn').click(function() {
+		var targetId = jQuery(this).data('target');
+		var input = document.getElementById(targetId);
+		var text = input.value;
 
-	Swal.fire({
-		icon: 'success',
-		title: 'Copied!',
-		text: 'Copied to clipboard',
-		timer: 1500,
-		showConfirmButton: false
+		if (navigator.clipboard && window.isSecureContext) {
+			navigator.clipboard.writeText(text).then(function() {
+				Swal.fire({ icon: 'success', title: 'Copied!', text: 'Copied to clipboard', timer: 1500, showConfirmButton: false });
+			});
+		} else {
+			input.select();
+			input.setSelectionRange(0, 99999);
+			document.execCommand('copy');
+			Swal.fire({ icon: 'success', title: 'Copied!', text: 'Copied to clipboard', timer: 1500, showConfirmButton: false });
+		}
 	});
-}
 
-function copyAllCredentials() {
-	var email = document.getElementById('loginEmail').value;
-	var password = document.getElementById('loginPassword').value;
-	var text = "Student Portal Login Credentials\n";
-	text += "================================\n";
-	text += "Email: " + email + "\n";
-	text += "Password: " + password + "\n";
-	text += "URL: {{ url('/login') }}";
-
-	navigator.clipboard.writeText(text);
-
-	Swal.fire({
-		icon: 'success',
-		title: 'Copied!',
-		text: 'All credentials copied to clipboard',
-		timer: 1500,
-		showConfirmButton: false
+	jQuery('#generatePassword').click(function() {
+		var chars = 'abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789@#$';
+		var password = '';
+		for (var i = 0; i < 10; i++) {
+			password += chars.charAt(Math.floor(Math.random() * chars.length));
+		}
+		jQuery('#newPassword').val(password);
 	});
-}
+
+	jQuery('#editEmailBtn').click(function() {
+		jQuery('#editEmailForm').removeClass('d-none');
+		jQuery(this).addClass('d-none');
+	});
+	jQuery('#cancelEmailEdit').click(function() {
+		jQuery('#editEmailForm').addClass('d-none');
+		jQuery('#editEmailBtn').removeClass('d-none');
+	});
+	@error('new_email')
+		jQuery('#editEmailForm').removeClass('d-none');
+		jQuery('#editEmailBtn').addClass('d-none');
+	@enderror
+});
 </script>
 @endpush

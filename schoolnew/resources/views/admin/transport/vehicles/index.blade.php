@@ -30,7 +30,7 @@
 							@endif
 						</a>
 						<a href="{{ route('admin.transport.vehicles.create') }}" class="btn btn-primary btn-sm">
-							<i data-feather="plus" class="me-1"></i> Add Vehicle
+							<i data-feather="plus" class="me-1"></i> Add New
 						</a>
 					</div>
 				</div>

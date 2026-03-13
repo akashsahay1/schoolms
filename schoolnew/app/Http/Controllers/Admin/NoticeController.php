@@ -6,8 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Models\Notice;
 use App\Models\SchoolClass;
 use App\Models\AcademicYear;
+use App\Models\Student;
+use App\Models\ParentGuardian;
+use App\Models\Staff;
+use App\Models\User;
+use App\Notifications\NoticePublished;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 
@@ -78,14 +84,14 @@ class NoticeController extends Controller
 
         $academicYear = AcademicYear::where('is_active', true)->first();
 
-        Notice::create([
+        $notice = Notice::create([
             'title' => $validated['title'],
             'content' => $validated['content'],
             'type' => $validated['type'],
             'publish_date' => $validated['publish_date'],
             'expiry_date' => $validated['expiry_date'] ?? null,
             'target_audience' => $validated['target_audience'],
-            'target_classes' => $validated['target_classes'] ?? null,
+            'target_classes' => !empty($validated['target_classes']) ? $validated['target_classes'] : null,
             'attachment' => $attachmentPath,
             'is_published' => $request->boolean('is_published', true),
             'send_email' => $request->boolean('send_email'),
@@ -93,6 +99,11 @@ class NoticeController extends Controller
             'created_by' => Auth::id(),
             'academic_year_id' => $academicYear?->id,
         ]);
+
+        // Send notifications if published
+        if ($notice->is_published) {
+            $this->sendNoticeNotifications($notice, $notice->send_email);
+        }
 
         return redirect()->route('admin.notices.index')
             ->with('success', 'Notice created successfully.');
@@ -152,7 +163,7 @@ class NoticeController extends Controller
             'publish_date' => $validated['publish_date'],
             'expiry_date' => $validated['expiry_date'] ?? null,
             'target_audience' => $validated['target_audience'],
-            'target_classes' => $validated['target_classes'] ?? null,
+            'target_classes' => !empty($validated['target_classes']) ? $validated['target_classes'] : null,
             'attachment' => $attachmentPath,
             'is_published' => $request->boolean('is_published', true),
             'send_email' => $request->boolean('send_email'),
@@ -212,8 +223,9 @@ class NoticeController extends Controller
         }
 
         $notices = $query->paginate(15);
+        $trashedCount = Notice::onlyTrashed()->count();
 
-        return view('admin.notices.trash', compact('notices'));
+        return view('admin.notices.trash', compact('notices', 'trashedCount'));
     }
 
     /**
@@ -308,5 +320,60 @@ class NoticeController extends Controller
 
         return redirect()->route('admin.notices.trash')
             ->with('success', 'Trash emptied successfully.');
+    }
+
+    /**
+     * Send notifications to target audience users.
+     */
+    private function sendNoticeNotifications(Notice $notice, bool $sendEmail = false): void
+    {
+        $audience = $notice->target_audience ?? [];
+        $userIds = collect();
+
+        // Students
+        if (in_array('all', $audience) || in_array('students', $audience)) {
+            $studentUserIds = Student::where('status', 'active')->whereNotNull('user_id')->pluck('user_id');
+            $userIds = $userIds->merge($studentUserIds);
+        }
+
+        // Parents
+        if (in_array('all', $audience) || in_array('parents', $audience)) {
+            $parentUserIds = ParentGuardian::whereNotNull('user_id')->pluck('user_id');
+            $userIds = $userIds->merge($parentUserIds);
+        }
+
+        // Staff & Teachers
+        if (in_array('all', $audience) || in_array('staff', $audience) || in_array('teachers', $audience)) {
+            $staffUserIds = Staff::whereNotNull('user_id')->pluck('user_id');
+            $userIds = $userIds->merge($staffUserIds);
+        }
+
+        // Admin users (for "all" audience, also notify admin/super admin users who aren't linked as staff)
+        if (in_array('all', $audience)) {
+            $adminUserIds = User::role(['Super Admin', 'Admin'])->pluck('id');
+            $userIds = $userIds->merge($adminUserIds);
+        }
+
+        $users = User::whereIn('id', $userIds->unique())->get();
+        if ($users->isNotEmpty()) {
+            // Always send database notifications (bell icon) - this never fails
+            Notification::send($users, new NoticePublished($notice, false));
+
+            // Send emails separately so SMTP failure doesn't break anything
+            if ($sendEmail) {
+                $emailFailed = 0;
+                foreach ($users as $user) {
+                    try {
+                        $user->notify(new NoticePublished($notice, false, true));
+                    } catch (\Exception $e) {
+                        $emailFailed++;
+                        \Log::warning("Notice email failed for {$user->email}: " . $e->getMessage());
+                    }
+                }
+                if ($emailFailed > 0) {
+                    session()->flash('warning', "Notice created but {$emailFailed} email(s) failed to send. Check SMTP settings.");
+                }
+            }
+        }
     }
 }

@@ -38,7 +38,7 @@
                     <div class="widget-round success">
                         <div class="bg-round">
                             <svg class="svg-fill">
-                                <use href="{{ asset('assets/svg/icon-sprite.svg#task') }}"></use>
+                                <use href="{{ asset('assets/svg/icon-sprite.svg#profile-check') }}"></use>
                             </svg>
                         </div>
                     </div>
@@ -57,7 +57,7 @@
                     <div class="widget-round danger">
                         <div class="bg-round">
                             <svg class="svg-fill">
-                                <use href="{{ asset('assets/svg/icon-sprite.svg#close') }}"></use>
+                                <use href="{{ asset('assets/svg/icon-sprite.svg#alert-popup') }}"></use>
                             </svg>
                         </div>
                     </div>
@@ -76,7 +76,7 @@
                     <div class="widget-round primary">
                         <div class="bg-round">
                             <svg class="svg-fill">
-                                <use href="{{ asset('assets/svg/icon-sprite.svg#file') }}"></use>
+                                <use href="{{ asset('assets/svg/icon-sprite.svg#fill-file') }}"></use>
                             </svg>
                         </div>
                     </div>

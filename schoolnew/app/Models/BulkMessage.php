@@ -119,7 +119,6 @@ class BulkMessage extends Model
         return [
             self::TYPE_SMS => 'SMS',
             self::TYPE_EMAIL => 'Email',
-            self::TYPE_NOTIFICATION => 'In-App Notification',
             self::TYPE_ALL => 'All Channels',
         ];
     }

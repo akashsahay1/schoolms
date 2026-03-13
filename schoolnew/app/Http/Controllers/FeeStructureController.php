@@ -151,11 +151,8 @@ class FeeStructureController extends Controller
 
     public function destroy(FeeStructure $feeStructure)
     {
-        // Check if there are any collections
-        if ($feeStructure->collections()->exists()) {
-            return redirect()->route('admin.fees.structure')
-                ->with('error', 'Cannot delete fee structure with existing collections.');
-        }
+        // Delete associated fee collections first
+        $feeStructure->collections()->delete();
 
         $feeStructure->delete();
 

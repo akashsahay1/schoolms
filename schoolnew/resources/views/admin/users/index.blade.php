@@ -44,7 +44,7 @@
 							@endif
 						</a>
 						<a href="{{ route('admin.users.create') }}" class="btn btn-primary">
-							<i data-feather="plus" class="me-1"></i> Add New User
+							<i data-feather="plus" class="me-1"></i> Add New
 						</a>
 					</div>
 				</div>
@@ -101,7 +101,7 @@
 							@forelse($users as $user)
 								<tr>
 									<td>
-										@if($user->id !== auth()->id())
+										@if($user->id !== auth()->id() && (!$user->hasRole('Super Admin') || auth()->user()->hasRole('Super Admin')))
 											<input type="checkbox" class="form-check-input user-checkbox" value="{{ $user->id }}" data-name="{{ $user->name }}">
 										@endif
 									</td>
@@ -117,14 +117,20 @@
 									</td>
 									<td>{{ $user->created_at->format('M d, Y') }}</td>
 									<td>
+										@php
+											$isSuperAdmin = $user->hasRole('Super Admin');
+											$canEditThisUser = !$isSuperAdmin || auth()->user()->hasRole('Super Admin');
+										@endphp
 										<div class="common-align gap-2 justify-content-start">
 											<a class="square-white" href="{{ route('admin.users.show', $user) }}" title="View">
 												<svg><use href="{{ asset('assets/svg/icon-sprite.svg#eye') }}"></use></svg>
 											</a>
-											<a class="square-white" href="{{ route('admin.users.edit', $user) }}" title="Edit">
-												<svg><use href="{{ asset('assets/svg/icon-sprite.svg#edit-content') }}"></use></svg>
-											</a>
-											@if($user->id !== auth()->id())
+											@if($canEditThisUser)
+												<a class="square-white" href="{{ route('admin.users.edit', $user) }}" title="Edit">
+													<svg><use href="{{ asset('assets/svg/icon-sprite.svg#edit-content') }}"></use></svg>
+												</a>
+											@endif
+											@if($user->id !== auth()->id() && $canEditThisUser)
 												<form action="{{ route('admin.users.destroy', $user) }}" method="POST" class="d-inline delete-form">
 													@csrf
 													@method('DELETE')

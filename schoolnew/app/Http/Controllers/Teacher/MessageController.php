@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Teacher;
 use App\Http\Controllers\Controller;
 use App\Models\Staff;
 use App\Models\Message;
-use App\Models\ParentGuardian;
 use App\Models\Student;
 use App\Models\Timetable;
 use Illuminate\Http\Request;
@@ -28,9 +27,9 @@ class MessageController extends Controller
             return redirect()->route('teacher.dashboard')->with('error', 'Staff profile not found.');
         }
 
-        $messages = Message::where('receiver_id', Auth::id())
+        $messages = Message::where('recipient_id', Auth::id())
             ->orWhere('sender_id', Auth::id())
-            ->with(['sender', 'receiver'])
+            ->with(['sender', 'recipient'])
             ->latest()
             ->paginate(15);
 
@@ -71,13 +70,12 @@ class MessageController extends Controller
         }
 
         $validated = $request->validate([
-            'receiver_id' => 'required|exists:users,id',
+            'recipient_id' => 'required|exists:users,id',
             'subject' => 'required|string|max:255',
             'message' => 'required|string',
         ]);
 
         $validated['sender_id'] = Auth::id();
-        $validated['sent_at'] = now();
 
         Message::create($validated);
 
@@ -95,14 +93,14 @@ class MessageController extends Controller
             return redirect()->route('teacher.dashboard')->with('error', 'Staff profile not found.');
         }
 
-        // Check if user is sender or receiver
-        if ($message->sender_id !== Auth::id() && $message->receiver_id !== Auth::id()) {
+        // Check if user is sender or recipient
+        if ($message->sender_id !== Auth::id() && $message->recipient_id !== Auth::id()) {
             return redirect()->route('teacher.messages.index')->with('error', 'Unauthorized access.');
         }
 
-        // Mark as read if receiver
-        if ($message->receiver_id === Auth::id() && !$message->read_at) {
-            $message->update(['read_at' => now()]);
+        // Mark as read if recipient
+        if ($message->recipient_id === Auth::id() && !$message->is_read) {
+            $message->markAsRead();
         }
 
         return view('teacher.messages.show', compact('staff', 'message'));
@@ -124,11 +122,10 @@ class MessageController extends Controller
 
         Message::create([
             'sender_id' => Auth::id(),
-            'receiver_id' => $message->sender_id,
+            'recipient_id' => $message->sender_id,
             'subject' => 'Re: ' . $message->subject,
             'message' => $validated['message'],
-            'parent_id' => $message->id,
-            'sent_at' => now(),
+            'parent_message_id' => $message->id,
         ]);
 
         return redirect()->back()->with('success', 'Reply sent successfully.');

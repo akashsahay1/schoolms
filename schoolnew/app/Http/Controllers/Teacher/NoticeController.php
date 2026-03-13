@@ -28,9 +28,9 @@ class NoticeController extends Controller
         $notices = Notice::published()
             ->active()
             ->where(function ($q) {
-                $q->where('audience', 'all')
-                    ->orWhere('audience', 'staff')
-                    ->orWhere('audience', 'teachers');
+                $q->whereJsonContains('target_audience', 'all')
+                    ->orWhereJsonContains('target_audience', 'staff')
+                    ->orWhereJsonContains('target_audience', 'teachers');
             })
             ->latest('publish_date')
             ->paginate(15);
@@ -49,7 +49,8 @@ class NoticeController extends Controller
         }
 
         // Check if notice is for staff
-        if (!in_array($notice->audience, ['all', 'staff', 'teachers'])) {
+        $audience = $notice->target_audience ?? [];
+        if (!array_intersect($audience, ['all', 'staff', 'teachers'])) {
             return redirect()->route('teacher.notices')->with('error', 'Notice not found.');
         }
 

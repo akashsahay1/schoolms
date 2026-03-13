@@ -58,6 +58,12 @@ class UserController extends Controller
         // Only show admin roles (not student, parent, teacher)
         $excludedRoles = ['student', 'parent', 'teacher'];
         $roles = Role::whereNotIn('name', $excludedRoles)->get();
+
+        // Non-Super Admin users should not be able to assign Super Admin role
+        if (!auth()->user()->hasRole('Super Admin')) {
+            $roles = $roles->filter(fn($role) => $role->name !== 'Super Admin');
+        }
+
         return view('admin.users.create', compact('roles'));
     }
 
@@ -91,15 +97,33 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
+        // Prevent non-Super Admin from editing Super Admin accounts
+        if ($user->hasRole('Super Admin') && !auth()->user()->hasRole('Super Admin')) {
+            return redirect()->route('admin.users.index')
+                ->with('error', 'You do not have permission to edit Super Admin accounts.');
+        }
+
         // Only show admin roles (not student, parent, teacher)
         $excludedRoles = ['student', 'parent', 'teacher'];
         $roles = Role::whereNotIn('name', $excludedRoles)->get();
+
+        // Non-Super Admin users should not be able to assign Super Admin role
+        if (!auth()->user()->hasRole('Super Admin')) {
+            $roles = $roles->filter(fn($role) => $role->name !== 'Super Admin');
+        }
+
         $userRole = $user->roles->first()?->name;
         return view('admin.users.edit', compact('user', 'roles', 'userRole'));
     }
 
     public function update(Request $request, User $user)
     {
+        // Prevent non-Super Admin from updating Super Admin accounts
+        if ($user->hasRole('Super Admin') && !auth()->user()->hasRole('Super Admin')) {
+            return redirect()->route('admin.users.index')
+                ->with('error', 'You do not have permission to modify Super Admin accounts.');
+        }
+
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
@@ -133,6 +157,12 @@ class UserController extends Controller
                 ->with('error', 'You cannot delete your own account.');
         }
 
+        // Prevent non-Super Admin from deleting Super Admin accounts
+        if ($user->hasRole('Super Admin') && !auth()->user()->hasRole('Super Admin')) {
+            return redirect()->route('admin.users.index')
+                ->with('error', 'You do not have permission to delete Super Admin accounts.');
+        }
+
         $user->delete();
 
         return redirect()->route('admin.users.index')
@@ -146,9 +176,10 @@ class UserController extends Controller
             'user_ids.*' => ['exists:users,id'],
         ]);
 
-        // Filter out current user from deletion
-        $userIds = array_filter($request->user_ids, function ($id) {
-            return $id != auth()->id();
+        // Filter out current user and Super Admin users from deletion
+        $superAdminIds = User::role('Super Admin')->pluck('id')->toArray();
+        $userIds = array_filter($request->user_ids, function ($id) use ($superAdminIds) {
+            return $id != auth()->id() && (!in_array($id, $superAdminIds) || auth()->user()->hasRole('Super Admin'));
         });
 
         if (empty($userIds)) {

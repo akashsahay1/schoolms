@@ -89,7 +89,9 @@ class Notice extends Model
     {
         return $query->where(function ($q) use ($classId) {
             $q->whereNull('target_classes')
-                ->orWhereJsonContains('target_classes', $classId);
+                ->orWhere('target_classes', '[]')
+                ->orWhereJsonContains('target_classes', (string) $classId)
+                ->orWhereJsonContains('target_classes', (int) $classId);
         });
     }
 

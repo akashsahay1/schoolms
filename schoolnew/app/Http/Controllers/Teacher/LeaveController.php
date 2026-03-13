@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Teacher;
 
 use App\Http\Controllers\Controller;
 use App\Models\Staff;
-use App\Models\StaffLeave;
+use App\Models\LeaveApplication;
 use App\Models\LeaveType;
 use App\Models\StaffLeaveBalance;
 use Illuminate\Http\Request;
@@ -27,8 +27,8 @@ class LeaveController extends Controller
             return redirect()->route('teacher.dashboard')->with('error', 'Staff profile not found.');
         }
 
-        $leaves = StaffLeave::where('staff_id', $staff->id)
-            ->with('leaveType')
+        $leaves = LeaveApplication::where('applicant_type', Staff::class)
+            ->where('applicant_id', $staff->id)
             ->latest()
             ->paginate(15);
 
@@ -45,7 +45,7 @@ class LeaveController extends Controller
             return redirect()->route('teacher.dashboard')->with('error', 'Staff profile not found.');
         }
 
-        $leaveTypes = LeaveType::where('is_active', true)->get();
+        $leaveTypes = LeaveApplication::LEAVE_TYPES;
 
         return view('teacher.leaves.create', compact('staff', 'leaveTypes'));
     }
@@ -61,22 +61,24 @@ class LeaveController extends Controller
         }
 
         $validated = $request->validate([
-            'leave_type_id' => 'required|exists:leave_types,id',
+            'leave_type' => 'required|string|in:' . implode(',', array_keys(LeaveApplication::LEAVE_TYPES)),
             'from_date' => 'required|date|after_or_equal:today',
             'to_date' => 'required|date|after_or_equal:from_date',
             'reason' => 'required|string|max:1000',
             'attachment' => 'nullable|file|max:5120',
         ]);
 
-        $validated['staff_id'] = $staff->id;
+        $validated['applicant_type'] = Staff::class;
+        $validated['applicant_id'] = $staff->id;
+        $validated['applied_by'] = Auth::id();
         $validated['status'] = 'pending';
-        $validated['applied_at'] = now();
+        $validated['total_days'] = \Carbon\Carbon::parse($validated['from_date'])->diffInDays(\Carbon\Carbon::parse($validated['to_date'])) + 1;
 
         if ($request->hasFile('attachment')) {
             $validated['attachment'] = $request->file('attachment')->store('leave-attachments', 'public');
         }
 
-        StaffLeave::create($validated);
+        LeaveApplication::create($validated);
 
         return redirect()->route('teacher.leaves.index')
             ->with('success', 'Leave application submitted successfully.');
@@ -85,10 +87,10 @@ class LeaveController extends Controller
     /**
      * View a leave application.
      */
-    public function show(StaffLeave $leave)
+    public function show(LeaveApplication $leave)
     {
         $staff = $this->getStaff();
-        if (!$staff || $leave->staff_id !== $staff->id) {
+        if (!$staff || $leave->applicant_type !== Staff::class || $leave->applicant_id !== $staff->id) {
             return redirect()->route('teacher.leaves.index')->with('error', 'Unauthorized access.');
         }
 
@@ -98,10 +100,10 @@ class LeaveController extends Controller
     /**
      * Cancel a pending leave application.
      */
-    public function cancel(StaffLeave $leave)
+    public function cancel(LeaveApplication $leave)
     {
         $staff = $this->getStaff();
-        if (!$staff || $leave->staff_id !== $staff->id) {
+        if (!$staff || $leave->applicant_type !== Staff::class || $leave->applicant_id !== $staff->id) {
             return redirect()->route('teacher.leaves.index')->with('error', 'Unauthorized access.');
         }
 
@@ -125,22 +127,25 @@ class LeaveController extends Controller
             return redirect()->route('teacher.dashboard')->with('error', 'Staff profile not found.');
         }
 
+        $leaveTypes = LeaveType::where('is_active', true)
+            ->where(function ($q) {
+                $q->whereIn('applicable_to', ['all', 'staff']);
+            })
+            ->get();
+
         $balances = StaffLeaveBalance::where('staff_id', $staff->id)
             ->with('leaveType')
             ->get();
 
-        $leaveTypes = LeaveType::where('is_active', true)->get();
-
-        // Calculate used leaves
-        $usedLeaves = StaffLeave::where('staff_id', $staff->id)
+        // Calculate used leaves from leave_applications
+        $usedLeaves = LeaveApplication::where('applicant_type', Staff::class)
+            ->where('applicant_id', $staff->id)
             ->where('status', 'approved')
             ->whereYear('from_date', now()->year)
             ->get()
-            ->groupBy('leave_type_id')
+            ->groupBy('leave_type')
             ->map(function ($leaves) {
-                return $leaves->sum(function ($leave) {
-                    return $leave->from_date->diffInDays($leave->to_date) + 1;
-                });
+                return $leaves->sum('total_days');
             });
 
         return view('teacher.leaves.balance', compact('staff', 'balances', 'leaveTypes', 'usedLeaves'));

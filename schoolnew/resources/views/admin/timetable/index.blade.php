@@ -38,7 +38,7 @@
                             <i data-feather="clock" class="me-1"></i> Manage Periods
                         </a>
                         <a href="{{ route('admin.timetable.create') }}" class="btn btn-primary">
-                            <i data-feather="plus" class="me-1"></i> Add Entry
+                            <i data-feather="plus" class="me-1"></i> Add New
                         </a>
                     </div>
                 </div>

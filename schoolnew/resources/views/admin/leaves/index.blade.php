@@ -16,10 +16,8 @@
 			<div class="card-body bg-light-warning">
 				<div class="d-flex align-items-center gap-3">
 					<div class="flex-shrink-0">
-						<div class="bg-warning p-3 rounded-circle">
-							<svg class="text-white" style="width: 24px; height: 24px;">
-								<use href="{{ asset('assets/svg/icon-sprite.svg#clock') }}"></use>
-							</svg>
+						<div class="bg-warning d-flex align-items-center justify-content-center rounded-circle" style="width: 50px; height: 50px;">
+							<i class="fa-solid fa-clock text-white" style="font-size: 22px;"></i>
 						</div>
 					</div>
 					<div class="flex-grow-1">
@@ -35,10 +33,8 @@
 			<div class="card-body bg-light-success">
 				<div class="d-flex align-items-center gap-3">
 					<div class="flex-shrink-0">
-						<div class="bg-success p-3 rounded-circle">
-							<svg class="text-white" style="width: 24px; height: 24px;">
-								<use href="{{ asset('assets/svg/icon-sprite.svg#check-circle') }}"></use>
-							</svg>
+						<div class="bg-success d-flex align-items-center justify-content-center rounded-circle" style="width: 50px; height: 50px;">
+							<i class="fa-solid fa-circle-check text-white" style="font-size: 22px;"></i>
 						</div>
 					</div>
 					<div class="flex-grow-1">
@@ -54,10 +50,8 @@
 			<div class="card-body bg-light-danger">
 				<div class="d-flex align-items-center gap-3">
 					<div class="flex-shrink-0">
-						<div class="bg-danger p-3 rounded-circle">
-							<svg class="text-white" style="width: 24px; height: 24px;">
-								<use href="{{ asset('assets/svg/icon-sprite.svg#close') }}"></use>
-							</svg>
+						<div class="bg-danger d-flex align-items-center justify-content-center rounded-circle" style="width: 50px; height: 50px;">
+							<i class="fa-solid fa-circle-xmark text-white" style="font-size: 22px;"></i>
 						</div>
 					</div>
 					<div class="flex-grow-1">
@@ -73,10 +67,8 @@
 			<div class="card-body bg-light-primary">
 				<div class="d-flex align-items-center gap-3">
 					<div class="flex-shrink-0">
-						<div class="bg-primary p-3 rounded-circle">
-							<svg class="text-white" style="width: 24px; height: 24px;">
-								<use href="{{ asset('assets/svg/icon-sprite.svg#file-text') }}"></use>
-							</svg>
+						<div class="bg-primary d-flex align-items-center justify-content-center rounded-circle" style="width: 50px; height: 50px;">
+							<i class="fa-solid fa-file-lines text-white" style="font-size: 22px;"></i>
 						</div>
 					</div>
 					<div class="flex-grow-1">
@@ -224,10 +216,10 @@
 											</a>
 											@if($leave->status === 'pending')
 												<button type="button" class="square-white border-0 bg-transparent p-0 quick-approve-btn" data-id="{{ $leave->id }}" title="Quick Approve">
-													<svg class="text-success"><use href="{{ asset('assets/svg/icon-sprite.svg#check-circle') }}"></use></svg>
+													<svg class="text-success"><use href="{{ asset('assets/svg/icon-sprite.svg#profile-check') }}"></use></svg>
 												</button>
 												<button type="button" class="square-white border-0 bg-transparent p-0 quick-reject-btn" data-id="{{ $leave->id }}" title="Reject">
-													<svg class="text-danger"><use href="{{ asset('assets/svg/icon-sprite.svg#close') }}"></use></svg>
+													<svg class="text-danger"><use href="{{ asset('assets/svg/icon-sprite.svg#close-btn') }}"></use></svg>
 												</button>
 											@endif
 										</div>
@@ -324,13 +316,26 @@
 <script>
 jQuery(document).ready(function() {
 	// Select All Checkbox
-	jQuery('#selectAll').on('change', function() {
+	jQuery(document).on('change', '#selectAll', function() {
 		jQuery('.leave-checkbox').prop('checked', jQuery(this).prop('checked'));
 		toggleBulkButtons();
 	});
 
 	// Individual Checkbox
-	jQuery('.leave-checkbox').on('change', function() {
+	jQuery(document).on('change', '.leave-checkbox', function() {
+		var totalCheckboxes = jQuery('.leave-checkbox').length;
+		var checkedCheckboxes = jQuery('.leave-checkbox:checked').length;
+
+		if (totalCheckboxes > 0 && checkedCheckboxes === totalCheckboxes) {
+			jQuery('#selectAll').prop('checked', true);
+			jQuery('#selectAll').prop('indeterminate', false);
+		} else if (checkedCheckboxes > 0) {
+			jQuery('#selectAll').prop('checked', false);
+			jQuery('#selectAll').prop('indeterminate', true);
+		} else {
+			jQuery('#selectAll').prop('checked', false);
+			jQuery('#selectAll').prop('indeterminate', false);
+		}
 		toggleBulkButtons();
 	});
 
@@ -344,7 +349,7 @@ jQuery(document).ready(function() {
 	}
 
 	// Quick Approve
-	jQuery('.quick-approve-btn').on('click', function() {
+	jQuery(document).on('click', '.quick-approve-btn', function() {
 		var leaveId = jQuery(this).data('id');
 		Swal.fire({
 			title: 'Approve Leave?',
@@ -363,14 +368,14 @@ jQuery(document).ready(function() {
 	});
 
 	// Quick Reject
-	jQuery('.quick-reject-btn').on('click', function() {
+	jQuery(document).on('click', '.quick-reject-btn', function() {
 		var leaveId = jQuery(this).data('id');
 		jQuery('#rejectForm').attr('action', '/admin/leaves/' + leaveId + '/reject');
 		jQuery('#rejectModal').modal('show');
 	});
 
 	// Bulk Approve
-	jQuery('#bulkApproveBtn').on('click', function() {
+	jQuery(document).on('click', '#bulkApproveBtn', function() {
 		var selectedIds = [];
 		jQuery('.leave-checkbox:checked').each(function() {
 			selectedIds.push(jQuery(this).val());
@@ -393,7 +398,7 @@ jQuery(document).ready(function() {
 	});
 
 	// Bulk Reject
-	jQuery('#bulkRejectBtn').on('click', function() {
+	jQuery(document).on('click', '#bulkRejectBtn', function() {
 		var selectedIds = [];
 		jQuery('.leave-checkbox:checked').each(function() {
 			selectedIds.push(jQuery(this).val());

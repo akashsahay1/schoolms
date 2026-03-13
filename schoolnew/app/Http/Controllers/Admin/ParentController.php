@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ParentGuardian;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 
 class ParentController extends Controller
@@ -232,5 +233,26 @@ class ParentController extends Controller
 			DB::rollBack();
 			return back()->with('error', 'An error occurred: ' . $e->getMessage());
 		}
+	}
+
+	/**
+	 * Reset password for a parent's user account.
+	 */
+	public function resetPassword(Request $request, ParentGuardian $parent)
+	{
+		$request->validate([
+			'new_password' => 'required|string|min:6|max:50',
+		]);
+
+		if (!$parent->user) {
+			return back()->with('error', 'No user account linked to this parent.');
+		}
+
+		$parent->user->update([
+			'password' => Hash::make($request->new_password),
+			'plain_password' => $request->new_password,
+		]);
+
+		return back()->with('success', 'Parent password has been reset successfully.');
 	}
 }

@@ -27,18 +27,20 @@ class EventController extends Controller
 
         $upcomingEvents = Event::upcoming()
             ->where(function ($q) {
-                $q->where('audience', 'all')
-                    ->orWhere('audience', 'staff')
-                    ->orWhere('audience', 'teachers');
+                $q->whereNull('target_audience')
+                    ->orWhereJsonContains('target_audience', 'all')
+                    ->orWhereJsonContains('target_audience', 'staff')
+                    ->orWhereJsonContains('target_audience', 'teachers');
             })
             ->orderBy('start_date')
             ->get();
 
         $pastEvents = Event::where('end_date', '<', now())
             ->where(function ($q) {
-                $q->where('audience', 'all')
-                    ->orWhere('audience', 'staff')
-                    ->orWhere('audience', 'teachers');
+                $q->whereNull('target_audience')
+                    ->orWhereJsonContains('target_audience', 'all')
+                    ->orWhereJsonContains('target_audience', 'staff')
+                    ->orWhereJsonContains('target_audience', 'teachers');
             })
             ->orderBy('start_date', 'desc')
             ->take(10)
@@ -58,7 +60,8 @@ class EventController extends Controller
         }
 
         // Check if event is for staff
-        if (!in_array($event->audience, ['all', 'staff', 'teachers'])) {
+        $audience = $event->target_audience ?? [];
+        if (!array_intersect($audience, ['all', 'staff', 'teachers'])) {
             return redirect()->route('teacher.events')->with('error', 'Event not found.');
         }
 

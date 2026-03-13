@@ -282,6 +282,65 @@ class FeeCollectionController extends Controller
         return view('fees.receipt.show', compact('collections', 'feeCollection', 'schoolSettings'));
     }
 
+    public function destroy(FeeCollection $feeCollection)
+    {
+        try {
+            $studentId = $feeCollection->student_id;
+            $feeCollection->delete();
+
+            return redirect()->route('admin.fees.collect', $studentId)
+                ->with('success', 'Fee collection record deleted successfully. The fee is now marked as unpaid.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'An error occurred: ' . $e->getMessage());
+        }
+    }
+
+    public function refund(Request $request, FeeCollection $feeCollection)
+    {
+        $validated = $request->validate([
+            'refund_amount' => ['required', 'numeric', 'min:0.01', 'max:' . $feeCollection->paid_amount],
+            'refund_reason' => ['required', 'string', 'max:500'],
+            'refund_mode' => ['required', 'in:cash,cheque,online,bank_transfer'],
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            // Create refund record as a new collection with negative amount
+            $refundReceiptNo = 'REF-' . date('Ymd') . '-' . str_pad(FeeCollection::withTrashed()->count() + 1, 5, '0', STR_PAD_LEFT);
+
+            FeeCollection::create([
+                'student_id' => $feeCollection->student_id,
+                'fee_structure_id' => $feeCollection->fee_structure_id,
+                'academic_year_id' => $feeCollection->academic_year_id,
+                'collected_by' => auth()->id(),
+                'amount' => -$validated['refund_amount'],
+                'discount_amount' => 0,
+                'fine_amount' => 0,
+                'paid_amount' => -$validated['refund_amount'],
+                'payment_mode' => $validated['refund_mode'],
+                'transaction_id' => null,
+                'payment_date' => now()->toDateString(),
+                'remarks' => 'REFUND: ' . $validated['refund_reason'] . ' (Original Receipt: ' . $feeCollection->receipt_no . ')',
+                'receipt_no' => $refundReceiptNo,
+            ]);
+
+            // If full refund, delete the original collection so fee shows as unpaid
+            if ($validated['refund_amount'] == $feeCollection->paid_amount) {
+                $feeCollection->delete();
+            }
+
+            DB::commit();
+
+            return redirect()->route('admin.fees.collect', $feeCollection->student_id)
+                ->with('success', 'Refund of ₹' . number_format($validated['refund_amount'], 2) . ' processed successfully. Receipt: ' . $refundReceiptNo);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'An error occurred: ' . $e->getMessage());
+        }
+    }
+
     private function calculatePendingFees($student, $feeStructures, $activeYear)
     {
         $paidFeeIds = FeeCollection::where('student_id', $student->id)

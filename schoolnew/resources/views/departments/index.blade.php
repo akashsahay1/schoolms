@@ -46,7 +46,7 @@
                         </a>
                         @can('create staff')
                             <a href="{{ route('admin.departments.create') }}" class="btn btn-primary">
-                                <i data-feather="plus" class="me-1"></i> Add Department
+                                <i data-feather="plus" class="me-1"></i> Add New
                             </a>
                         @endcan
                     </div>

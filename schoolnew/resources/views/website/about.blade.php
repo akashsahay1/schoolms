@@ -19,27 +19,57 @@
 </section>
 
 <!-- About Content -->
-<section class="section-padding">
+<section class="about-section section-padding">
     <div class="container">
-        <div class="row align-items-center mb-5">
-            <div class="col-lg-6 mb-4 mb-lg-0">
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-5 mb-lg-0">
                 <div class="about-image">
                     @if($page?->banner_image)
-                        <img src="{{ asset('storage/' . $page->banner_image) }}" alt="About Us" class="img-fluid rounded-3">
+                        <img src="{{ asset('storage/' . $page->banner_image) }}" alt="About Us" class="img-fluid w-100" style="max-height: 500px; object-fit: cover;">
                     @else
-                        <img src="{{ asset('assets/images/about-school.jpg') }}" alt="About Us" class="img-fluid rounded-3">
+                        <img src="{{ asset('assets/images/banner/4.jpg') }}" alt="About Us" class="img-fluid w-100" style="max-height: 500px; object-fit: cover;">
                     @endif
+                    <div class="experience-badge d-none d-md-block">
+                        <h3>{{ \App\Models\Setting::get('school_years', '25') }}+</h3>
+                        <span>Years of<br>Excellence</span>
+                    </div>
                 </div>
             </div>
-            <div class="col-lg-6">
-                <h6 class="text-primary fw-bold">OUR STORY</h6>
-                <h2 class="mb-4">{{ $page?->title ?? 'A Legacy of Educational Excellence' }}</h2>
-                @if($page?->content)
-                    {!! $page->content !!}
-                @else
-                    <p>Welcome to {{ \App\Models\Setting::get('school_name', config('app.name')) }}, where we have been shaping young minds for over {{ \App\Models\Setting::get('school_years', '25') }} years. Our commitment to excellence in education has made us one of the leading educational institutions in the region.</p>
-                    <p>We believe in providing a holistic education that nurtures not just academic excellence but also personal growth, creativity, and social responsibility. Our dedicated faculty and state-of-the-art facilities create an environment where students can thrive and reach their full potential.</p>
-                @endif
+            <div class="col-lg-6 ps-lg-5">
+                <div class="about-content">
+                    <h6 class="text-primary fw-bold mb-3">OUR STORY</h6>
+                    <h2 class="mb-4" style="line-height: 1.3;">{{ $page?->title ?? 'A Legacy of Educational Excellence' }}</h2>
+                    @if($page?->content)
+                        <div class="text-muted" style="line-height: 1.8;">
+                            {!! $page->content !!}
+                        </div>
+                    @else
+                        <p class="text-muted" style="line-height: 1.8;">Welcome to {{ \App\Models\Setting::get('school_name', config('app.name')) }}, where we have been shaping young minds for over {{ \App\Models\Setting::get('school_years', '25') }} years. Our commitment to excellence in education has made us one of the leading educational institutions in the region.</p>
+                        <p class="text-muted mb-4" style="line-height: 1.8;">We believe in providing a holistic education that nurtures not just academic excellence but also personal growth, creativity, and social responsibility. Our dedicated faculty and state-of-the-art facilities create an environment where students can thrive and reach their full potential.</p>
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="check-item">
+                                    <i data-feather="check-circle" class="text-primary me-2"></i>
+                                    <span>Quality Education</span>
+                                </div>
+                                <div class="check-item">
+                                    <i data-feather="check-circle" class="text-primary me-2"></i>
+                                    <span>Expert Faculty</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="check-item">
+                                    <i data-feather="check-circle" class="text-primary me-2"></i>
+                                    <span>Modern Facilities</span>
+                                </div>
+                                <div class="check-item">
+                                    <i data-feather="check-circle" class="text-primary me-2"></i>
+                                    <span>Holistic Growth</span>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+                </div>
             </div>
         </div>
     </div>

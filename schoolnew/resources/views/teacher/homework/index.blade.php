@@ -11,7 +11,9 @@
 <div class="row">
 	<div class="col-12 mb-4">
 		<div class="d-flex justify-content-between align-items-center">
-			<h5 class="mb-0">Assigned Homework</h5>
+			<h5 class="mb-0">
+				<i data-feather="book" style="width: 18px; height: 18px;" class="me-2"></i>Assigned Homework
+			</h5>
 			<div>
 				<a href="{{ route('teacher.homework.submissions') }}" class="btn btn-outline-primary me-2">
 					<i data-feather="check-square" style="width: 14px; height: 14px;"></i> Review Submissions
@@ -29,7 +31,7 @@
 				@if($homework->count() > 0)
 					<div class="table-responsive">
 						<table class="table table-hover">
-							<thead>
+							<thead class="bg-light">
 								<tr>
 									<th>Title</th>
 									<th>Class</th>

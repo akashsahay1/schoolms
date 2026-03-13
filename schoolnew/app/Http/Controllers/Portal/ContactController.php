@@ -5,8 +5,11 @@ namespace App\Http\Controllers\Portal;
 use App\Http\Controllers\Controller;
 use App\Models\Student;
 use App\Models\ContactMessage;
+use App\Models\User;
+use App\Notifications\GeneralNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Notification;
 
 class ContactController extends Controller
 {
@@ -43,7 +46,7 @@ class ContactController extends Controller
             'priority' => 'required|in:low,medium,high',
         ]);
 
-        ContactMessage::create([
+        $contactMessage = ContactMessage::create([
             'user_id' => $user->id,
             'student_id' => $student?->id,
             'subject' => $validated['subject'],
@@ -52,6 +55,18 @@ class ContactController extends Controller
             'priority' => $validated['priority'],
             'status' => 'open',
         ]);
+
+        // Notify admin users about new contact message
+        $adminUsers = User::role(['Super Admin', 'Admin'])->get();
+        if ($adminUsers->isNotEmpty()) {
+            Notification::send($adminUsers, new GeneralNotification(
+                'New Contact Message',
+                $user->name . ': ' . $validated['subject'],
+                'message-circle',
+                $validated['priority'] === 'high' ? 'danger' : 'info',
+                '/admin/messaging/contact-messages/' . $contactMessage->id
+            ));
+        }
 
         return redirect()->route('portal.contact')
             ->with('success', 'Your message has been sent successfully. We will respond soon.');

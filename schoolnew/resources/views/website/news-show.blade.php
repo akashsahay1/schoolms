@@ -24,40 +24,50 @@
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-lg-8">
-                <article class="card border-0 shadow-sm">
-                    <div class="card-body p-4 p-lg-5">
-                        <div class="mb-4">
-                            <div class="d-flex align-items-center gap-3 text-muted small mb-3">
-                                <span><i data-feather="calendar" class="me-1" style="width: 14px;"></i> {{ $notice->publish_date->format('F d, Y') }}</span>
-                                @if($notice->category)
-                                    <span><i data-feather="folder" class="me-1" style="width: 14px;"></i> {{ $notice->category }}</span>
-                                @endif
-                            </div>
-                            @if($notice->is_important)
-                                <span class="badge bg-danger mb-3">Important</span>
+                <article class="news-detail-card">
+                    <div class="news-detail-header">
+                        <div class="news-detail-meta">
+                            <span class="news-detail-date">
+                                <i data-feather="calendar"></i> {{ $notice->publish_date->format('F d, Y') }}
+                            </span>
+                            @if($notice->category)
+                                <span class="news-detail-category">
+                                    <i data-feather="folder"></i> {{ $notice->category }}
+                                </span>
                             @endif
                         </div>
+                        @if($notice->is_important)
+                            <span class="news-detail-important">
+                                <i data-feather="alert-circle"></i> Important Notice
+                            </span>
+                        @endif
+                    </div>
 
-                        <div class="notice-content">
+                    <div class="news-detail-body">
+                        <div class="news-detail-content">
                             {!! $notice->content !!}
                         </div>
 
                         @if($notice->attachment)
-                            <div class="mt-4 p-3 bg-light rounded">
-                                <h6><i data-feather="paperclip" class="me-2" style="width: 16px;"></i> Attachment</h6>
-                                <a href="{{ asset('storage/' . $notice->attachment) }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                    <i data-feather="download" class="me-1" style="width: 14px;"></i> Download Attachment
+                            <div class="news-detail-attachment">
+                                <div class="attachment-icon">
+                                    <i data-feather="paperclip"></i>
+                                </div>
+                                <div class="attachment-info">
+                                    <h6>Attachment Available</h6>
+                                    <p>Download the attached file for more information</p>
+                                </div>
+                                <a href="{{ asset('storage/' . $notice->attachment) }}" target="_blank" class="btn btn-primary">
+                                    <i data-feather="download" style="width: 16px;"></i> Download
                                 </a>
                             </div>
                         @endif
+                    </div>
 
-                        <hr class="my-4">
-
-                        <div class="d-flex justify-content-between align-items-center">
-                            <a href="{{ route('website.news') }}" class="btn btn-outline-secondary">
-                                <i data-feather="arrow-left" class="me-1" style="width: 14px;"></i> Back to News
-                            </a>
-                        </div>
+                    <div class="news-detail-footer">
+                        <a href="{{ route('website.news') }}" class="btn btn-outline-primary btn-lg">
+                            <i data-feather="arrow-left" style="width: 16px;"></i> Back to News
+                        </a>
                     </div>
                 </article>
             </div>

@@ -6,10 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Staff;
 use App\Models\Student;
 use App\Models\Exam;
+use App\Models\ExamSchedule;
 use App\Models\ExamMark;
-use App\Models\SchoolClass;
-use App\Models\Section;
-use App\Models\Subject;
 use App\Models\Timetable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -40,13 +38,16 @@ class ExamController extends Controller
             ->pluck('subject_id')
             ->unique();
 
-        $exams = Exam::with(['schoolClass', 'subject'])
+        $schedules = ExamSchedule::with(['exam', 'schoolClass', 'subject'])
             ->whereIn('class_id', $myClassIds)
             ->whereIn('subject_id', $mySubjectIds)
+            ->whereHas('exam', function ($q) {
+                $q->where('is_active', true);
+            })
             ->orderBy('exam_date')
             ->get();
 
-        return view('teacher.exams.schedule', compact('staff', 'exams'));
+        return view('teacher.exams.schedule', compact('staff', 'schedules'));
     }
 
     /**
@@ -64,36 +65,42 @@ class ExamController extends Controller
             ->pluck('class_id')
             ->unique();
 
-        $exams = Exam::whereIn('class_id', $myClassIds)
-            ->with(['schoolClass', 'subject'])
+        $mySubjectIds = Timetable::where('teacher_id', $staff->id)
+            ->pluck('subject_id')
+            ->unique();
+
+        $schedules = ExamSchedule::with(['exam', 'schoolClass', 'subject'])
+            ->whereIn('class_id', $myClassIds)
+            ->whereIn('subject_id', $mySubjectIds)
+            ->whereHas('exam', function ($q) {
+                $q->where('is_active', true);
+            })
             ->orderBy('exam_date', 'desc')
             ->get();
 
         $students = collect();
         $existingMarks = collect();
-        $selectedExam = null;
+        $selectedSchedule = null;
 
-        if ($request->exam_id) {
-            $selectedExam = Exam::with(['schoolClass', 'section', 'subject'])->find($request->exam_id);
+        if ($request->schedule_id) {
+            $selectedSchedule = ExamSchedule::with(['exam', 'schoolClass', 'subject'])->find($request->schedule_id);
 
-            if ($selectedExam) {
-                $query = Student::where('class_id', $selectedExam->class_id)
-                    ->where('status', 'active');
-
-                if ($selectedExam->section_id) {
-                    $query->where('section_id', $selectedExam->section_id);
-                }
-
-                $students = $query->orderBy('roll_number')->orderBy('first_name')->get();
+            if ($selectedSchedule) {
+                $students = Student::where('class_id', $selectedSchedule->class_id)
+                    ->where('status', 'active')
+                    ->orderBy('roll_no')
+                    ->orderBy('first_name')
+                    ->get();
 
                 // Get existing marks
-                $existingMarks = ExamMark::where('exam_id', $selectedExam->id)
+                $existingMarks = ExamMark::where('exam_id', $selectedSchedule->exam_id)
+                    ->where('subject_id', $selectedSchedule->subject_id)
                     ->get()
                     ->keyBy('student_id');
             }
         }
 
-        return view('teacher.exams.marks', compact('staff', 'exams', 'students', 'existingMarks', 'selectedExam'));
+        return view('teacher.exams.marks', compact('staff', 'schedules', 'students', 'existingMarks', 'selectedSchedule'));
     }
 
     /**
@@ -107,24 +114,24 @@ class ExamController extends Controller
         }
 
         $validated = $request->validate([
-            'exam_id' => 'required|exists:exams,id',
+            'schedule_id' => 'required|exists:exam_schedules,id',
             'marks' => 'required|array',
             'marks.*' => 'nullable|numeric|min:0',
         ]);
 
-        $exam = Exam::findOrFail($validated['exam_id']);
+        $schedule = ExamSchedule::findOrFail($validated['schedule_id']);
 
         foreach ($validated['marks'] as $studentId => $marks) {
             if ($marks !== null) {
                 ExamMark::updateOrCreate(
                     [
-                        'exam_id' => $exam->id,
+                        'exam_id' => $schedule->exam_id,
                         'student_id' => $studentId,
+                        'subject_id' => $schedule->subject_id,
                     ],
                     [
                         'marks_obtained' => $marks,
-                        'total_marks' => $exam->total_marks,
-                        'is_absent' => false,
+                        'full_marks' => $schedule->full_marks,
                     ]
                 );
             }

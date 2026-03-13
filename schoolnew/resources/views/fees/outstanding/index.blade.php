@@ -75,16 +75,19 @@
                                         <tr>
                                             <td>{{ $loop->iteration }}</td>
                                             <td>
-                                                <div>
-                                                    <strong>{{ $data['student']->name }}</strong><br>
-                                                    <small class="text-muted">Roll: {{ $data['student']->roll_number }}</small>
-                                                </div>
+                                                <strong>{{ $data['student']->full_name }}</strong><br>
+                                                <small class="text-muted">
+                                                    Adm: {{ $data['student']->admission_no }}
+                                                    @if($data['student']->roll_no)
+                                                        | Roll: {{ $data['student']->roll_no }}
+                                                    @endif
+                                                </small>
                                             </td>
                                             <td>{{ $data['student']->schoolClass->name }} - {{ $data['student']->section->name }}</td>
                                             <td>
                                                 @foreach($data['outstanding_fees'] as $fee)
-                                                    <div class="d-flex justify-content-between border-bottom py-1">
-                                                        <span>{{ $fee->feeType->name }}</span>
+                                                    <div class="d-flex align-items-center gap-2 py-1 {{ !$loop->last ? 'border-bottom' : '' }}">
+                                                        <span class="badge badge-light-warning">{{ $fee->feeType->name }}</span>
                                                         <span class="text-danger">₹{{ number_format($fee->amount, 2) }}</span>
                                                     </div>
                                                 @endforeach

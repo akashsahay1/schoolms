@@ -58,6 +58,7 @@ class ProfileController extends Controller
 
         $user->update([
             'password' => Hash::make($validated['password']),
+            'plain_password' => $validated['password'],
         ]);
 
         return redirect()->route('admin.profile')

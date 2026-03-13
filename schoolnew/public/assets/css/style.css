@@ -1463,7 +1463,7 @@ svg.f-light {
 }
 .bg-light-primary {
     background-color: rgba(115, 102, 255, 0.1) !important;
-    color: #fff;
+    color: #7366FF !important;
 }
 .bg-lighter-primary {
     background-color: rgba(115, 102, 255, 0.6);
@@ -1560,7 +1560,7 @@ svg.f-light {
 }
 .bg-light-secondary {
     background-color: hsla(0, 0%, 51%, 0.1) !important;
-    color: #fff;
+    color: #838383 !important;
 }
 .bg-lighter-secondary {
     background-color: hsla(0, 0%, 51%, 0.6);
@@ -1657,7 +1657,7 @@ svg.f-light {
 }
 .bg-light-success {
     background-color: rgba(101, 193, 92, 0.1) !important;
-    color: #fff;
+    color: #65C15C !important;
 }
 .bg-lighter-success {
     background-color: rgba(101, 193, 92, 0.6);
@@ -1754,7 +1754,7 @@ svg.f-light {
 }
 .bg-light-danger {
     background-color: rgba(252, 86, 74, 0.1) !important;
-    color: #fff;
+    color: #FC564A !important;
 }
 .bg-lighter-danger {
     background-color: rgba(252, 86, 74, 0.6);
@@ -1851,7 +1851,7 @@ svg.f-light {
 }
 .bg-light-info {
     background-color: rgba(64, 184, 245, 0.1) !important;
-    color: #fff;
+    color: #40B8F5 !important;
 }
 .bg-lighter-info {
     background-color: rgba(64, 184, 245, 0.6);
@@ -1948,7 +1948,7 @@ svg.f-light {
 }
 .bg-light-light {
     background-color: hsla(0, 0%, 96%, 0.1) !important;
-    color: #fff;
+    color: #6c757d !important;
 }
 .bg-lighter-light {
     background-color: hsla(0, 0%, 96%, 0.6);
@@ -2045,7 +2045,7 @@ svg.f-light {
 }
 .bg-light-dark {
     background-color: rgba(63, 71, 90, 0.1) !important;
-    color: #fff;
+    color: #3F475A !important;
 }
 .bg-lighter-dark {
     background-color: rgba(63, 71, 90, 0.6);
@@ -2064,6 +2064,9 @@ svg.f-light {
 .bg-warning:hover {
     background-color: #ffb829;
     color: #fff;
+}
+.card-header.bg-warning *, .card.bg-warning .card-body *, .card-body.bg-warning *, thead.bg-warning * {
+    color: #fff !important;
 }
 .table-warning td {
     background-color: rgba(255, 184, 41, 0.4) !important;
@@ -2142,7 +2145,7 @@ svg.f-light {
 }
 .bg-light-warning {
     background-color: rgba(255, 184, 41, 0.1) !important;
-    color: #fff;
+    color: #D49B21 !important;
 }
 .bg-lighter-warning {
     background-color: rgba(255, 184, 41, 0.6);
@@ -4393,8 +4396,6 @@ table tbody tr {
 .card-body .alert svg {
     height: 16px;
     margin-right: 4px;
-    position: absolute;
-    top: 18px;
     width: 16px;
 }
 .card-body .alert svg ~ p {
@@ -5993,7 +5994,6 @@ a.badge:hover.badge-dark:hover {
 }
 .badge svg {
     height: 16px;
-    padding-top: 3px;
     width: 16px;
 }
 .b-ln-height {
@@ -56132,7 +56132,6 @@ ul.dot-group li {
 .login-card .login-main .theme-form p {
     color: #898989;
     font-size: 14px;
-    margin-bottom: 25px;
 }
 .login-card .login-main .theme-form .form-group {
     margin-bottom: 10px;

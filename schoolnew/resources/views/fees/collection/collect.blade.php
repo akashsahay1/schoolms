@@ -206,7 +206,7 @@
                                     <th>Payment Date</th>
                                     <th>Payment Mode</th>
                                     <th>Collected By</th>
-                                    <th>Action</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -214,14 +214,35 @@
                                     <tr>
                                         <td>{{ $payment->receipt_no }}</td>
                                         <td>{{ $payment->feeStructure->feeType->name ?? 'N/A' }}</td>
-                                        <td>₹{{ number_format($payment->paid_amount, 2) }}</td>
+                                        <td>
+                                            @if($payment->paid_amount < 0)
+                                                <span class="text-danger">-₹{{ number_format(abs($payment->paid_amount), 2) }}</span>
+                                                <span class="badge badge-light-danger">Refund</span>
+                                            @else
+                                                ₹{{ number_format($payment->paid_amount, 2) }}
+                                            @endif
+                                        </td>
                                         <td>{{ $payment->payment_date->format('d M Y') }}</td>
                                         <td>{{ ucfirst($payment->payment_mode) }}</td>
                                         <td>{{ $payment->collectedBy->name ?? 'N/A' }}</td>
                                         <td>
-                                            <a href="{{ route('admin.fees.receipt', $payment) }}" class="btn btn-outline-primary btn-sm">
-                                                <i data-feather="printer" class="icon-xs"></i> Receipt
-                                            </a>
+                                            <div class="d-flex gap-1">
+                                                <a href="{{ route('admin.fees.receipt', $payment) }}" class="btn btn-outline-primary btn-sm" title="Receipt">
+                                                    <i data-feather="printer" class="icon-xs"></i>
+                                                </a>
+                                                @if($payment->paid_amount > 0)
+                                                    <button type="button" class="btn btn-outline-warning btn-sm refund-btn" title="Refund" data-id="{{ $payment->id }}" data-amount="{{ $payment->paid_amount }}" data-receipt="{{ $payment->receipt_no }}" data-fee="{{ $payment->feeStructure->feeType->name ?? 'N/A' }}">
+                                                        <i data-feather="corner-down-left" class="icon-xs"></i>
+                                                    </button>
+                                                @endif
+                                                <form action="{{ route('admin.fees.collection.destroy', $payment) }}" method="POST" class="d-inline">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="button" class="btn btn-outline-danger btn-sm collection-delete-btn" title="Delete" data-receipt="{{ $payment->receipt_no }}" data-amount="{{ number_format($payment->paid_amount, 2) }}">
+                                                        <i data-feather="trash-2" class="icon-xs"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
                                         </td>
                                     </tr>
                                 @endforeach
@@ -234,6 +255,51 @@
     </div>
 </div>
 @endsection
+
+<!-- Refund Modal -->
+<div class="modal fade" id="refundModal" tabindex="-1" aria-labelledby="refundModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="refundForm" method="POST">
+                @csrf
+                <div class="modal-header">
+                    <h5 class="modal-title" id="refundModalLabel">Process Refund</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <p><strong>Receipt:</strong> <span id="refund-receipt"></span></p>
+                        <p><strong>Fee Type:</strong> <span id="refund-fee"></span></p>
+                        <p><strong>Paid Amount:</strong> ₹<span id="refund-paid"></span></p>
+                    </div>
+                    <div class="mb-3">
+                        <label for="refund_amount" class="form-label">Refund Amount (₹) <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="refund_amount" name="refund_amount" step="0.01" min="0.01" required>
+                        <small class="text-muted">Maximum: ₹<span id="refund-max"></span></small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="refund_mode" class="form-label">Refund Mode <span class="text-danger">*</span></label>
+                        <select class="form-select" id="refund_mode" name="refund_mode" required>
+                            <option value="">Select Mode</option>
+                            <option value="cash">Cash</option>
+                            <option value="cheque">Cheque</option>
+                            <option value="online">Online Transfer</option>
+                            <option value="bank_transfer">Bank Transfer</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="refund_reason" class="form-label">Reason for Refund <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="refund_reason" name="refund_reason" rows="3" required placeholder="Enter reason for refund..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning">Process Refund</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 @push('scripts')
 <script>
@@ -278,6 +344,47 @@
 
 		// Initial calculation
 		calculateTotal();
+
+		// Delete collection handler
+		jQuery('.collection-delete-btn').on('click', function() {
+			var button = jQuery(this);
+			var form = button.closest('form');
+			var receipt = button.data('receipt');
+			var amount = button.data('amount');
+
+			Swal.fire({
+				title: 'Delete Fee Collection?',
+				html: 'You are about to delete payment <strong>' + receipt + '</strong> of ₹' + amount + '.<br><br>This will mark the fee as unpaid again.',
+				icon: 'warning',
+				showCancelButton: true,
+				confirmButtonColor: '#d33',
+				cancelButtonColor: '#6c757d',
+				confirmButtonText: 'Yes, delete it!',
+				cancelButtonText: 'Cancel'
+			}).then(function(result) {
+				if (result.isConfirmed) {
+					form.submit();
+				}
+			});
+		});
+
+		// Refund button handler
+		jQuery('.refund-btn').on('click', function() {
+			var id = jQuery(this).data('id');
+			var amount = jQuery(this).data('amount');
+			var receipt = jQuery(this).data('receipt');
+			var fee = jQuery(this).data('fee');
+
+			jQuery('#refund-receipt').text(receipt);
+			jQuery('#refund-fee').text(fee);
+			jQuery('#refund-paid').text(parseFloat(amount).toFixed(2));
+			jQuery('#refund-max').text(parseFloat(amount).toFixed(2));
+			jQuery('#refund_amount').attr('max', amount).val(amount);
+			jQuery('#refundForm').attr('action', '{{ url("admin/fees/collection") }}/' + id + '/refund');
+
+			var modal = new bootstrap.Modal(document.getElementById('refundModal'));
+			modal.show();
+		});
 	});
 </script>
 @endpush

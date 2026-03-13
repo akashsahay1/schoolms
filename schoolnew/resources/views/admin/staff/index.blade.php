@@ -44,7 +44,7 @@
 							@endif
 						</a>
 						<a href="{{ route('admin.staff.create') }}" class="btn btn-primary">
-							<i data-feather="plus" class="me-1"></i> Add New Staff
+							<i data-feather="plus" class="me-1"></i> Add New
 						</a>
 					</div>
 				</div>
@@ -138,20 +138,26 @@
 										</span>
 									</td>
 									<td>
+										@php
+											$isSuperAdminStaff = $member->user && $member->user->hasRole('Super Admin');
+											$canEditThisStaff = !$isSuperAdminStaff || auth()->user()->hasRole('Super Admin');
+										@endphp
 										<div class="common-align gap-2 justify-content-start">
 											<a class="square-white" href="{{ route('admin.staff.show', $member) }}" title="View">
 												<svg><use href="{{ asset('assets/svg/icon-sprite.svg#eye') }}"></use></svg>
 											</a>
-											<a class="square-white" href="{{ route('admin.staff.edit', $member) }}" title="Edit">
-												<svg><use href="{{ asset('assets/svg/icon-sprite.svg#edit-content') }}"></use></svg>
-											</a>
-											<form action="{{ route('admin.staff.destroy', $member) }}" method="POST" class="d-inline delete-form">
-												@csrf
-												@method('DELETE')
-												<button type="button" class="square-white trash-7 border-0 bg-transparent p-0 move-to-trash" title="Move to Trash" data-name="{{ $member->full_name }}">
-													<svg><use href="{{ asset('assets/svg/icon-sprite.svg#trash1') }}"></use></svg>
-												</button>
-											</form>
+											@if($canEditThisStaff)
+												<a class="square-white" href="{{ route('admin.staff.edit', $member) }}" title="Edit">
+													<svg><use href="{{ asset('assets/svg/icon-sprite.svg#edit-content') }}"></use></svg>
+												</a>
+												<form action="{{ route('admin.staff.destroy', $member) }}" method="POST" class="d-inline delete-form">
+													@csrf
+													@method('DELETE')
+													<button type="button" class="square-white trash-7 border-0 bg-transparent p-0 move-to-trash" title="Move to Trash" data-name="{{ $member->full_name }}">
+														<svg><use href="{{ asset('assets/svg/icon-sprite.svg#trash1') }}"></use></svg>
+													</button>
+												</form>
+											@endif
 										</div>
 									</td>
 								</tr>

@@ -15,8 +15,8 @@
 			<div class="card-body">
 				<div class="d-flex justify-content-between align-items-start mb-4">
 					<div>
-						<h5 class="mb-1">{{ $leave->leaveType->name ?? 'Leave Application' }}</h5>
-						<small class="text-muted">Applied on {{ $leave->applied_at ? $leave->applied_at->format('M d, Y') : $leave->created_at->format('M d, Y') }}</small>
+						<h5 class="mb-1">{{ $leave->getLeaveTypeLabel() }}</h5>
+						<small class="text-muted">Applied on {{ $leave->created_at->format('M d, Y') }}</small>
 					</div>
 					<div>
 						@switch($leave->status)
@@ -51,7 +51,7 @@
 					</div>
 					<div class="col-md-6">
 						<label class="text-muted small">Leave Type</label>
-						<p class="mb-0 fw-medium">{{ $leave->leaveType->name ?? 'N/A' }}</p>
+						<p class="mb-0 fw-medium">{{ $leave->getLeaveTypeLabel() }}</p>
 					</div>
 					<div class="col-12">
 						<label class="text-muted small">Reason</label>
@@ -69,10 +69,10 @@
 						</div>
 					@endif
 
-					@if($leave->status == 'rejected' && $leave->rejection_reason)
+					@if($leave->status == 'rejected' && $leave->admin_remarks)
 						<div class="col-12">
 							<div class="alert alert-danger mb-0">
-								<strong>Rejection Reason:</strong> {{ $leave->rejection_reason }}
+								<strong>Rejection Reason:</strong> {{ $leave->admin_remarks }}
 							</div>
 						</div>
 					@endif
@@ -80,7 +80,7 @@
 					@if($leave->status == 'approved' && $leave->approved_by)
 						<div class="col-12">
 							<div class="alert alert-success mb-0">
-								<strong>Approved by:</strong> {{ $leave->approvedBy->name ?? 'Admin' }}
+								<strong>Approved by:</strong> {{ $leave->approvedByUser->name ?? 'Admin' }}
 								@if($leave->approved_at)
 									on {{ $leave->approved_at->format('M d, Y') }}
 								@endif
@@ -94,9 +94,9 @@
 					<i data-feather="arrow-left" style="width: 14px; height: 14px;"></i> Back to Applications
 				</a>
 				@if($leave->status == 'pending')
-					<form action="{{ route('teacher.leaves.cancel', $leave) }}" method="POST" class="d-inline">
+					<form action="{{ route('teacher.leaves.cancel', $leave) }}" method="POST" class="d-inline delete-form">
 						@csrf
-						<button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to cancel this leave application?')">
+						<button type="button" class="btn btn-danger delete-confirm" data-name="this leave application">
 							<i data-feather="x" style="width: 14px; height: 14px;"></i> Cancel Application
 						</button>
 					</form>

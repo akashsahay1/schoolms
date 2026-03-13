@@ -13,8 +13,10 @@
 	<!-- Homework Selection -->
 	<div class="col-lg-4 mb-4">
 		<div class="card h-100">
-			<div class="card-header pb-0">
-				<h6 class="mb-0">Select Homework</h6>
+			<div class="card-header pb-0 border-0">
+				<h6 class="mb-0">
+					<i data-feather="list" style="width: 16px; height: 16px;" class="me-2"></i>Select Homework
+				</h6>
 			</div>
 			<div class="card-body">
 				@if($homeworkList->count() > 0)
@@ -48,8 +50,9 @@
 	<!-- Submissions List -->
 	<div class="col-lg-8 mb-4">
 		<div class="card h-100">
-			<div class="card-header pb-0">
+			<div class="card-header pb-0 border-0">
 				<h6 class="mb-0">
+					<i data-feather="check-square" style="width: 16px; height: 16px;" class="me-2"></i>
 					@if($selectedHomework)
 						Submissions for: {{ $selectedHomework->title }}
 					@else
@@ -62,7 +65,7 @@
 					@if($submissions->count() > 0)
 						<div class="table-responsive">
 							<table class="table table-hover">
-								<thead>
+								<thead class="bg-light">
 									<tr>
 										<th>Student</th>
 										<th>Submitted On</th>
@@ -77,7 +80,7 @@
 											<td>
 												<strong>{{ $submission->student->full_name ?? 'N/A' }}</strong>
 												<br>
-												<small class="text-muted">{{ $submission->student->admission_number ?? '' }}</small>
+												<small class="text-muted">{{ $submission->student->admission_no ?? '' }}</small>
 											</td>
 											<td>{{ $submission->submitted_at ? $submission->submitted_at->format('M d, Y H:i') : $submission->created_at->format('M d, Y H:i') }}</td>
 											<td>

@@ -1,21 +1,18 @@
 <div class="sidebar-wrapper" data-sidebar-layout="stroke-svg">
     <div>
         <!-- Logo -->
-        <div class="logo-wrapper">
+        <div class="logo-wrapper d-flex align-items-center justify-content-between">
             <a href="{{ route('portal.dashboard') }}">
                 <img class="img-fluid for-light logo-custom" src="{{ asset('assets/images/logo/logo.png') }}" alt="">
                 <img class="img-fluid for-dark logo-custom" src="{{ asset('assets/images/logo/logo_dark.png') }}" alt="">
             </a>
-            <div class="back-btn"><i class="fa-solid fa-angle-left"></i></div>
-            <div class="toggle-sidebar" style="cursor: pointer;">
-                <svg style="width: 20px; height: 20px;">
-                    <use href="{{ asset('assets/svg/icon-sprite.svg#stroke-board') }}"></use>
-                </svg>
+            <div class="back-btn d-lg-none" style="cursor: pointer; padding: 8px;">
+                <i class="fa-solid fa-times" style="font-size: 18px; color: #2c323f;"></i>
             </div>
         </div>
         <div class="logo-icon-wrapper">
             <a href="{{ route('portal.dashboard') }}">
-                <img class="img-fluid" src="{{ asset('assets/images/logo/logo-icon.png') }}" alt="">
+                <img class="img-fluid logo-custom" src="{{ asset('assets/images/logo/logo.png') }}" alt="">
             </a>
         </div>
 
@@ -24,9 +21,9 @@
             <div class="left-arrow" id="left-arrow"><i data-feather="arrow-left"></i></div>
             <div id="sidebar-menu">
                 <ul class="sidebar-links" id="simple-bar">
-                    <li class="back-btn">
+                    <li class="back-btn d-none">
                         <a href="{{ route('portal.dashboard') }}">
-                            <img class="img-fluid" src="{{ asset('assets/images/logo/logo-icon.png') }}" alt="">
+                            <img class="img-fluid logo-custom" src="{{ asset('assets/images/logo/logo.png') }}" alt="">
                         </a>
                         <div class="mobile-back text-end">
                             <span>Back</span>

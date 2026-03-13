@@ -18,7 +18,7 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <h5>School Facilities</h5>
                     <a href="{{ route('admin.website.facilities.create') }}" class="btn btn-primary">
-                        <i data-feather="plus" class="me-1"></i> Add Facility
+                        <i data-feather="plus" class="me-1"></i> Add New
                     </a>
                 </div>
             </div>

@@ -39,7 +39,7 @@
                             <h4 class="mb-0">{{ number_format($stats['total_collections']) }}</h4>
                         </div>
                         <div class="bg-primary-subtle rounded-circle p-3">
-                            <i data-feather="dollar-sign" class="text-primary"></i>
+                            <span class="text-primary" style="font-size: 20px; font-weight: bold;">₹</span>
                         </div>
                     </div>
                 </div>

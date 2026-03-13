@@ -11,7 +11,9 @@
 <div class="row">
 	<div class="col-12 mb-4">
 		<div class="d-flex justify-content-between align-items-center">
-			<h5 class="mb-0">Leave Applications</h5>
+			<h5 class="mb-0">
+				<i data-feather="file-text" style="width: 18px; height: 18px;" class="me-2"></i>Leave Applications
+			</h5>
 			<a href="{{ route('teacher.leaves.create') }}" class="btn btn-primary">
 				<i data-feather="plus" style="width: 14px; height: 14px;"></i> Apply for Leave
 			</a>
@@ -24,7 +26,7 @@
 				@if($leaves->count() > 0)
 					<div class="table-responsive">
 						<table class="table table-hover">
-							<thead>
+							<thead class="bg-light">
 								<tr>
 									<th>Leave Type</th>
 									<th>From</th>
@@ -39,12 +41,12 @@
 								@foreach($leaves as $leave)
 									<tr>
 										<td>
-											<strong>{{ $leave->leaveType->name ?? 'N/A' }}</strong>
+											<strong>{{ $leave->getLeaveTypeLabel() }}</strong>
 										</td>
 										<td>{{ $leave->from_date->format('M d, Y') }}</td>
 										<td>{{ $leave->to_date->format('M d, Y') }}</td>
 										<td>{{ $leave->from_date->diffInDays($leave->to_date) + 1 }} days</td>
-										<td>{{ $leave->applied_at ? $leave->applied_at->format('M d, Y') : $leave->created_at->format('M d, Y') }}</td>
+										<td>{{ $leave->created_at->format('M d, Y') }}</td>
 										<td>
 											@switch($leave->status)
 												@case('pending')
@@ -66,9 +68,9 @@
 												<i data-feather="eye" style="width: 14px; height: 14px;"></i>
 											</a>
 											@if($leave->status == 'pending')
-												<form action="{{ route('teacher.leaves.cancel', $leave) }}" method="POST" class="d-inline">
+												<form action="{{ route('teacher.leaves.cancel', $leave) }}" method="POST" class="d-inline delete-form">
 													@csrf
-													<button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to cancel this leave application?')">
+													<button type="button" class="btn btn-sm btn-outline-danger delete-confirm border-0 bg-transparent p-0" data-name="this leave application">
 														<i data-feather="x" style="width: 14px; height: 14px;"></i>
 													</button>
 												</form>

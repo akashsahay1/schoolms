@@ -18,12 +18,12 @@
 						<h5 class="mb-1">{{ $message->subject }}</h5>
 						<p class="text-muted mb-0">
 							@if($message->sender_id == auth()->id())
-								<strong>To:</strong> {{ $message->receiver->name ?? 'Unknown' }}
+								<strong>To:</strong> {{ $message->recipient->name ?? 'Unknown' }}
 							@else
 								<strong>From:</strong> {{ $message->sender->name ?? 'Unknown' }}
 							@endif
 						</p>
-						<small class="text-muted">{{ $message->sent_at ? $message->sent_at->format('M d, Y h:i A') : $message->created_at->format('M d, Y h:i A') }}</small>
+						<small class="text-muted">{{ $message->created_at->format('M d, Y h:i A') }}</small>
 					</div>
 				</div>
 

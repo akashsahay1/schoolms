@@ -61,8 +61,8 @@ class DashboardController extends Controller
         $student = Student::where('user_id', $user->id)->first();
 
         if (!$student) {
-            // Check if user is a parent
-            $parent = \App\Models\ParentGuardian::where('user_id', $user->id)->first();
+            // Check if user is a parent (uses trait with email fallback)
+            $parent = $this->getParent();
 
             if ($parent) {
                 return $this->parentDashboard($parent, $currentAcademicYear);

@@ -32,7 +32,7 @@
 				<div class="d-flex justify-content-between align-items-center">
 					<h5>All Subjects</h5>
 					<a href="{{ route('admin.subjects.create') }}" class="btn btn-primary">
-						<i data-feather="plus" class="me-1"></i> Add New Subject
+						<i data-feather="plus" class="me-1"></i> Add New
 					</a>
 				</div>
 			</div>

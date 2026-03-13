@@ -19,25 +19,53 @@
 </section>
 
 <!-- Academic Overview -->
-<section class="section-padding">
+<section class="about-section section-padding">
     <div class="container">
-        <div class="row align-items-center mb-5">
-            <div class="col-lg-6 mb-4 mb-lg-0">
-                @if($page?->banner_image)
-                    <img src="{{ asset('storage/' . $page->banner_image) }}" alt="Academics" class="img-fluid rounded-3 shadow">
-                @else
-                    <img src="{{ asset('assets/images/academics.jpg') }}" alt="Academics" class="img-fluid rounded-3 shadow">
-                @endif
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-5 mb-lg-0">
+                <div class="about-image">
+                    @if($page?->banner_image)
+                        <img src="{{ asset('storage/' . $page->banner_image) }}" alt="Academics" class="img-fluid w-100" style="max-height: 450px; object-fit: cover;">
+                    @else
+                        <img src="{{ asset('assets/images/banner/2.jpg') }}" alt="Academics" class="img-fluid w-100" style="max-height: 450px; object-fit: cover;">
+                    @endif
+                </div>
             </div>
-            <div class="col-lg-6">
-                <h6 class="text-primary fw-bold">OUR CURRICULUM</h6>
-                <h2 class="mb-4">{{ $page?->title ?? 'Excellence in Academic Education' }}</h2>
-                @if($page?->content)
-                    {!! $page->content !!}
-                @else
-                    <p>Our curriculum is designed to provide a comprehensive and balanced education that develops critical thinking, creativity, and a love for learning. We follow a structured approach that combines academic rigor with practical application.</p>
-                    <p>We are affiliated with recognized education boards and follow their guidelines while incorporating innovative teaching methodologies to ensure our students are well-prepared for future challenges.</p>
-                @endif
+            <div class="col-lg-6 ps-lg-5">
+                <div class="about-content">
+                    <h6 class="text-primary fw-bold mb-3">OUR CURRICULUM</h6>
+                    <h2 class="mb-4" style="line-height: 1.3;">{{ $page?->title ?? 'Excellence in Academic Education' }}</h2>
+                    @if($page?->content)
+                        <div class="text-muted" style="line-height: 1.8;">
+                            {!! $page->content !!}
+                        </div>
+                    @else
+                        <p class="text-muted" style="line-height: 1.8;">Our curriculum is designed to provide a comprehensive and balanced education that develops critical thinking, creativity, and a love for learning. We follow a structured approach that combines academic rigor with practical application.</p>
+                        <p class="text-muted mb-4" style="line-height: 1.8;">We are affiliated with recognized education boards and follow their guidelines while incorporating innovative teaching methodologies to ensure our students are well-prepared for future challenges.</p>
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="check-item">
+                                    <i data-feather="check-circle" class="text-primary me-2"></i>
+                                    <span>CBSE Affiliated</span>
+                                </div>
+                                <div class="check-item">
+                                    <i data-feather="check-circle" class="text-primary me-2"></i>
+                                    <span>Modern Pedagogy</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="check-item">
+                                    <i data-feather="check-circle" class="text-primary me-2"></i>
+                                    <span>Smart Classes</span>
+                                </div>
+                                <div class="check-item">
+                                    <i data-feather="check-circle" class="text-primary me-2"></i>
+                                    <span>Lab Facilities</span>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+                </div>
             </div>
         </div>
     </div>
@@ -152,39 +180,39 @@
 
         <div class="row g-4">
             <div class="col-lg-3 col-md-6">
-                <div class="text-center">
-                    <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
-                        <i data-feather="monitor" class="text-primary" style="width: 32px; height: 32px;"></i>
+                <div class="methodology-card">
+                    <div class="methodology-icon">
+                        <i data-feather="monitor"></i>
                     </div>
                     <h5>Smart Learning</h5>
-                    <p class="small">Interactive digital content and multimedia resources for engaging lessons</p>
+                    <p>Interactive digital content and multimedia resources for engaging lessons</p>
                 </div>
             </div>
             <div class="col-lg-3 col-md-6">
-                <div class="text-center">
-                    <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
-                        <i data-feather="users" class="text-primary" style="width: 32px; height: 32px;"></i>
+                <div class="methodology-card">
+                    <div class="methodology-icon">
+                        <i data-feather="users"></i>
                     </div>
                     <h5>Collaborative Learning</h5>
-                    <p class="small">Group projects and peer learning to develop teamwork and communication</p>
+                    <p>Group projects and peer learning to develop teamwork and communication</p>
                 </div>
             </div>
             <div class="col-lg-3 col-md-6">
-                <div class="text-center">
-                    <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
-                        <i data-feather="tool" class="text-primary" style="width: 32px; height: 32px;"></i>
+                <div class="methodology-card">
+                    <div class="methodology-icon">
+                        <i data-feather="tool"></i>
                     </div>
                     <h5>Practical Approach</h5>
-                    <p class="small">Hands-on experiments and real-world applications of concepts</p>
+                    <p>Hands-on experiments and real-world applications of concepts</p>
                 </div>
             </div>
             <div class="col-lg-3 col-md-6">
-                <div class="text-center">
-                    <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
-                        <i data-feather="user-check" class="text-primary" style="width: 32px; height: 32px;"></i>
+                <div class="methodology-card">
+                    <div class="methodology-icon">
+                        <i data-feather="user-check"></i>
                     </div>
                     <h5>Individual Attention</h5>
-                    <p class="small">Personalized guidance and support for every student's unique needs</p>
+                    <p>Personalized guidance and support for every student's unique needs</p>
                 </div>
             </div>
         </div>

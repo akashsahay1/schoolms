@@ -8,6 +8,8 @@ use App\Models\FeeStructure;
 use App\Models\Student;
 use App\Models\SchoolClass;
 use App\Models\AcademicYear;
+use App\Models\User;
+use App\Notifications\FeeUpdated;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -157,6 +159,20 @@ class FeeCollectionController extends Controller
 			]);
 
 			DB::commit();
+
+			// Notify student about fee payment
+			$student = Student::find($validated['student_id']);
+			if ($student && $student->user_id) {
+				$user = User::find($student->user_id);
+				if ($user) {
+					$feeStructure = FeeStructure::with('feeType')->find($validated['fee_structure_id']);
+					$feeName = $feeStructure->feeType->name ?? 'Fee';
+					$user->notify(new FeeUpdated(
+						'Fee Payment Recorded',
+						"{$feeName} payment of ₹{$paidAmount} has been recorded successfully."
+					));
+				}
+			}
 
 			return redirect()->route('admin.fees.receipt', $collection->id)
 				->with('success', 'Fee collected successfully.');

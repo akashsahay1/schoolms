@@ -26,10 +26,16 @@
 <div class="page-header">
 	<div class="header-wrapper row m-0">
 		<div class="header-logo-wrapper col-auto p-0">
-			<div class="toggle-sidebar" id="sidebar-toggle-btn">
-				<svg class="stroke-icon sidebar-toggle status_toggle middle" style="color: #2c323f; stroke: #2c323f;">
-					<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-board') }}"></use>
+			<div id="sidebar-toggle-btn" class="d-lg-none">
+				<svg style="width: 24px; height: 24px; stroke: #2c323f; cursor: pointer;">
+					<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-animation') }}"></use>
 				</svg>
+			</div>
+			<div class="logo-wrapper d-lg-none">
+				<a href="{{ route('portal.dashboard') }}">
+					<img class="img-fluid for-light" src="{{ asset('assets/images/logo/logo.png') }}" alt="">
+					<img class="img-fluid for-dark" src="{{ asset('assets/images/logo/logo_dark.png') }}" alt="">
+				</a>
 			</div>
 		</div>
 		<div class="left-header col horizontal-wrapper ps-0 d-none d-md-flex align-items-center">
@@ -81,21 +87,24 @@
 				</li>
 
 				<!-- Notifications -->
-				<li class="onhover-dropdown">
+				<li class="onhover-dropdown" id="notification-dropdown">
 					<div class="notification-box">
 						<svg style="stroke: #2c323f;">
 							<use href="{{ asset('assets/svg/icon-sprite.svg#notification') }}"></use>
 						</svg>
-						<span class="badge rounded-pill badge-primary">0</span>
+						<span class="badge rounded-pill badge-success notification-badge" style="{{ ($unreadNotificationCount ?? 0) == 0 ? 'display:none;' : '' }}">{{ $unreadNotificationCount ?? 0 }}</span>
 					</div>
 					<div class="onhover-show-div notification-dropdown">
-						<h6 class="mb-0 f-14 dropdown-title">
-							<i data-feather="bell" style="width: 14px; height: 14px;"></i> Notifications
+						<h6 class="f-18 mb-0 dropdown-title d-flex justify-content-between align-items-center">
+							Notifications
+							<a href="javascript:void(0)" class="mark-all-read text-primary f-12" style="{{ ($unreadNotificationCount ?? 0) == 0 ? 'display:none;' : '' }}">Mark all read</a>
 						</h6>
-						<ul>
-							<li class="b-l-primary border-4">
-								<p class="font-primary mb-0">No new notifications</p>
-							</li>
+						<ul id="notification-list">
+							@if(($unreadNotificationCount ?? 0) == 0)
+								<li class="text-center no-notifications">
+									<p class="text-muted">No new notifications</p>
+								</li>
+							@endif
 						</ul>
 					</div>
 				</li>

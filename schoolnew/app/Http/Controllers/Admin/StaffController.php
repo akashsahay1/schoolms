@@ -11,13 +11,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Carbon\Carbon;
 
 class StaffController extends Controller
 {
 	public function index(Request $request)
 	{
-		$query = Staff::with(['department', 'designation']);
+		$query = Staff::with(['department', 'designation', 'user']);
 
 		// Search filter
 		if ($request->filled('search')) {
@@ -88,6 +89,9 @@ class StaffController extends Controller
 
 			// Photo
 			'photo' => ['nullable', 'image', 'max:2048'],
+
+			// Login Password (optional - auto-generate if empty)
+			'password' => ['nullable', 'string', 'min:6', 'max:50'],
 		]);
 
 		try {
@@ -103,8 +107,35 @@ class StaffController extends Controller
 				$photoPath = $request->file('photo')->store('staff', 'public');
 			}
 
+			// Create user account for staff login
+			$staffPassword = !empty($validated['password']) ? $validated['password'] : $staffId;
+			$user = User::create([
+				'name' => trim($validated['first_name'] . ' ' . ($validated['last_name'] ?? '')),
+				'email' => $validated['email'],
+				'password' => Hash::make($staffPassword),
+				'plain_password' => $staffPassword,
+			]);
+
+			// Determine role based on designation
+			$designation = Designation::find($validated['designation_id']);
+			$designationName = strtolower($designation->name ?? '');
+
+			// Assign appropriate role
+			if (str_contains($designationName, 'teacher') || str_contains($designationName, 'professor') || str_contains($designationName, 'lecturer')) {
+				$user->assignRole('Teacher');
+			} elseif (str_contains($designationName, 'accountant') || str_contains($designationName, 'finance')) {
+				$user->assignRole('Accountant');
+			} elseif (str_contains($designationName, 'librarian')) {
+				$user->assignRole('Librarian');
+			} elseif (str_contains($designationName, 'receptionist') || str_contains($designationName, 'front desk')) {
+				$user->assignRole('Receptionist');
+			} else {
+				$user->assignRole('Teacher'); // Default to Teacher role
+			}
+
 			// Create staff record
 			$staff = Staff::create([
+				'user_id' => $user->id,
 				'staff_id' => $staffId,
 				'first_name' => $validated['first_name'],
 				'last_name' => $validated['last_name'] ?? null,
@@ -132,8 +163,9 @@ class StaffController extends Controller
 
 			DB::commit();
 
+			$pwdNote = !empty($validated['password']) ? '' : ' (auto-generated)';
 			return redirect()->route('admin.staff.index')
-				->with('success', 'Staff member added successfully. Staff ID: ' . $staffId);
+				->with('success', 'Staff member added successfully. Staff ID: ' . $staffId . '. Login: Email: ' . $validated['email'] . ', Password: ' . $staffPassword . $pwdNote);
 
 		} catch (\Exception $e) {
 			DB::rollBack();
@@ -155,6 +187,12 @@ class StaffController extends Controller
 
 	public function edit(Staff $staff)
 	{
+		// Prevent non-Super Admin from editing Super Admin staff
+		if ($staff->user && $staff->user->hasRole('Super Admin') && !auth()->user()->hasRole('Super Admin')) {
+			return redirect()->route('admin.staff.index')
+				->with('error', 'You do not have permission to edit Super Admin accounts.');
+		}
+
 		$departments = Department::active()->orderBy('name')->get();
 		$designations = Designation::active()->orderBy('name')->get();
 
@@ -163,6 +201,12 @@ class StaffController extends Controller
 
 	public function update(Request $request, Staff $staff)
 	{
+		// Prevent non-Super Admin from updating Super Admin staff
+		if ($staff->user && $staff->user->hasRole('Super Admin') && !auth()->user()->hasRole('Super Admin')) {
+			return redirect()->route('admin.staff.index')
+				->with('error', 'You do not have permission to modify Super Admin accounts.');
+		}
+
 		$validated = $request->validate([
 			// Basic Information
 			'first_name' => ['required', 'string', 'max:255'],
@@ -248,6 +292,12 @@ class StaffController extends Controller
 
 	public function destroy(Staff $staff)
 	{
+		// Prevent non-Super Admin from deleting Super Admin staff
+		if ($staff->user && $staff->user->hasRole('Super Admin') && !auth()->user()->hasRole('Super Admin')) {
+			return redirect()->route('admin.staff.index')
+				->with('error', 'You do not have permission to delete Super Admin accounts.');
+		}
+
 		try {
 			$staff->delete();
 
@@ -267,8 +317,24 @@ class StaffController extends Controller
 		]);
 
 		try {
-			$count = Staff::whereIn('id', $request->staff_ids)->count();
-			Staff::whereIn('id', $request->staff_ids)->delete();
+			// Filter out Super Admin staff if current user is not Super Admin
+			$staffIds = $request->staff_ids;
+			if (!auth()->user()->hasRole('Super Admin')) {
+				$superAdminStaffIds = Staff::whereIn('id', $staffIds)
+					->whereHas('user', fn($q) => $q->role('Super Admin'))
+					->pluck('id')->toArray();
+				$staffIds = array_diff($staffIds, $superAdminStaffIds);
+			}
+
+			if (empty($staffIds)) {
+				return response()->json([
+					'success' => false,
+					'message' => 'You do not have permission to delete Super Admin accounts.',
+				], 403);
+			}
+
+			$count = Staff::whereIn('id', $staffIds)->count();
+			Staff::whereIn('id', $staffIds)->delete();
 
 			return response()->json([
 				'success' => true,
@@ -421,5 +487,31 @@ class StaffController extends Controller
 			DB::rollBack();
 			return back()->with('error', 'An error occurred: ' . $e->getMessage());
 		}
+	}
+
+	/**
+	 * Reset password for a staff member's user account.
+	 */
+	public function resetPassword(Request $request, Staff $staff)
+	{
+		$request->validate([
+			'new_password' => 'required|string|min:6|max:50',
+		]);
+
+		if (!$staff->user) {
+			return back()->with('error', 'No user account linked to this staff member.');
+		}
+
+		// Prevent non-Super Admin from resetting Super Admin password
+		if ($staff->user->hasRole('Super Admin') && !auth()->user()->hasRole('Super Admin')) {
+			return back()->with('error', 'You do not have permission to reset Super Admin passwords.');
+		}
+
+		$staff->user->update([
+			'password' => Hash::make($request->new_password),
+			'plain_password' => $request->new_password,
+		]);
+
+		return back()->with('success', 'Staff password has been reset successfully.');
 	}
 }

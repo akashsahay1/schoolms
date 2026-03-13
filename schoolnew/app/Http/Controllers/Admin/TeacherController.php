@@ -7,9 +7,12 @@ use App\Models\Staff;
 use App\Models\Department;
 use App\Models\Designation;
 use App\Models\Subject;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Carbon\Carbon;
 
 class TeacherController extends Controller
@@ -88,6 +91,9 @@ class TeacherController extends Controller
 
 			// Photo
 			'photo' => ['nullable', 'image', 'max:2048'],
+
+			// Login Password (optional - auto-generate if empty)
+			'password' => ['nullable', 'string', 'min:6', 'max:50'],
 		]);
 
 		try {
@@ -103,8 +109,20 @@ class TeacherController extends Controller
 				$photoPath = $request->file('photo')->store('teachers', 'public');
 			}
 
+			// Create user account for teacher login
+			$teacherPassword = !empty($validated['password']) ? $validated['password'] : $staffId;
+			$user = User::create([
+				'name' => trim($validated['first_name'] . ' ' . ($validated['last_name'] ?? '')),
+				'email' => $validated['email'],
+				'password' => Hash::make($teacherPassword),
+			]);
+
+			// Assign Teacher role
+			$user->assignRole('Teacher');
+
 			// Create teacher record (using Staff model)
 			$teacher = Staff::create([
+				'user_id' => $user->id,
 				'staff_id' => $staffId,
 				'first_name' => $validated['first_name'],
 				'last_name' => $validated['last_name'] ?? null,
@@ -132,8 +150,9 @@ class TeacherController extends Controller
 
 			DB::commit();
 
+			$pwdNote = !empty($validated['password']) ? '' : ' (auto-generated)';
 			return redirect()->route('admin.teachers.index')
-				->with('success', 'Teacher added successfully. Teacher ID: ' . $staffId);
+				->with('success', 'Teacher added successfully. Teacher ID: ' . $staffId . '. Login: Email: ' . $validated['email'] . ', Password: ' . $teacherPassword . $pwdNote);
 
 		} catch (\Exception $e) {
 			DB::rollBack();
@@ -416,5 +435,26 @@ class TeacherController extends Controller
 			DB::rollBack();
 			return back()->with('error', 'An error occurred: ' . $e->getMessage());
 		}
+	}
+
+	/**
+	 * Reset password for a teacher's user account.
+	 */
+	public function resetPassword(Request $request, Staff $teacher)
+	{
+		$request->validate([
+			'new_password' => 'required|string|min:6|max:50',
+		]);
+
+		if (!$teacher->user) {
+			return back()->with('error', 'No user account linked to this teacher.');
+		}
+
+		$teacher->user->update([
+			'password' => Hash::make($request->new_password),
+			'plain_password' => $request->new_password,
+		]);
+
+		return back()->with('success', 'Teacher password has been reset successfully.');
 	}
 }

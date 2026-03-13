@@ -12,8 +12,10 @@
 	<!-- Upcoming Events -->
 	<div class="col-lg-8 mb-4">
 		<div class="card h-100">
-			<div class="card-header pb-0">
-				<h5 class="mb-0">Upcoming Events</h5>
+			<div class="card-header pb-0 border-0">
+				<h5 class="mb-0">
+					<i data-feather="calendar" style="width: 18px; height: 18px;" class="me-2"></i>Upcoming Events
+				</h5>
 			</div>
 			<div class="card-body">
 				@if($upcomingEvents->count() > 0)
@@ -52,8 +54,10 @@
 	<!-- Past Events -->
 	<div class="col-lg-4 mb-4">
 		<div class="card h-100">
-			<div class="card-header pb-0">
-				<h5 class="mb-0">Past Events</h5>
+			<div class="card-header pb-0 border-0">
+				<h5 class="mb-0">
+					<i data-feather="archive" style="width: 18px; height: 18px;" class="me-2"></i>Past Events
+				</h5>
 			</div>
 			<div class="card-body">
 				@if($pastEvents->count() > 0)

@@ -14,7 +14,7 @@ class FeeStructureController extends Controller
 {
 	public function index(Request $request)
 	{
-		$query = FeeStructure::with(['academicYear', 'schoolClass', 'feeType', 'feeGroup']);
+		$query = FeeStructure::with(['academicYear', 'schoolClass', 'feeType', 'feeGroup'])->withCount('collections');
 
 		// Academic year filter
 		if ($request->filled('academic_year')) {
@@ -171,10 +171,8 @@ class FeeStructureController extends Controller
 	public function destroy(FeeStructure $feeStructure)
 	{
 		try {
-			// Check if fee structure has any collections
-			if ($feeStructure->collections()->count() > 0) {
-				return back()->with('error', 'Cannot delete fee structure that has fee collections. Please remove collections first.');
-			}
+			// Delete associated fee collections first
+			$feeStructure->collections()->delete();
 
 			$feeStructure->delete();
 

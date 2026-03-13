@@ -20,8 +20,8 @@
 	@foreach($leaveTypes as $type)
 		@php
 			$balance = $balances->firstWhere('leave_type_id', $type->id);
-			$allocated = $balance ? $balance->total_days : 0;
-			$used = $usedLeaves->get($type->id, 0);
+			$allocated = $balance ? $balance->total_available : $type->allowed_days;
+			$used = $balance ? $balance->used_days : $usedLeaves->get($type->code, 0);
 			$remaining = $allocated - $used;
 			$percentage = $allocated > 0 ? ($used / $allocated) * 100 : 0;
 		@endphp

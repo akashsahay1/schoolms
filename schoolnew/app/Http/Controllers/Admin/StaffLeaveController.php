@@ -10,6 +10,7 @@ use App\Models\LeaveType;
 use App\Models\Staff;
 use App\Models\StaffLeaveBalance;
 use App\Models\User;
+use App\Notifications\LeaveStatusChanged;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -204,6 +205,15 @@ class StaffLeaveController extends Controller
             // Deduct from leave balance
             $this->deductLeaveBalance($leave);
 
+            // Notify staff member
+            $staff = Staff::find($leave->applicant_id);
+            if ($staff && $staff->user_id) {
+                $user = User::find($staff->user_id);
+                if ($user) {
+                    $user->notify(new LeaveStatusChanged($leave, 'approved'));
+                }
+            }
+
             DB::commit();
 
             return redirect()->route('admin.staff-leaves.index')
@@ -233,6 +243,15 @@ class StaffLeaveController extends Controller
             'approved_by' => Auth::id(),
             'approved_at' => now(),
         ]);
+
+        // Notify staff member
+        $staff = Staff::find($leave->applicant_id);
+        if ($staff && $staff->user_id) {
+            $user = User::find($staff->user_id);
+            if ($user) {
+                $user->notify(new LeaveStatusChanged($leave, 'rejected'));
+            }
+        }
 
         return redirect()->route('admin.staff-leaves.index')
             ->with('success', 'Leave application rejected.');

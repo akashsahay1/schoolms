@@ -60,6 +60,8 @@
 
 	@stack('scripts')
 
+	@include('components.password-toggle')
+
 	<script>
 		// Initialize Feather Icons
 		if (typeof feather !== 'undefined') {

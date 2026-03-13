@@ -6,49 +6,44 @@
 <div class="sidebar-wrapper" data-sidebar-layout="stroke-svg">
 	<div>
 		<!-- Logo -->
-		<div class="logo-wrapper">
+		<div class="logo-wrapper d-flex align-items-center justify-content-between">
 			<a href="{{ route('teacher.dashboard') }}">
-				<img class="img-fluid for-light" src="{{ asset('assets/images/logo/logo.png') }}" alt="">
-				<img class="img-fluid for-dark" src="{{ asset('assets/images/logo/logo_dark.png') }}" alt="">
+				<img class="img-fluid for-light logo-custom" src="{{ asset('assets/images/logo/logo.png') }}" alt="">
+				<img class="img-fluid for-dark logo-custom" src="{{ asset('assets/images/logo/logo_dark.png') }}" alt="">
 			</a>
-			<div class="back-btn">
-				<i class="fa-solid fa-angle-left"></i>
-			</div>
-			<div class="toggle-sidebar">
-				<i class="status_toggle middle sidebar-toggle" data-feather="grid"></i>
+			<div class="back-btn d-lg-none" style="cursor: pointer; padding: 8px;">
+				<i class="fa-solid fa-times" style="font-size: 18px; color: #2c323f;"></i>
 			</div>
 		</div>
 		<div class="logo-icon-wrapper">
 			<a href="{{ route('teacher.dashboard') }}">
-				<img class="img-fluid" src="{{ asset('assets/images/logo/logo-icon.png') }}" alt="">
+				<img class="img-fluid logo-custom" src="{{ asset('assets/images/logo/logo.png') }}" alt="">
 			</a>
 		</div>
 
 		<!-- Navigation -->
 		<nav class="sidebar-main">
-			<div class="left-arrow" id="left-arrow">
-				<i data-feather="arrow-left"></i>
-			</div>
+			<div class="left-arrow" id="left-arrow"><i data-feather="arrow-left"></i></div>
 			<div id="sidebar-menu">
 				<ul class="sidebar-links" id="simple-bar">
-					<li class="back-btn">
+					<li class="back-btn d-none">
 						<a href="{{ route('teacher.dashboard') }}">
-							<img class="img-fluid" src="{{ asset('assets/images/logo/logo-icon.png') }}" alt="">
+							<img class="img-fluid logo-custom" src="{{ asset('assets/images/logo/logo.png') }}" alt="">
 						</a>
 						<div class="mobile-back text-end">
 							<span>Back</span>
-							<i class="fa-solid fa-angle-right ps-2" aria-hidden="true"></i>
+							<i class="fa-solid fa-angle-right ps-2"></i>
 						</div>
 					</li>
 
-					<!-- Main Title -->
+					<!-- Main -->
 					<li class="sidebar-main-title">
 						<div><h6>Staff Portal</h6></div>
 					</li>
 
 					<!-- Dashboard -->
 					<li class="sidebar-list">
-						<a class="sidebar-link sidebar-title {{ request()->routeIs('teacher.dashboard') ? 'active' : '' }}" href="{{ route('teacher.dashboard') }}">
+						<a class="sidebar-link sidebar-title link-nav {{ request()->routeIs('teacher.dashboard') ? 'active' : '' }}" href="{{ route('teacher.dashboard') }}">
 							<svg class="stroke-icon">
 								<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-home') }}"></use>
 							</svg>
@@ -61,7 +56,7 @@
 
 					<!-- My Profile -->
 					<li class="sidebar-list">
-						<a class="sidebar-link sidebar-title {{ request()->routeIs('teacher.profile') ? 'active' : '' }}" href="{{ route('teacher.profile') }}">
+						<a class="sidebar-link sidebar-title link-nav {{ request()->routeIs('teacher.profile') ? 'active' : '' }}" href="{{ route('teacher.profile') }}">
 							<svg class="stroke-icon">
 								<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-user') }}"></use>
 							</svg>
@@ -79,7 +74,7 @@
 
 					<!-- My Timetable -->
 					<li class="sidebar-list">
-						<a class="sidebar-link sidebar-title {{ request()->routeIs('teacher.timetable') ? 'active' : '' }}" href="{{ route('teacher.timetable') }}">
+						<a class="sidebar-link sidebar-title link-nav {{ request()->routeIs('teacher.timetable') ? 'active' : '' }}" href="{{ route('teacher.timetable') }}">
 							<svg class="stroke-icon">
 								<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-calendar') }}"></use>
 							</svg>
@@ -92,7 +87,7 @@
 
 					<!-- My Classes -->
 					<li class="sidebar-list">
-						<a class="sidebar-link sidebar-title {{ request()->routeIs('teacher.my-classes') || request()->routeIs('teacher.class-students') ? 'active' : '' }}" href="{{ route('teacher.my-classes') }}">
+						<a class="sidebar-link sidebar-title link-nav {{ request()->routeIs('teacher.my-classes') || request()->routeIs('teacher.class-students') ? 'active' : '' }}" href="{{ route('teacher.my-classes') }}">
 							<svg class="stroke-icon">
 								<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-learning') }}"></use>
 							</svg>
@@ -228,9 +223,7 @@
 					</li>
 				</ul>
 			</div>
-			<div class="right-arrow" id="right-arrow">
-				<i data-feather="arrow-right"></i>
-			</div>
+			<div class="right-arrow" id="right-arrow"><i data-feather="arrow-right"></i></div>
 		</nav>
 	</div>
 </div>

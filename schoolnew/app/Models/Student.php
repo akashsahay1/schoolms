@@ -109,6 +109,11 @@ class Student extends Model
         return $this->hasMany(RouteAssignment::class);
     }
 
+    public function libraryMember()
+    {
+        return $this->morphOne(LibraryMember::class, 'memberable');
+    }
+
     public function scopeActive($query)
     {
         return $query->where('status', 'active');

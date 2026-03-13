@@ -8,7 +8,9 @@ use App\Models\Student;
 use App\Models\Attendance;
 use App\Models\SchoolClass;
 use App\Models\Section;
+use App\Models\AcademicYear;
 use App\Models\Timetable;
+use App\Notifications\AttendanceMarked;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -53,14 +55,14 @@ class AttendanceController extends Controller
                 $selectedSection = Section::find($request->section_id);
             }
 
-            $students = $query->orderBy('roll_number')->orderBy('first_name')->get();
+            $students = $query->orderBy('roll_no')->orderBy('first_name')->get();
 
             // Get existing attendance for this date
             $existingAttendance = Attendance::where('class_id', $request->class_id)
                 ->when($request->section_id, function ($q) use ($request) {
                     return $q->where('section_id', $request->section_id);
                 })
-                ->whereDate('date', $date)
+                ->whereDate('attendance_date', $date)
                 ->get()
                 ->keyBy('student_id');
         }
@@ -89,19 +91,38 @@ class AttendanceController extends Controller
             'attendance.*' => 'in:present,absent,late,half_day',
         ]);
 
+        $academicYear = AcademicYear::where('is_active', 1)->first();
+
         foreach ($validated['attendance'] as $studentId => $status) {
             Attendance::updateOrCreate(
                 [
                     'student_id' => $studentId,
                     'class_id' => $validated['class_id'],
                     'section_id' => $validated['section_id'],
-                    'date' => $validated['date'],
+                    'attendance_date' => $validated['date'],
                 ],
                 [
                     'status' => $status,
                     'marked_by' => Auth::id(),
+                    'academic_year_id' => $academicYear?->id,
                 ]
             );
+        }
+
+        // Send notifications to students
+        $class = SchoolClass::find($validated['class_id']);
+        $section = !empty($validated['section_id']) ? Section::find($validated['section_id']) : null;
+        $className = $class->name ?? 'Class';
+        $sectionName = $section->name ?? '';
+
+        foreach ($validated['attendance'] as $studentId => $status) {
+            $student = Student::find($studentId);
+            if ($student && $student->user_id) {
+                $user = \App\Models\User::find($student->user_id);
+                if ($user) {
+                    $user->notify(new AttendanceMarked($className, $sectionName, $validated['date'], $status));
+                }
+            }
         }
 
         return redirect()->back()->with('success', 'Attendance marked successfully.');
@@ -134,7 +155,7 @@ class AttendanceController extends Controller
             $selectedClass = SchoolClass::find($request->class_id);
 
             $query = Attendance::where('class_id', $request->class_id)
-                ->whereBetween('date', [$startDate, $endDate])
+                ->whereBetween('attendance_date', [$startDate, $endDate])
                 ->with('student');
 
             if ($request->section_id) {

@@ -61,21 +61,62 @@
             font-size: 10px;
             margin-left: 8px;
         }
+
+        /* BG-OPACITY SUPPORT (not in this Bootstrap) */
+        .bg-primary.bg-opacity-10 { background-color: rgba(115, 102, 255, 0.1) !important; }
+        .bg-primary.bg-opacity-15 { background-color: rgba(115, 102, 255, 0.15) !important; }
+        .bg-primary.bg-opacity-25 { background-color: rgba(115, 102, 255, 0.25) !important; }
+        .bg-success.bg-opacity-10 { background-color: rgba(101, 193, 92, 0.1) !important; }
+        .bg-success.bg-opacity-15 { background-color: rgba(101, 193, 92, 0.15) !important; }
+        .bg-success.bg-opacity-25 { background-color: rgba(101, 193, 92, 0.25) !important; }
+        .bg-danger.bg-opacity-10 { background-color: rgba(252, 86, 74, 0.1) !important; }
+        .bg-danger.bg-opacity-15 { background-color: rgba(252, 86, 74, 0.15) !important; }
+        .bg-danger.bg-opacity-25 { background-color: rgba(252, 86, 74, 0.25) !important; }
+        .bg-warning.bg-opacity-10 { background-color: rgba(255, 184, 41, 0.1) !important; }
+        .bg-warning.bg-opacity-15 { background-color: rgba(255, 184, 41, 0.15) !important; }
+        .bg-warning.bg-opacity-25 { background-color: rgba(255, 184, 41, 0.25) !important; }
+        .bg-info.bg-opacity-10 { background-color: rgba(64, 184, 245, 0.1) !important; }
+        .bg-info.bg-opacity-15 { background-color: rgba(64, 184, 245, 0.15) !important; }
+        .bg-info.bg-opacity-25 { background-color: rgba(64, 184, 245, 0.25) !important; }
+        .bg-secondary.bg-opacity-10 { background-color: rgba(131, 131, 131, 0.1) !important; }
+        .bg-secondary.bg-opacity-15 { background-color: rgba(131, 131, 131, 0.15) !important; }
+        .bg-secondary.bg-opacity-25 { background-color: rgba(131, 131, 131, 0.25) !important; }
+        .bg-dark.bg-opacity-10 { background-color: rgba(63, 71, 90, 0.1) !important; }
+        .bg-dark.bg-opacity-15 { background-color: rgba(63, 71, 90, 0.15) !important; }
+        .bg-dark.bg-opacity-25 { background-color: rgba(63, 71, 90, 0.25) !important; }
+        .bg-white.bg-opacity-25 { background-color: rgba(255, 255, 255, 0.25) !important; }
+
         /* Profile dropdown fix */
         .profile-dropdown.onhover-show-div {
-            padding: 10px !important;
-            width: 180px !important;
+            padding: 8px 0 !important;
+            width: 220px !important;
+            border-radius: 8px !important;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.12) !important;
+            border: 1px solid #eee !important;
+            overflow: visible !important;
         }
         .profile-dropdown.onhover-show-div li {
-            padding: 10px !important;
+            padding: 0 !important;
             display: block !important;
+            margin-top: 0 !important;
+        }
+        .profile-dropdown.onhover-show-div li + li {
+            margin-top: 0 !important;
         }
         .profile-dropdown.onhover-show-div li a {
             display: flex !important;
             align-items: center !important;
-            gap: 10px;
+            gap: 8px;
             text-decoration: none;
             color: #3f475a;
+            padding: 8px 16px !important;
+            transition: background 0.2s;
+            font-size: 13px;
+            text-transform: none !important;
+            letter-spacing: 0 !important;
+        }
+        .profile-dropdown.onhover-show-div li a:hover {
+            background: #f5f6fa;
         }
         .profile-dropdown.onhover-show-div li a svg,
         .profile-dropdown.onhover-show-div li a i {
@@ -84,10 +125,10 @@
             min-width: 16px !important;
             flex-shrink: 0 !important;
             stroke: #3f475a;
+            margin-right: 0 !important;
         }
         .profile-dropdown.onhover-show-div li a span {
             color: #3f475a;
-            white-space: nowrap;
         }
 
         /* Page title and breadcrumb text fix */
@@ -103,14 +144,90 @@
             stroke: #2c323f !important;
         }
 
+        /* Button text color fix */
+        .btn-primary, .btn-success, .btn-danger, .btn-warning,
+        .btn-info, .btn-secondary, .btn-dark {
+            color: #fff !important;
+        }
+        .btn-light, .btn-white {
+            color: #000 !important;
+        }
+        .btn-outline-primary, .btn-outline-success, .btn-outline-danger,
+        .btn-outline-warning, .btn-outline-info, .btn-outline-secondary, .btn-outline-dark {
+            color: inherit;
+        }
+        .btn-outline-primary:hover, .btn-outline-success:hover, .btn-outline-danger:hover,
+        .btn-outline-warning:hover, .btn-outline-info:hover, .btn-outline-secondary:hover, .btn-outline-dark:hover {
+            color: #fff !important;
+        }
+
+        /* Text overflow prevention */
+        .card-body p, .card-body td, .card-body a,
+        .card-body span, .list-unstyled a, .list-unstyled span {
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+        }
+        .d-flex > span, .d-flex > div {
+            min-width: 0;
+        }
+
         /* Card text color fix */
-        .card-body span,
-        .card-body strong,
-        .card-body p,
+        .card-body span:not([class*="bg-"]):not([class*="text-"]):not(.badge),
+        .card-body strong:not([class*="text-"]),
+        .card-body p:not([class*="text-"]),
         .card-body label,
-        .card-body h6,
-        .card-header h5 {
+        .card-body h6:not([class*="text-"]),
+        .card-header h5:not([class*="text-"]) {
             color: #2c323f !important;
+        }
+        /* White text on ALL colored backgrounds (cards, card-headers, card-bodies, theads) */
+        .card-header.bg-primary *,
+        .card-header.bg-success *,
+        .card-header.bg-danger *,
+        .card-header.bg-info *,
+        .card-header.bg-secondary *,
+        .card-header.bg-dark *,
+        .card.bg-primary .card-body *,
+        .card.bg-success .card-body *,
+        .card.bg-danger .card-body *,
+        .card.bg-info .card-body *,
+        .card.bg-secondary .card-body *,
+        .card.bg-dark .card-body *,
+        .card-body.bg-primary *,
+        .card-body.bg-success *,
+        .card-body.bg-danger *,
+        .card-body.bg-info *,
+        .card-body.bg-secondary *,
+        .card-body.bg-dark *,
+        thead.bg-primary *,
+        thead.bg-success *,
+        thead.bg-danger *,
+        thead.bg-info *,
+        thead.bg-secondary *,
+        thead.bg-dark * {
+            color: #fff !important;
+        }
+        .card-header.bg-warning *,
+        .card.bg-warning .card-body *,
+        .card-body.bg-warning *,
+        thead.bg-warning * {
+            color: #fff !important;
+        }
+        /* Dark text on white/light backgrounds (overrides any parent white text rules) */
+        .bg-white, .bg-white *,
+        .bg-light, .bg-light * {
+            color: #000 !important;
+        }
+        .card-header-right-icon .dropdown-toggle {
+            border: none !important;
+        }
+        .card-header-right-icon .dropdown-toggle:hover {
+            background-color: transparent !important;
+            color: #89899B !important;
+        }
+        .bg-white svg, .bg-white [data-feather],
+        .bg-light svg, .bg-light [data-feather] {
+            stroke: #000 !important;
         }
 
         /* User-friendly enhancements */
@@ -145,7 +262,12 @@
         .stat-card {
             border-radius: 12px;
             border: none;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
         }
         .help-tip {
             background: #f8f9fa;
@@ -170,6 +292,107 @@
             padding: 6px 12px;
             border-radius: 20px;
             font-size: 12px;
+        }
+
+        /* Sidebar toggle - only visible on tablet/phone */
+        #sidebar-toggle-btn {
+            align-items: center;
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        /* Desktop: sidebar always open, never collapsed */
+        @media (min-width: 992px) {
+            .sidebar-wrapper {
+                left: 0 !important;
+                transform: none !important;
+            }
+            .sidebar-wrapper.close_icon {
+                width: 280px !important;
+            }
+            .sidebar-wrapper.close_icon .sidebar-main .sidebar-links .sidebar-list .sidebar-link span,
+            .sidebar-wrapper.close_icon .sidebar-main-title {
+                display: block !important;
+                opacity: 1 !important;
+            }
+            .sidebar-wrapper.close_icon .logo-wrapper {
+                display: flex !important;
+            }
+            .sidebar-wrapper.close_icon .logo-icon-wrapper {
+                display: none !important;
+            }
+            .sidebar-wrapper.close_icon ~ .page-body,
+            .page-body {
+                margin-left: 280px !important;
+            }
+            .sidebar-wrapper.close_icon .sidebar-main .sidebar-links .sidebar-list .sidebar-link.sidebar-title::after {
+                display: block !important;
+            }
+            .sidebar-wrapper.close_icon .sidebar-main .sidebar-links .sidebar-list .sidebar-submenu {
+                position: static !important;
+                box-shadow: none !important;
+                background: transparent !important;
+            }
+        }
+
+        /* Tablet and phone responsive */
+        @media (max-width: 991.98px) {
+            .sidebar-wrapper .logo-wrapper {
+                display: flex !important;
+                align-items: center;
+                justify-content: space-between;
+                padding: 15px 20px !important;
+                border-bottom: 1px solid #eee;
+            }
+            .sidebar-wrapper .logo-wrapper .back-btn {
+                display: flex !important;
+                align-items: center;
+                justify-content: center;
+                width: 30px;
+                height: 30px;
+                border-radius: 5px;
+                background: #f5f5f5;
+                cursor: pointer;
+            }
+            .sidebar-main {
+                height: calc(100vh - 80px);
+                overflow-y: auto;
+            }
+            .page-body-wrapper .page-body {
+                margin-left: 0 !important;
+                padding: 15px !important;
+            }
+            .page-title h3 {
+                font-size: 18px !important;
+            }
+            .page-title .breadcrumb {
+                justify-content: flex-start !important;
+                margin-top: 10px;
+            }
+        }
+
+        @media (max-width: 575.98px) {
+            .nav-menus > li {
+                padding: 0 5px !important;
+            }
+            .page-title .row {
+                flex-direction: column;
+            }
+            .page-title .col-sm-6:last-child {
+                text-align: left !important;
+            }
+            .card {
+                margin-bottom: 15px;
+            }
+            .card-body {
+                padding: 15px !important;
+            }
+            .table-responsive {
+                font-size: 13px;
+            }
+            .form-control, .form-select {
+                font-size: 14px;
+            }
         }
     </style>
 </head>
@@ -217,6 +440,20 @@
                         </div>
                     </div>
                 </div>
+                <div class="container-fluid">
+                    @if(session('success'))
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="fa fa-check-circle me-2"></i>{{ session('success') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    @endif
+                    @if(session('error'))
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fa fa-exclamation-circle me-2"></i>{{ session('error') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    @endif
+                </div>
                 @yield('content')
             </div>
 
@@ -251,6 +488,8 @@
 
     @stack('scripts')
 
+    @include('components.password-toggle')
+
     <script src="{{ asset('assets/js/script.js') }}"></script>
 
     <script>
@@ -261,27 +500,148 @@
         });
 
         jQuery(document).ready(function() {
-            jQuery('#sidebar-toggle-btn').on('click', function(e) {
+            // Highlight active sidebar menu based on current URL
+            (function() {
+                var currentUrl = window.location.href.split('?')[0].split('#')[0].replace(/\/$/, '');
+
+                jQuery('.sidebar-submenu a').each(function() {
+                    var linkUrl = jQuery(this).attr('href');
+                    if (!linkUrl || linkUrl === '#') return;
+                    linkUrl = linkUrl.split('?')[0].split('#')[0].replace(/\/$/, '');
+                    if (currentUrl === linkUrl || currentUrl.indexOf(linkUrl) === 0) {
+                        jQuery(this).addClass('active');
+                        var submenu = jQuery(this).closest('.sidebar-submenu');
+                        submenu.slideDown(0);
+                        var parentTitle = submenu.prev('.sidebar-title');
+                        parentTitle.addClass('active');
+                        parentTitle.find('.according-menu i').removeClass('fa-angle-right').addClass('fa-angle-down');
+                    }
+                });
+
+                jQuery('.sidebar-link.link-nav').each(function() {
+                    var linkUrl = jQuery(this).attr('href');
+                    if (!linkUrl || linkUrl === '#') return;
+                    linkUrl = linkUrl.split('?')[0].split('#')[0].replace(/\/$/, '');
+                    if (currentUrl === linkUrl || currentUrl.indexOf(linkUrl) === 0) {
+                        jQuery(this).addClass('active');
+                    }
+                });
+
+                // Scroll sidebar to active menu item
+                setTimeout(function() {
+                    var activeItem = jQuery('.sidebar-submenu a.active, .sidebar-link.link-nav.active').first();
+                    if (activeItem.length) {
+                        var sidebarWrapper = jQuery('.sidebar-wrapper, .custom-scrollbar');
+                        if (sidebarWrapper.length) {
+                            var itemTop = activeItem.offset().top - sidebarWrapper.offset().top + sidebarWrapper.scrollTop();
+                            var sidebarHeight = sidebarWrapper.height();
+                            sidebarWrapper.scrollTop(itemTop - (sidebarHeight / 3));
+                        }
+                    }
+                }, 100);
+            })();
+
+            function isMobileView() {
+                return window.innerWidth < 992;
+            }
+
+            function initSidebarState() {
+                if (isMobileView()) {
+                    jQuery('.sidebar-wrapper').addClass('close_icon');
+                    jQuery('.bg-overlay').remove();
+                } else {
+                    jQuery('.sidebar-wrapper').removeClass('close_icon');
+                    jQuery('.page-header').removeClass('close_icon');
+                    jQuery('.bg-overlay').remove();
+                }
+            }
+
+            initSidebarState();
+
+            // Toggle sidebar (only on tablet/phone)
+            jQuery(document).on('click', '#sidebar-toggle-btn', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
-                jQuery('.sidebar-wrapper').toggleClass('close_icon');
-                jQuery('.page-header').toggleClass('close_icon');
-            });
+                if (!isMobileView()) return;
 
-            jQuery(document).on('click', '.toggle-sidebar', function(e) {
-                if (jQuery(this).attr('id') !== 'sidebar-toggle-btn') {
-                    e.preventDefault();
-                    jQuery('.sidebar-wrapper').toggleClass('close_icon');
-                    jQuery('.page-header').toggleClass('close_icon');
+                var sidebar = jQuery('.sidebar-wrapper');
+                if (sidebar.hasClass('close_icon')) {
+                    sidebar.removeClass('close_icon');
+                    jQuery('body').append('<div class="bg-overlay active"></div>');
+                } else {
+                    sidebar.addClass('close_icon');
+                    jQuery('.bg-overlay').remove();
                 }
             });
 
+            // Close sidebar when clicking on overlay
             jQuery(document).on('click', '.bg-overlay', function() {
                 jQuery('.sidebar-wrapper').addClass('close_icon');
-                jQuery('.page-header').addClass('close_icon');
                 jQuery(this).remove();
+            });
+
+            // Close sidebar when clicking back/close button in mobile
+            jQuery(document).on('click', '.sidebar-wrapper .back-btn', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                jQuery('.sidebar-wrapper').addClass('close_icon');
+                jQuery('.bg-overlay').remove();
+            });
+
+            // Close sidebar when clicking a direct link on mobile
+            jQuery(document).on('click', '.sidebar-wrapper .sidebar-link.link-nav', function() {
+                if (isMobileView()) {
+                    setTimeout(function() {
+                        jQuery('.sidebar-wrapper').addClass('close_icon');
+                        jQuery('.bg-overlay').remove();
+                    }, 100);
+                }
+            });
+
+            // Handle window resize
+            var resizeTimer;
+            jQuery(window).on('resize', function() {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(function() {
+                    initSidebarState();
+                }, 250);
+            });
+
+            // Override sidebar-menu.js: prevent collapse on desktop
+            jQuery(document).on('click', '.toggle-sidebar', function(e) {
+                if (!isMobileView()) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    jQuery('.sidebar-wrapper').removeClass('close_icon');
+                    jQuery('.page-header').removeClass('close_icon');
+                }
+            });
+
+            // SweetAlert2 Delete Confirmation
+            jQuery(document).on('click', '.delete-confirm', function(e) {
+                e.preventDefault();
+                var form = jQuery(this).closest('form');
+                var itemName = jQuery(this).data('name') || 'this item';
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: 'You are about to delete ' + itemName + '. This action cannot be undone!',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#FC4438',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Yes, delete it!',
+                    cancelButtonText: 'No, cancel',
+                    reverseButtons: true
+                }).then(function(result) {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
             });
         });
     </script>
+    @auth
+        @include('components.notification-scripts')
+    @endauth
 </body>
 </html>

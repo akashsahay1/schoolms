@@ -32,7 +32,7 @@
 				<div class="d-flex justify-content-between align-items-center">
 					<h5>All Classes {{ $academicYear ? '(' . $academicYear->name . ')' : '' }}</h5>
 					<a href="{{ route('admin.classes.create') }}" class="btn btn-primary">
-						<i data-feather="plus" class="me-1"></i> Add New Class
+						<i data-feather="plus" class="me-1"></i> Add New
 					</a>
 				</div>
 			</div>

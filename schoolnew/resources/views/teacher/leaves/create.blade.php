@@ -12,8 +12,10 @@
 <div class="row">
 	<div class="col-lg-8">
 		<div class="card">
-			<div class="card-header pb-0">
-				<h5 class="mb-0">Leave Application Form</h5>
+			<div class="card-header pb-0 border-0">
+				<h5 class="mb-0">
+					<i data-feather="file-text" style="width: 18px; height: 18px;" class="me-2"></i>Leave Application Form
+				</h5>
 			</div>
 			<div class="card-body">
 				<form action="{{ route('teacher.leaves.store') }}" method="POST" enctype="multipart/form-data">
@@ -22,15 +24,15 @@
 					<div class="row g-3">
 						<div class="col-md-12">
 							<label class="form-label">Leave Type <span class="text-danger">*</span></label>
-							<select name="leave_type_id" class="form-select @error('leave_type_id') is-invalid @enderror" required>
+							<select name="leave_type" class="form-select @error('leave_type') is-invalid @enderror" required>
 								<option value="">Select Leave Type</option>
-								@foreach($leaveTypes as $type)
-									<option value="{{ $type->id }}" {{ old('leave_type_id') == $type->id ? 'selected' : '' }}>
-										{{ $type->name }}
+								@foreach($leaveTypes as $key => $label)
+									<option value="{{ $key }}" {{ old('leave_type') == $key ? 'selected' : '' }}>
+										{{ $label }}
 									</option>
 								@endforeach
 							</select>
-							@error('leave_type_id')
+							@error('leave_type')
 								<div class="invalid-feedback">{{ $message }}</div>
 							@enderror
 						</div>
@@ -82,8 +84,10 @@
 
 	<div class="col-lg-4">
 		<div class="card">
-			<div class="card-header pb-0">
-				<h6 class="mb-0">Instructions</h6>
+			<div class="card-header pb-0 border-0">
+				<h6 class="mb-0">
+					<i data-feather="help-circle" style="width: 16px; height: 16px;" class="me-2"></i>Instructions
+				</h6>
 			</div>
 			<div class="card-body">
 				<ul class="list-unstyled mb-0">

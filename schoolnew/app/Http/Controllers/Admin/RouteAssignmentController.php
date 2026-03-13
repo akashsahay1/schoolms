@@ -173,8 +173,9 @@ class RouteAssignmentController extends Controller
 
         $assignments = $query->orderBy('deleted_at', 'desc')->paginate(15);
         $routes = TransportRoute::orderBy('route_name')->get();
+        $trashedCount = RouteAssignment::onlyTrashed()->count();
 
-        return view('admin.transport.assignments.trash', compact('assignments', 'routes'));
+        return view('admin.transport.assignments.trash', compact('assignments', 'routes', 'trashedCount'));
     }
 
     public function restore($id)

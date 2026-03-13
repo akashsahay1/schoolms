@@ -5,27 +5,232 @@
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<meta name="description" content="{{ config('app.name') }} - Staff Portal">
+	<meta name="author" content="School Management System">
 	<meta name="csrf-token" content="{{ csrf_token() }}">
 
 	<link rel="icon" href="{{ asset('assets/images/favicon.png') }}" type="image/x-icon">
-	<title>@yield('title', 'Staff Portal') - {{ config('app.name') }}</title>
+	<link rel="shortcut icon" href="{{ asset('assets/images/favicon.png') }}" type="image/x-icon">
+
+	<title>@yield('title', 'Dashboard') - Staff Portal</title>
 
 	<!-- Google Fonts -->
-	<link href="https://fonts.googleapis.com/css?family=Rubik:400,400i,500,500i,700,700i&display=swap" rel="stylesheet">
-	<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,500,500i,700,700i,900&display=swap" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css?family=Rubik:400,400i,500,500i,700,700i&amp;display=swap" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,500,500i,700,700i,900&amp;display=swap" rel="stylesheet">
 
-	<!-- CSS -->
+	<!-- Font Awesome -->
 	<link rel="stylesheet" type="text/css" href="{{ asset('assets/css/vendors/fontawesome.css') }}">
+	<!-- ICO Font -->
 	<link rel="stylesheet" type="text/css" href="{{ asset('assets/css/vendors/icofont.css') }}">
+	<!-- Themify Icon -->
 	<link rel="stylesheet" type="text/css" href="{{ asset('assets/css/vendors/themify.css') }}">
+	<!-- Flag Icon -->
+	<link rel="stylesheet" type="text/css" href="{{ asset('assets/css/vendors/flag-icon.css') }}">
+	<!-- Feather Icon -->
 	<link rel="stylesheet" type="text/css" href="{{ asset('assets/css/vendors/feather-icon.css') }}">
+
+	<!-- Plugins CSS -->
+	<link rel="stylesheet" type="text/css" href="{{ asset('assets/css/vendors/scrollbar.css') }}">
+	<link rel="stylesheet" type="text/css" href="{{ asset('assets/css/vendors/slick.css') }}">
+	<link rel="stylesheet" type="text/css" href="{{ asset('assets/css/vendors/slick-theme.css') }}">
+	<link rel="stylesheet" type="text/css" href="{{ asset('assets/css/vendors/sweetalert2.css') }}">
 	@stack('styles')
+
+	<!-- Bootstrap CSS -->
 	<link rel="stylesheet" type="text/css" href="{{ asset('assets/css/vendors/bootstrap.css') }}">
+	<!-- App CSS -->
 	<link rel="stylesheet" type="text/css" href="{{ asset('assets/css/style.css') }}">
 	<link id="color" rel="stylesheet" href="{{ asset('assets/css/color-1.css') }}" media="screen">
+	<!-- Responsive CSS -->
 	<link rel="stylesheet" type="text/css" href="{{ asset('assets/css/responsive.css') }}">
 
 	<style>
+		.logo-custom {
+			max-height: 45px !important;
+			max-width: 200px !important;
+			object-fit: contain;
+		}
+		.sidebar-main-title { margin-bottom: 5px !important; }
+		.sidebar-list:not(:first-child) { margin-top: 2px; }
+		.logo-wrapper { padding: 15px 20px !important; margin-bottom: 10px; }
+		.sidebar-main-title + .sidebar-list { margin-top: 8px !important; }
+		.portal-badge {
+			background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+			color: white;
+			padding: 2px 8px;
+			border-radius: 4px;
+			font-size: 10px;
+			margin-left: 8px;
+		}
+
+		/* BG-OPACITY SUPPORT (not in this Bootstrap) */
+		.bg-primary.bg-opacity-10 { background-color: rgba(115, 102, 255, 0.1) !important; }
+		.bg-primary.bg-opacity-15 { background-color: rgba(115, 102, 255, 0.15) !important; }
+		.bg-primary.bg-opacity-25 { background-color: rgba(115, 102, 255, 0.25) !important; }
+		.bg-success.bg-opacity-10 { background-color: rgba(101, 193, 92, 0.1) !important; }
+		.bg-success.bg-opacity-15 { background-color: rgba(101, 193, 92, 0.15) !important; }
+		.bg-success.bg-opacity-25 { background-color: rgba(101, 193, 92, 0.25) !important; }
+		.bg-danger.bg-opacity-10 { background-color: rgba(252, 86, 74, 0.1) !important; }
+		.bg-danger.bg-opacity-15 { background-color: rgba(252, 86, 74, 0.15) !important; }
+		.bg-danger.bg-opacity-25 { background-color: rgba(252, 86, 74, 0.25) !important; }
+		.bg-warning.bg-opacity-10 { background-color: rgba(255, 184, 41, 0.1) !important; }
+		.bg-warning.bg-opacity-15 { background-color: rgba(255, 184, 41, 0.15) !important; }
+		.bg-warning.bg-opacity-25 { background-color: rgba(255, 184, 41, 0.25) !important; }
+		.bg-info.bg-opacity-10 { background-color: rgba(64, 184, 245, 0.1) !important; }
+		.bg-info.bg-opacity-15 { background-color: rgba(64, 184, 245, 0.15) !important; }
+		.bg-info.bg-opacity-25 { background-color: rgba(64, 184, 245, 0.25) !important; }
+		.bg-secondary.bg-opacity-10 { background-color: rgba(131, 131, 131, 0.1) !important; }
+		.bg-secondary.bg-opacity-15 { background-color: rgba(131, 131, 131, 0.15) !important; }
+		.bg-secondary.bg-opacity-25 { background-color: rgba(131, 131, 131, 0.25) !important; }
+		.bg-dark.bg-opacity-10 { background-color: rgba(63, 71, 90, 0.1) !important; }
+		.bg-dark.bg-opacity-15 { background-color: rgba(63, 71, 90, 0.15) !important; }
+		.bg-dark.bg-opacity-25 { background-color: rgba(63, 71, 90, 0.25) !important; }
+		.bg-white.bg-opacity-25 { background-color: rgba(255, 255, 255, 0.25) !important; }
+
+		/* Profile dropdown fix */
+		.profile-dropdown.onhover-show-div {
+			padding: 8px 0 !important;
+			width: 220px !important;
+			border-radius: 8px !important;
+			box-shadow: 0 4px 20px rgba(0,0,0,0.12) !important;
+			border: 1px solid #eee !important;
+			overflow: visible !important;
+		}
+		.profile-dropdown.onhover-show-div li {
+			padding: 0 !important;
+			display: block !important;
+			margin-top: 0 !important;
+		}
+		.profile-dropdown.onhover-show-div li + li {
+			margin-top: 0 !important;
+		}
+		.profile-dropdown.onhover-show-div li a {
+			display: flex !important;
+			align-items: center !important;
+			gap: 8px;
+			text-decoration: none;
+			color: #3f475a;
+			padding: 8px 16px !important;
+			transition: background 0.2s;
+			font-size: 13px;
+			text-transform: none !important;
+			letter-spacing: 0 !important;
+		}
+		.profile-dropdown.onhover-show-div li a:hover {
+			background: #f5f6fa;
+		}
+		.profile-dropdown.onhover-show-div li a svg,
+		.profile-dropdown.onhover-show-div li a i {
+			width: 16px !important;
+			height: 16px !important;
+			min-width: 16px !important;
+			flex-shrink: 0 !important;
+			stroke: #3f475a;
+			margin-right: 0 !important;
+		}
+		.profile-dropdown.onhover-show-div li a span {
+			color: #3f475a;
+		}
+
+		/* Page title and breadcrumb text fix */
+		.page-title h3 {
+			color: #2c323f !important;
+		}
+		.page-title .breadcrumb-item,
+		.page-title .breadcrumb-item a,
+		.page-title .breadcrumb-item.active {
+			color: #2c323f !important;
+		}
+		.page-title .breadcrumb-item a svg {
+			stroke: #2c323f !important;
+		}
+
+		/* Button text color fix */
+		.btn-primary, .btn-success, .btn-danger, .btn-warning,
+		.btn-info, .btn-secondary, .btn-dark {
+			color: #fff !important;
+		}
+		.btn-light, .btn-white {
+			color: #000 !important;
+		}
+		.btn-outline-primary, .btn-outline-success, .btn-outline-danger,
+		.btn-outline-warning, .btn-outline-info, .btn-outline-secondary, .btn-outline-dark {
+			color: inherit;
+		}
+		.btn-outline-primary:hover, .btn-outline-success:hover, .btn-outline-danger:hover,
+		.btn-outline-warning:hover, .btn-outline-info:hover, .btn-outline-secondary:hover, .btn-outline-dark:hover {
+			color: #fff !important;
+		}
+
+		/* Text overflow prevention */
+		.card-body p, .card-body td, .card-body a,
+		.card-body span, .list-unstyled a, .list-unstyled span {
+			overflow-wrap: break-word;
+			word-wrap: break-word;
+		}
+		.d-flex > span, .d-flex > div {
+			min-width: 0;
+		}
+
+		/* Card text color fix */
+		.card-body span:not([class*="bg-"]):not([class*="text-"]):not(.badge),
+		.card-body strong:not([class*="text-"]),
+		.card-body p:not([class*="text-"]),
+		.card-body label,
+		.card-body h6:not([class*="text-"]),
+		.card-header h5:not([class*="text-"]) {
+			color: #2c323f !important;
+		}
+		/* White text on ALL colored backgrounds (cards, card-headers, card-bodies, theads) */
+		.card-header.bg-primary *,
+		.card-header.bg-success *,
+		.card-header.bg-danger *,
+		.card-header.bg-info *,
+		.card-header.bg-secondary *,
+		.card-header.bg-dark *,
+		.card.bg-primary .card-body *,
+		.card.bg-success .card-body *,
+		.card.bg-danger .card-body *,
+		.card.bg-info .card-body *,
+		.card.bg-secondary .card-body *,
+		.card.bg-dark .card-body *,
+		.card-body.bg-primary *,
+		.card-body.bg-success *,
+		.card-body.bg-danger *,
+		.card-body.bg-info *,
+		.card-body.bg-secondary *,
+		.card-body.bg-dark *,
+		thead.bg-primary *,
+		thead.bg-success *,
+		thead.bg-danger *,
+		thead.bg-info *,
+		thead.bg-secondary *,
+		thead.bg-dark * {
+			color: #fff !important;
+		}
+		.card-header.bg-warning *,
+		.card.bg-warning .card-body *,
+		.card-body.bg-warning *,
+		thead.bg-warning * {
+			color: #fff !important;
+		}
+		/* Dark text on white/light backgrounds (overrides any parent white text rules) */
+		.bg-white, .bg-white *,
+		.bg-light, .bg-light * {
+			color: #000 !important;
+		}
+		.card-header-right-icon .dropdown-toggle {
+			border: none !important;
+		}
+		.card-header-right-icon .dropdown-toggle:hover {
+			background-color: transparent !important;
+			color: #89899B !important;
+		}
+		.bg-white svg, .bg-white [data-feather],
+		.bg-light svg, .bg-light [data-feather] {
+			stroke: #000 !important;
+		}
+
+		/* User-friendly enhancements */
 		.quick-action-card {
 			transition: transform 0.2s, box-shadow 0.2s;
 			cursor: pointer;
@@ -48,10 +253,18 @@
 			background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 			border-radius: 15px;
 		}
+		.welcome-card.teacher-theme {
+			background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+		}
 		.stat-card {
 			border-radius: 12px;
 			border: none;
-			box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+			box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+			transition: transform 0.2s ease, box-shadow 0.2s ease;
+		}
+		.stat-card:hover {
+			transform: translateY(-3px);
+			box-shadow: 0 6px 20px rgba(0,0,0,0.1);
 		}
 		.help-tip {
 			background: #f8f9fa;
@@ -59,6 +272,124 @@
 			padding: 15px;
 			border-radius: 0 8px 8px 0;
 			margin-bottom: 20px;
+		}
+		.info-card {
+			border-radius: 12px;
+			transition: all 0.3s ease;
+		}
+		.info-card:hover {
+			transform: translateY(-3px);
+			box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+		}
+		.progress-ring {
+			width: 80px;
+			height: 80px;
+		}
+		.badge-status {
+			padding: 6px 12px;
+			border-radius: 20px;
+			font-size: 12px;
+		}
+
+		/* Sidebar toggle - only visible on tablet/phone */
+		#sidebar-toggle-btn {
+			align-items: center;
+			cursor: pointer;
+			padding: 8px;
+		}
+
+		/* Desktop: sidebar always open, never collapsed */
+		@media (min-width: 992px) {
+			.sidebar-wrapper {
+				left: 0 !important;
+				transform: none !important;
+			}
+			.sidebar-wrapper.close_icon {
+				width: 280px !important;
+			}
+			.sidebar-wrapper.close_icon .sidebar-main .sidebar-links .sidebar-list .sidebar-link span,
+			.sidebar-wrapper.close_icon .sidebar-main-title {
+				display: block !important;
+				opacity: 1 !important;
+			}
+			.sidebar-wrapper.close_icon .logo-wrapper {
+				display: flex !important;
+			}
+			.sidebar-wrapper.close_icon .logo-icon-wrapper {
+				display: none !important;
+			}
+			.sidebar-wrapper.close_icon ~ .page-body,
+			.page-body {
+				margin-left: 280px !important;
+			}
+			.sidebar-wrapper.close_icon .sidebar-main .sidebar-links .sidebar-list .sidebar-link.sidebar-title::after {
+				display: block !important;
+			}
+			.sidebar-wrapper.close_icon .sidebar-main .sidebar-links .sidebar-list .sidebar-submenu {
+				position: static !important;
+				box-shadow: none !important;
+				background: transparent !important;
+			}
+		}
+
+		/* Tablet and phone responsive */
+		@media (max-width: 991.98px) {
+			.sidebar-wrapper .logo-wrapper {
+				display: flex !important;
+				align-items: center;
+				justify-content: space-between;
+				padding: 15px 20px !important;
+				border-bottom: 1px solid #eee;
+			}
+			.sidebar-wrapper .logo-wrapper .back-btn {
+				display: flex !important;
+				align-items: center;
+				justify-content: center;
+				width: 30px;
+				height: 30px;
+				border-radius: 5px;
+				background: #f5f5f5;
+				cursor: pointer;
+			}
+			.sidebar-main {
+				height: calc(100vh - 80px);
+				overflow-y: auto;
+			}
+			.page-body-wrapper .page-body {
+				margin-left: 0 !important;
+				padding: 15px !important;
+			}
+			.page-title h3 {
+				font-size: 18px !important;
+			}
+			.page-title .breadcrumb {
+				justify-content: flex-start !important;
+				margin-top: 10px;
+			}
+		}
+
+		@media (max-width: 575.98px) {
+			.nav-menus > li {
+				padding: 0 5px !important;
+			}
+			.page-title .row {
+				flex-direction: column;
+			}
+			.page-title .col-sm-6:last-child {
+				text-align: left !important;
+			}
+			.card {
+				margin-bottom: 15px;
+			}
+			.card-body {
+				padding: 15px !important;
+			}
+			.table-responsive {
+				font-size: 13px;
+			}
+			.form-control, .form-select {
+				font-size: 14px;
+			}
 		}
 	</style>
 </head>
@@ -74,28 +405,30 @@
 
 	<!-- Page Wrapper -->
 	<div class="page-wrapper compact-wrapper" id="pageWrapper">
-		<!-- Header -->
+		<!-- Page Header -->
 		@include('teacher.components.header')
 
 		<!-- Page Body -->
 		<div class="page-body-wrapper">
-			<!-- Sidebar -->
+			<!-- Page Sidebar -->
 			@include('teacher.components.sidebar')
 
 			<!-- Page Body -->
 			<div class="page-body">
-				@if(!empty($breadcrumbs) || isset($pageTitle))
+				<!-- Page Title / Breadcrumb -->
 				<div class="container-fluid">
 					<div class="page-title">
 						<div class="row">
-							<div class="col-6">
+							<div class="col-sm-6">
 								<h3>@yield('page-title', 'Staff Dashboard')</h3>
 							</div>
-							<div class="col-6">
+							<div class="col-sm-6">
 								<ol class="breadcrumb">
 									<li class="breadcrumb-item">
 										<a href="{{ route('teacher.dashboard') }}">
-											<svg class="stroke-icon"><use href="{{ asset('assets/svg/icon-sprite.svg#stroke-home') }}"></use></svg>
+											<svg class="stroke-icon">
+												<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-home') }}"></use>
+											</svg>
 										</a>
 									</li>
 									@yield('breadcrumb')
@@ -104,10 +437,7 @@
 						</div>
 					</div>
 				</div>
-				@endif
-
 				<div class="container-fluid">
-					<!-- Flash Messages -->
 					@if(session('success'))
 						<div class="alert alert-success alert-dismissible fade show" role="alert">
 							<i class="fa fa-check-circle me-2"></i>{{ session('success') }}
@@ -120,29 +450,197 @@
 							<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
 						</div>
 					@endif
-
-					@yield('content')
 				</div>
+				@yield('content')
 			</div>
 
+			<!-- Footer -->
 			@include('components.footer')
 		</div>
 	</div>
 
-	<!-- Scripts -->
+	<!-- jQuery -->
 	<script src="{{ asset('assets/js/jquery.min.js') }}"></script>
+	<!-- Bootstrap JS -->
 	<script src="{{ asset('assets/js/bootstrap/bootstrap.bundle.min.js') }}"></script>
+	<!-- Feather Icon JS -->
 	<script src="{{ asset('assets/js/icons/feather-icon/feather.min.js') }}"></script>
 	<script src="{{ asset('assets/js/icons/feather-icon/feather-icon.js') }}"></script>
-	<script src="{{ asset('assets/js/scrollbar/simplebar.js') }}"></script>
+	<!-- Scrollbar JS -->
+	<script src="{{ asset('assets/js/scrollbar/simplebar.min.js') }}"></script>
 	<script src="{{ asset('assets/js/scrollbar/custom.js') }}"></script>
+	<!-- Sidebar jQuery -->
 	<script src="{{ asset('assets/js/config.js') }}"></script>
+	<!-- Sidebar JS -->
 	<script src="{{ asset('assets/js/sidebar-menu.js') }}"></script>
+	<script src="{{ asset('assets/js/sidebar-pin.js') }}"></script>
+	<!-- Slick Slider JS -->
+	<script src="{{ asset('assets/js/slick/slick.js') }}"></script>
+	<script src="{{ asset('assets/js/slick/slick.min.js') }}"></script>
+	<script src="{{ asset('assets/js/header-slick.js') }}"></script>
+	<!-- Height Equal JS -->
+	<script src="{{ asset('assets/js/height-equal.js') }}"></script>
+	<!-- SweetAlert2 JS -->
+	<script src="{{ asset('assets/js/sweet-alert/sweetalert.min.js') }}"></script>
+
 	@stack('scripts')
+
+	@include('components.password-toggle')
+
 	<script src="{{ asset('assets/js/script.js') }}"></script>
+
 	<script>
 		if (typeof feather !== 'undefined') { feather.replace(); }
-		jQuery.ajaxSetup({ headers: { 'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content') } });
+
+		jQuery.ajaxSetup({
+			headers: { 'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content') }
+		});
+
+		jQuery(document).ready(function() {
+			// Highlight active sidebar menu based on current URL
+			(function() {
+				var currentUrl = window.location.href.split('?')[0].split('#')[0].replace(/\/$/, '');
+
+				jQuery('.sidebar-submenu a').each(function() {
+					var linkUrl = jQuery(this).attr('href');
+					if (!linkUrl || linkUrl === '#') return;
+					linkUrl = linkUrl.split('?')[0].split('#')[0].replace(/\/$/, '');
+					if (currentUrl === linkUrl || currentUrl.indexOf(linkUrl) === 0) {
+						jQuery(this).addClass('active');
+						var submenu = jQuery(this).closest('.sidebar-submenu');
+						submenu.slideDown(0);
+						var parentTitle = submenu.prev('.sidebar-title');
+						parentTitle.addClass('active');
+						parentTitle.find('.according-menu i').removeClass('fa-angle-right').addClass('fa-angle-down');
+					}
+				});
+
+				jQuery('.sidebar-link.link-nav').each(function() {
+					var linkUrl = jQuery(this).attr('href');
+					if (!linkUrl || linkUrl === '#') return;
+					linkUrl = linkUrl.split('?')[0].split('#')[0].replace(/\/$/, '');
+					if (currentUrl === linkUrl || currentUrl.indexOf(linkUrl) === 0) {
+						jQuery(this).addClass('active');
+					}
+				});
+
+				// Scroll sidebar to active menu item
+				setTimeout(function() {
+					var activeItem = jQuery('.sidebar-submenu a.active, .sidebar-link.link-nav.active').first();
+					if (activeItem.length) {
+						var sidebarWrapper = jQuery('.sidebar-wrapper, .custom-scrollbar');
+						if (sidebarWrapper.length) {
+							var itemTop = activeItem.offset().top - sidebarWrapper.offset().top + sidebarWrapper.scrollTop();
+							var sidebarHeight = sidebarWrapper.height();
+							sidebarWrapper.scrollTop(itemTop - (sidebarHeight / 3));
+						}
+					}
+				}, 100);
+			})();
+
+			function isMobileView() {
+				return window.innerWidth < 992;
+			}
+
+			function initSidebarState() {
+				if (isMobileView()) {
+					jQuery('.sidebar-wrapper').addClass('close_icon');
+					jQuery('.bg-overlay').remove();
+				} else {
+					// Desktop: always open
+					jQuery('.sidebar-wrapper').removeClass('close_icon');
+					jQuery('.page-header').removeClass('close_icon');
+					jQuery('.bg-overlay').remove();
+				}
+			}
+
+			initSidebarState();
+
+			// Toggle sidebar (only on tablet/phone)
+			jQuery(document).on('click', '#sidebar-toggle-btn', function(e) {
+				e.preventDefault();
+				e.stopPropagation();
+				if (!isMobileView()) return;
+
+				var sidebar = jQuery('.sidebar-wrapper');
+				if (sidebar.hasClass('close_icon')) {
+					sidebar.removeClass('close_icon');
+					jQuery('body').append('<div class="bg-overlay active"></div>');
+				} else {
+					sidebar.addClass('close_icon');
+					jQuery('.bg-overlay').remove();
+				}
+			});
+
+			// Close sidebar when clicking on overlay
+			jQuery(document).on('click', '.bg-overlay', function() {
+				jQuery('.sidebar-wrapper').addClass('close_icon');
+				jQuery(this).remove();
+			});
+
+			// Close sidebar when clicking back/close button in mobile
+			jQuery(document).on('click', '.sidebar-wrapper .back-btn', function(e) {
+				e.preventDefault();
+				e.stopPropagation();
+				jQuery('.sidebar-wrapper').addClass('close_icon');
+				jQuery('.bg-overlay').remove();
+			});
+
+			// Close sidebar when clicking a direct link on mobile
+			jQuery(document).on('click', '.sidebar-wrapper .sidebar-link.link-nav', function() {
+				if (isMobileView()) {
+					setTimeout(function() {
+						jQuery('.sidebar-wrapper').addClass('close_icon');
+						jQuery('.bg-overlay').remove();
+					}, 100);
+				}
+			});
+
+			// Handle window resize
+			var resizeTimer;
+			jQuery(window).on('resize', function() {
+				clearTimeout(resizeTimer);
+				resizeTimer = setTimeout(function() {
+					initSidebarState();
+				}, 250);
+			});
+
+			// Override sidebar-menu.js: prevent collapse on desktop
+			// sidebar-menu.js uses .toggle-sidebar click which can add close_icon
+			jQuery(document).on('click', '.toggle-sidebar', function(e) {
+				if (!isMobileView()) {
+					e.preventDefault();
+					e.stopImmediatePropagation();
+					jQuery('.sidebar-wrapper').removeClass('close_icon');
+					jQuery('.page-header').removeClass('close_icon');
+				}
+			});
+
+			// SweetAlert2 Delete Confirmation
+			jQuery(document).on('click', '.delete-confirm', function(e) {
+				e.preventDefault();
+				var form = jQuery(this).closest('form');
+				var itemName = jQuery(this).data('name') || 'this item';
+				Swal.fire({
+					title: 'Are you sure?',
+					text: 'You are about to delete ' + itemName + '. This action cannot be undone!',
+					icon: 'warning',
+					showCancelButton: true,
+					confirmButtonColor: '#FC4438',
+					cancelButtonColor: '#6c757d',
+					confirmButtonText: 'Yes, delete it!',
+					cancelButtonText: 'No, cancel',
+					reverseButtons: true
+				}).then(function(result) {
+					if (result.isConfirmed) {
+						form.submit();
+					}
+				});
+			});
+		});
 	</script>
+	@auth
+		@include('components.notification-scripts')
+	@endauth
 </body>
 </html>

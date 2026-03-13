@@ -24,9 +24,11 @@
 		<div class="col-xl-4">
 			<div class="card info-card">
 				<div class="card-body text-center">
-					<div class="position-relative d-inline-block mb-3">
+					<div class="d-inline-block mb-2">
 						<img src="{{ $student->photo_url }}" alt="{{ $student->full_name }}" class="rounded-circle shadow" width="120" height="120" style="object-fit: cover; border: 4px solid #fff;">
-						<span class="position-absolute bottom-0 end-0 badge badge-light-{{ $student->status === 'active' ? 'success' : 'secondary' }} rounded-pill">
+					</div>
+					<div class="mb-2">
+						<span class="badge badge-light-{{ $student->status === 'active' ? 'success' : 'secondary' }} rounded-pill">
 							<i data-feather="{{ $student->status === 'active' ? 'check-circle' : 'pause-circle' }}" style="width: 12px; height: 12px;"></i>
 							{{ ucfirst($student->status ?? 'Active') }}
 						</span>
@@ -47,41 +49,39 @@
 						@endif
 					</div>
 					<hr>
-					<div class="row text-start">
-						<div class="col-6 mb-3">
-							<div class="d-flex align-items-center">
-								<i data-feather="mail" class="text-primary me-2" style="width: 16px; height: 16px;"></i>
-								<div>
-									<small class="text-muted d-block">Email</small>
-									<span class="fw-medium">{{ $student->email ?? $user->email ?? 'N/A' }}</span>
+					<div class="text-start">
+						<div class="d-flex align-items-start mb-3">
+							<i data-feather="mail" class="text-primary me-2 flex-shrink-0 mt-1" style="width: 16px; height: 16px;"></i>
+							<div style="min-width: 0;">
+								<small class="text-muted d-block">Email</small>
+								<span class="fw-medium d-block" style="word-break: break-all; font-size: 13px;">{{ $student->email ?? $user->email ?? 'N/A' }}</span>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-6 mb-3">
+								<div class="d-flex align-items-start">
+									<i data-feather="phone" class="text-primary me-2 flex-shrink-0 mt-1" style="width: 16px; height: 16px;"></i>
+									<div>
+										<small class="text-muted d-block">Phone</small>
+										<span class="fw-medium">{{ $student->phone ?? 'N/A' }}</span>
+									</div>
+								</div>
+							</div>
+							<div class="col-6 mb-3">
+								<div class="d-flex align-items-start">
+									<i data-feather="user" class="text-primary me-2 flex-shrink-0 mt-1" style="width: 16px; height: 16px;"></i>
+									<div>
+										<small class="text-muted d-block">Gender</small>
+										<span class="fw-medium">{{ ucfirst($student->gender ?? 'N/A') }}</span>
+									</div>
 								</div>
 							</div>
 						</div>
-						<div class="col-6 mb-3">
-							<div class="d-flex align-items-center">
-								<i data-feather="phone" class="text-primary me-2" style="width: 16px; height: 16px;"></i>
-								<div>
-									<small class="text-muted d-block">Phone</small>
-									<span class="fw-medium">{{ $student->phone ?? 'N/A' }}</span>
-								</div>
-							</div>
-						</div>
-						<div class="col-6 mb-2">
-							<div class="d-flex align-items-center">
-								<i data-feather="calendar" class="text-primary me-2" style="width: 16px; height: 16px;"></i>
-								<div>
-									<small class="text-muted d-block">Date of Birth</small>
-									<span class="fw-medium">{{ $student->date_of_birth ? $student->date_of_birth->format('M d, Y') : 'N/A' }}</span>
-								</div>
-							</div>
-						</div>
-						<div class="col-6 mb-2">
-							<div class="d-flex align-items-center">
-								<i data-feather="user" class="text-primary me-2" style="width: 16px; height: 16px;"></i>
-								<div>
-									<small class="text-muted d-block">Gender</small>
-									<span class="fw-medium">{{ ucfirst($student->gender ?? 'N/A') }}</span>
-								</div>
+						<div class="d-flex align-items-start">
+							<i data-feather="calendar" class="text-primary me-2 flex-shrink-0 mt-1" style="width: 16px; height: 16px;"></i>
+							<div>
+								<small class="text-muted d-block">Date of Birth</small>
+								<span class="fw-medium">{{ $student->date_of_birth ? $student->date_of_birth->format('M d, Y') : 'N/A' }}</span>
 							</div>
 						</div>
 					</div>
@@ -384,6 +384,56 @@
 							@endif
 						</div>
 					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Change Password -->
+	<div class="row">
+		<div class="col-xl-6">
+			<div class="card">
+				<div class="card-header pb-0 border-0">
+					<h5 class="mb-0">
+						<i data-feather="lock" style="width: 18px; height: 18px;" class="me-2"></i>Change Password
+					</h5>
+				</div>
+				<div class="card-body">
+					@if(session('success'))
+						<div class="alert alert-success alert-dismissible fade show" role="alert">
+							{{ session('success') }}
+							<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+						</div>
+					@endif
+					@if($errors->any())
+						<div class="alert alert-danger alert-dismissible fade show" role="alert">
+							<ul class="mb-0">
+								@foreach($errors->all() as $error)
+									<li>{{ $error }}</li>
+								@endforeach
+							</ul>
+							<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+						</div>
+					@endif
+					<form action="{{ route('portal.profile.update-password') }}" method="POST">
+						@csrf
+						@method('PUT')
+						<div class="mb-3">
+							<label class="form-label">Current Password <span class="text-danger">*</span></label>
+							<input type="password" name="current_password" class="form-control" required>
+						</div>
+						<div class="mb-3">
+							<label class="form-label">New Password <span class="text-danger">*</span></label>
+							<input type="password" name="password" class="form-control" required>
+						</div>
+						<div class="mb-3">
+							<label class="form-label">Confirm New Password <span class="text-danger">*</span></label>
+							<input type="password" name="password_confirmation" class="form-control" required>
+						</div>
+						<button type="submit" class="btn btn-primary">
+							<i data-feather="save" style="width: 14px; height: 14px;" class="me-1"></i> Update Password
+						</button>
+					</form>
 				</div>
 			</div>
 		</div>

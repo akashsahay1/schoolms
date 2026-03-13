@@ -18,7 +18,7 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <h5>Homepage Sliders</h5>
                     <a href="{{ route('admin.website.sliders.create') }}" class="btn btn-primary">
-                        <i data-feather="plus" class="me-1"></i> Add Slider
+                        <i data-feather="plus" class="me-1"></i> Add New
                     </a>
                 </div>
             </div>

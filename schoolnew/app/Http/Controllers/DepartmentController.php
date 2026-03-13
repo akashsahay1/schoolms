@@ -99,7 +99,8 @@ class DepartmentController extends Controller
     public function trash()
     {
         $departments = Department::onlyTrashed()->withCount('staff')->latest('deleted_at')->paginate(10);
-        return view('departments.trash', compact('departments'));
+        $trashedCount = Department::onlyTrashed()->count();
+        return view('departments.trash', compact('departments', 'trashedCount'));
     }
 
     public function restore($id)

@@ -22,7 +22,7 @@ use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DesignationController;
 use App\Http\Controllers\FeeStructureController;
 use App\Http\Controllers\FeeCollectionController;
-use App\Http\Controllers\FeeTypeController;
+use App\Http\Controllers\Admin\FeeTypeController;
 use App\Http\Controllers\FeeGroupController;
 use App\Http\Controllers\Admin\FeeDiscountController;
 use App\Http\Controllers\Admin\FeeReportController;
@@ -45,6 +45,7 @@ use App\Http\Controllers\Admin\LeaveTypeController;
 use App\Http\Controllers\Admin\StaffLeaveController;
 use App\Http\Controllers\Admin\BulkMessagingController;
 use App\Http\Controllers\Admin\MessagingController;
+use App\Http\Controllers\Admin\ContactMessageController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\LibraryMemberController;
 use App\Http\Controllers\Admin\ReportController;
@@ -81,8 +82,15 @@ Route::post('/logout', [LoginController::class, 'destroy'])
     ->middleware('auth')
     ->name('logout');
 
+// Notification Routes (shared by all authenticated users)
+Route::middleware('auth')->group(function () {
+    Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{id}/read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('/notifications/read-all', [\App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
+});
+
 // Admin Routes
-Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Super Admin,Admin,Accountant,Librarian,Receptionist'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/student-stats', [DashboardController::class, 'studentStats'])->name('dashboard.student-stats');
 
@@ -93,11 +101,6 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::get('/profile/delete-avatar', [ProfileController::class, 'deleteAvatar'])->name('profile.delete-avatar');
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
     Route::put('/settings', [SettingsController::class, 'update'])->name('settings.update');
-
-    // Payment Gateway Settings
-    Route::get('/settings/payment', [App\Http\Controllers\Admin\PaymentSettingController::class, 'index'])->name('settings.payment');
-    Route::put('/settings/payment', [App\Http\Controllers\Admin\PaymentSettingController::class, 'update'])->name('settings.payment.update');
-    Route::post('/settings/payment/test', [App\Http\Controllers\Admin\PaymentSettingController::class, 'test'])->name('settings.payment.test');
 
     // School Settings
     Route::get('/settings/school', [App\Http\Controllers\Admin\SettingController::class, 'school'])->name('settings.school');
@@ -130,6 +133,8 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::get('/students/sections/{classId}', [StudentController::class, 'getSections'])->name('students.sections');
     Route::get('students/{student}/id-card', [StudentController::class, 'idCard'])->name('students.id-card');
     Route::post('students/bulk-delete', [StudentController::class, 'bulkDelete'])->name('students.bulk-delete');
+    Route::post('students/{student}/reset-password', [StudentController::class, 'resetPassword'])->name('students.reset-password');
+    Route::post('students/{student}/update-email', [StudentController::class, 'updateEmail'])->name('students.update-email');
     // Student Trash
     Route::get('students-trash', [StudentController::class, 'trash'])->name('students.trash');
     Route::post('students/{id}/restore', [StudentController::class, 'restore'])->name('students.restore');
@@ -171,6 +176,7 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     // Teachers
     Route::resource('teachers', TeacherController::class);
     Route::post('teachers/bulk-delete', [TeacherController::class, 'bulkDelete'])->name('teachers.bulk-delete');
+    Route::post('teachers/{teacher}/reset-password', [TeacherController::class, 'resetPassword'])->name('teachers.reset-password');
     // Teacher Trash
     Route::get('teachers-trash', [TeacherController::class, 'trash'])->name('teachers.trash');
     Route::post('teachers/{id}/restore', [TeacherController::class, 'restore'])->name('teachers.restore');
@@ -184,6 +190,7 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::get('parents/{parent}', [ParentController::class, 'show'])->name('parents.show');
     Route::delete('parents/{parent}', [ParentController::class, 'destroy'])->name('parents.destroy');
     Route::post('parents/bulk-delete', [ParentController::class, 'bulkDelete'])->name('parents.bulk-delete');
+    Route::post('parents/{parent}/reset-password', [ParentController::class, 'resetPassword'])->name('parents.reset-password');
     Route::get('parents-trash', [ParentController::class, 'trash'])->name('parents.trash');
     Route::post('parents/{id}/restore', [ParentController::class, 'restore'])->name('parents.restore');
     Route::delete('parents/{id}/force-delete', [ParentController::class, 'forceDelete'])->name('parents.force-delete');
@@ -289,6 +296,8 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
         Route::get('/collection/{student}/collect', [FeeCollectionController::class, 'collectFee'])->name('collect');
         Route::post('/collection', [FeeCollectionController::class, 'store'])->name('collection.store');
         Route::get('/receipts/{feeCollection}', [FeeCollectionController::class, 'receipt'])->name('receipt');
+        Route::delete('/collection/{feeCollection}', [FeeCollectionController::class, 'destroy'])->name('collection.destroy');
+        Route::post('/collection/{feeCollection}/refund', [FeeCollectionController::class, 'refund'])->name('collection.refund');
         Route::get('/outstanding', [FeeCollectionController::class, 'outstanding'])->name('outstanding');
 
         // Fee Discounts
@@ -334,6 +343,7 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::resource('staff', StaffController::class);
     Route::get('staff/{staff}/id-card', [StaffController::class, 'idCard'])->name('staff.id-card');
     Route::post('staff/bulk-delete', [StaffController::class, 'bulkDelete'])->name('staff.bulk-delete');
+    Route::post('staff/{staff}/reset-password', [StaffController::class, 'resetPassword'])->name('staff.reset-password');
     // Staff Trash
     Route::get('staff-trash', [StaffController::class, 'trash'])->name('staff.trash');
     Route::post('staff/{id}/restore', [StaffController::class, 'restore'])->name('staff.restore');
@@ -374,8 +384,6 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
         Route::get('/create', [StaffLeaveController::class, 'create'])->name('create');
         Route::post('/', [StaffLeaveController::class, 'store'])->name('store');
         Route::get('/{leave}', [StaffLeaveController::class, 'show'])->name('show');
-        Route::get('/{leave}/edit', [StaffLeaveController::class, 'edit'])->name('edit');
-        Route::put('/{leave}', [StaffLeaveController::class, 'update'])->name('update');
         Route::post('/{leave}/approve', [StaffLeaveController::class, 'approve'])->name('approve');
         Route::post('/{leave}/reject', [StaffLeaveController::class, 'reject'])->name('reject');
         Route::post('/{leave}/cancel', [StaffLeaveController::class, 'cancel'])->name('cancel');
@@ -391,7 +399,7 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     });
 
     // Departments & Designations
-    Route::resource('departments', DepartmentController::class);
+    Route::resource('departments', DepartmentController::class)->except(['show']);
     Route::post('departments/bulk-delete', [DepartmentController::class, 'bulkDelete'])->name('departments.bulk-delete');
     Route::get('departments-trash', [DepartmentController::class, 'trash'])->name('departments.trash');
     Route::post('departments/{id}/restore', [DepartmentController::class, 'restore'])->name('departments.restore');
@@ -400,7 +408,7 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::post('departments/bulk-force-delete', [DepartmentController::class, 'bulkForceDelete'])->name('departments.bulk-force-delete');
     Route::delete('departments-trash/empty', [DepartmentController::class, 'emptyTrash'])->name('departments.empty-trash');
 
-    Route::resource('designations', DesignationController::class);
+    Route::resource('designations', DesignationController::class)->except(['show']);
     Route::post('designations/bulk-delete', [DesignationController::class, 'bulkDelete'])->name('designations.bulk-delete');
     Route::get('designations-trash', [DesignationController::class, 'trash'])->name('designations.trash');
     Route::post('designations/{id}/restore', [DesignationController::class, 'restore'])->name('designations.restore');
@@ -604,6 +612,15 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
             Route::post('/{message}/mark-read', [MessagingController::class, 'markAsRead'])->name('mark-read');
             Route::post('/mark-all-read', [MessagingController::class, 'markAllAsRead'])->name('mark-all-read');
         });
+
+        // Contact Messages (from Student/Parent Portal)
+        Route::prefix('contact-messages')->name('contact-messages.')->group(function () {
+            Route::get('/', [ContactMessageController::class, 'index'])->name('index');
+            Route::get('/{contactMessage}', [ContactMessageController::class, 'show'])->name('show');
+            Route::post('/{contactMessage}/respond', [ContactMessageController::class, 'respond'])->name('respond');
+            Route::patch('/{contactMessage}/status', [ContactMessageController::class, 'updateStatus'])->name('update-status');
+            Route::delete('/{contactMessage}', [ContactMessageController::class, 'destroy'])->name('destroy');
+        });
     });
 
     // Reports
@@ -718,7 +735,7 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
 });
 
 // Student/Parent Portal Routes
-Route::prefix('portal')->name('portal.')->middleware('auth')->group(function () {
+Route::prefix('portal')->name('portal.')->middleware(['auth', 'role:Student,Parent'])->group(function () {
     // Dashboard
     Route::get('/dashboard', [App\Http\Controllers\Portal\DashboardController::class, 'index'])->name('dashboard');
 
@@ -727,6 +744,7 @@ Route::prefix('portal')->name('portal.')->middleware('auth')->group(function () 
 
     // Profile
     Route::get('/profile', [App\Http\Controllers\Portal\ProfileController::class, 'index'])->name('profile');
+    Route::put('/profile/password', [App\Http\Controllers\Portal\ProfileController::class, 'updatePassword'])->name('profile.update-password');
 
     // Attendance
     Route::get('/attendance', [App\Http\Controllers\Portal\AttendanceController::class, 'index'])->name('attendance');
@@ -800,12 +818,13 @@ Route::prefix('portal')->name('portal.')->middleware('auth')->group(function () 
 });
 
 // Teacher/Staff Portal Routes
-Route::prefix('teacher')->name('teacher.')->middleware('auth')->group(function () {
+Route::prefix('teacher')->name('teacher.')->middleware(['auth', 'role:Teacher,Super Admin,Admin'])->group(function () {
     // Dashboard
     Route::get('/dashboard', [App\Http\Controllers\Teacher\DashboardController::class, 'index'])->name('dashboard');
 
     // Profile
     Route::get('/profile', [App\Http\Controllers\Teacher\DashboardController::class, 'profile'])->name('profile');
+    Route::put('/profile/password', [App\Http\Controllers\Teacher\DashboardController::class, 'updatePassword'])->name('profile.update-password');
 
     // Timetable
     Route::get('/timetable', [App\Http\Controllers\Teacher\DashboardController::class, 'timetable'])->name('timetable');

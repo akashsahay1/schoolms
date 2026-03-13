@@ -79,7 +79,7 @@
                             <small class="text-muted">{{ $activeYear->name ?? 'All Years' }}</small>
                         </div>
                         <div class="stat-icon bg-success-subtle">
-                            <i data-feather="dollar-sign" class="text-success"></i>
+                            <span class="text-success" style="font-size: 20px; font-weight: bold;">₹</span>
                         </div>
                     </div>
                 </div>

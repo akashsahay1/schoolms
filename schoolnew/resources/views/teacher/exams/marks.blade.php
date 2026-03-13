@@ -17,12 +17,12 @@
 				<form method="GET" class="row g-3 align-items-end">
 					<div class="col-md-9">
 						<label class="form-label">Select Exam</label>
-						<select name="exam_id" class="form-select" required onchange="this.form.submit()">
+						<select name="schedule_id" id="schedule_selector" class="form-select" required>
 							<option value="">Select an exam to enter marks</option>
-							@foreach($exams as $exam)
-								<option value="{{ $exam->id }}" {{ request('exam_id') == $exam->id ? 'selected' : '' }}>
-									{{ $exam->name }} - {{ $exam->schoolClass->name ?? '' }} - {{ $exam->subject->name ?? '' }}
-									({{ $exam->exam_date->format('M d, Y') }})
+							@foreach($schedules as $schedule)
+								<option value="{{ $schedule->id }}" {{ request('schedule_id') == $schedule->id ? 'selected' : '' }}>
+									{{ $schedule->exam->name ?? '' }} - {{ $schedule->schoolClass->name ?? '' }} - {{ $schedule->subject->name ?? '' }}
+									({{ $schedule->exam_date->format('M d, Y') }})
 								</option>
 							@endforeach
 						</select>
@@ -38,34 +38,32 @@
 	</div>
 
 	<!-- Marks Entry Form -->
-	@if($selectedExam && $students->count() > 0)
+	@if($selectedSchedule && $students->count() > 0)
 		<div class="col-12">
 			<div class="card">
-				<div class="card-header pb-0">
+				<div class="card-header pb-0 border-0">
 					<h5 class="mb-0">
-						{{ $selectedExam->name }} - {{ $selectedExam->subject->name ?? '' }}
+						<i data-feather="edit-3" style="width: 18px; height: 18px;" class="me-2"></i>{{ $selectedSchedule->exam->name ?? '' }} - {{ $selectedSchedule->subject->name ?? '' }}
 					</h5>
 					<p class="text-muted mb-0">
-						{{ $selectedExam->schoolClass->name ?? '' }}
-						@if($selectedExam->section)
-							- Section {{ $selectedExam->section->name }}
-						@endif
-						| Total Marks: {{ $selectedExam->total_marks }}
+						{{ $selectedSchedule->schoolClass->name ?? '' }}
+						| Full Marks: {{ $selectedSchedule->full_marks }}
+						| Pass Marks: {{ $selectedSchedule->pass_marks }}
 					</p>
 				</div>
 				<div class="card-body">
 					<form action="{{ route('teacher.exams.marks.store') }}" method="POST">
 						@csrf
-						<input type="hidden" name="exam_id" value="{{ $selectedExam->id }}">
+						<input type="hidden" name="schedule_id" value="{{ $selectedSchedule->id }}">
 
 						<div class="table-responsive">
 							<table class="table table-hover">
-								<thead>
+								<thead class="bg-light">
 									<tr>
 										<th style="width: 50px;">#</th>
 										<th>Student</th>
 										<th>Roll No.</th>
-										<th style="width: 150px;">Marks (out of {{ $selectedExam->total_marks }})</th>
+										<th style="width: 150px;">Marks (out of {{ $selectedSchedule->full_marks }})</th>
 									</tr>
 								</thead>
 								<tbody>
@@ -87,9 +85,9 @@
 													<strong>{{ $student->full_name }}</strong>
 												</div>
 											</td>
-											<td>{{ $student->roll_number ?? '-' }}</td>
+											<td>{{ $student->roll_no ?? '-' }}</td>
 											<td>
-												<input type="number" name="marks[{{ $student->id }}]" class="form-control" value="{{ $existingMark ? $existingMark->marks_obtained : '' }}" min="0" max="{{ $selectedExam->total_marks }}" step="0.5" placeholder="Enter marks">
+												<input type="number" name="marks[{{ $student->id }}]" class="form-control" value="{{ $existingMark ? $existingMark->marks_obtained : '' }}" min="0" max="{{ $selectedSchedule->full_marks }}" step="0.5" placeholder="Enter marks">
 											</td>
 										</tr>
 									@endforeach
@@ -106,16 +104,26 @@
 				</div>
 			</div>
 		</div>
-	@elseif($selectedExam)
+	@elseif($selectedSchedule)
 		<div class="col-12">
 			<div class="card">
 				<div class="card-body text-center py-5">
 					<i data-feather="users" style="width: 64px; height: 64px;" class="text-muted mb-3"></i>
 					<h5 class="text-muted">No Students Found</h5>
-					<p class="text-muted mb-0">There are no students in the selected class/section.</p>
+					<p class="text-muted mb-0">There are no students in the selected class.</p>
 				</div>
 			</div>
 		</div>
 	@endif
 </div>
+
+@push('scripts')
+<script>
+jQuery(document).ready(function() {
+	jQuery('#schedule_selector').on('change', function() {
+		jQuery(this).closest('form').submit();
+	});
+});
+</script>
+@endpush
 @endsection

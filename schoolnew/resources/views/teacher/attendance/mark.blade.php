@@ -80,12 +80,12 @@
 
 						<div class="table-responsive">
 							<table class="table table-hover">
-								<thead>
+								<thead class="bg-light">
 									<tr>
 										<th style="width: 50px;">#</th>
 										<th>Student</th>
 										<th>Roll No.</th>
-										<th style="width: 300px;">Attendance Status</th>
+										<th style="width: 350px;">Attendance Status</th>
 									</tr>
 								</thead>
 								<tbody>
@@ -107,20 +107,20 @@
 													<strong>{{ $student->full_name }}</strong>
 												</div>
 											</td>
-											<td>{{ $student->roll_number ?? '-' }}</td>
+											<td>{{ $student->roll_no ?? '-' }}</td>
 											<td>
-												<div class="btn-group" role="group">
+												<div class="btn-group flex-nowrap" role="group">
 													<input type="radio" class="btn-check attendance-radio" name="attendance[{{ $student->id }}]" id="present_{{ $student->id }}" value="present" {{ $existingStatus == 'present' ? 'checked' : '' }}>
-													<label class="btn btn-outline-success" for="present_{{ $student->id }}">Present</label>
+													<label class="btn btn-outline-success text-nowrap" for="present_{{ $student->id }}">Present</label>
 
 													<input type="radio" class="btn-check attendance-radio" name="attendance[{{ $student->id }}]" id="absent_{{ $student->id }}" value="absent" {{ $existingStatus == 'absent' ? 'checked' : '' }}>
-													<label class="btn btn-outline-danger" for="absent_{{ $student->id }}">Absent</label>
+													<label class="btn btn-outline-danger text-nowrap" for="absent_{{ $student->id }}">Absent</label>
 
 													<input type="radio" class="btn-check attendance-radio" name="attendance[{{ $student->id }}]" id="late_{{ $student->id }}" value="late" {{ $existingStatus == 'late' ? 'checked' : '' }}>
-													<label class="btn btn-outline-warning" for="late_{{ $student->id }}">Late</label>
+													<label class="btn btn-outline-warning text-nowrap" for="late_{{ $student->id }}">Late</label>
 
 													<input type="radio" class="btn-check attendance-radio" name="attendance[{{ $student->id }}]" id="half_{{ $student->id }}" value="half_day" {{ $existingStatus == 'half_day' ? 'checked' : '' }}>
-													<label class="btn btn-outline-info" for="half_{{ $student->id }}">Half Day</label>
+													<label class="btn btn-outline-info text-nowrap" for="half_{{ $student->id }}">Half Day</label>
 												</div>
 											</td>
 										</tr>

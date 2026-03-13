@@ -187,7 +187,7 @@
                                 @foreach($driver->vehicles as $vehicle)
                                     <tr>
                                         <td>
-                                            <a href="{{ route('admin.vehicles.show', $vehicle) }}">{{ $vehicle->vehicle_no }}</a>
+                                            <a href="{{ route('admin.transport.vehicles.edit', $vehicle) }}">{{ $vehicle->vehicle_no }}</a>
                                         </td>
                                         <td>{{ $vehicle->vehicle_model }}</td>
                                         <td>

@@ -39,9 +39,13 @@
                                     <td><strong>{{ ucfirst($page->slug) }}</strong></td>
                                     <td>{{ $page->title }}</td>
                                     <td>
-                                        <a href="{{ route('website.' . ($page->slug === 'home' ? 'home' : $page->slug)) }}" target="_blank" class="text-primary">
-                                            /{{ $page->slug === 'home' ? '' : $page->slug }}
-                                        </a>
+                                        @if(Route::has('website.' . ($page->slug === 'home' ? 'home' : $page->slug)))
+                                            <a href="{{ route('website.' . ($page->slug === 'home' ? 'home' : $page->slug)) }}" target="_blank" class="text-primary">
+                                                /{{ $page->slug === 'home' ? '' : $page->slug }}
+                                            </a>
+                                        @else
+                                            <span class="text-muted">/{{ $page->slug }}</span>
+                                        @endif
                                     </td>
                                     <td>
                                         @if($page->is_active)

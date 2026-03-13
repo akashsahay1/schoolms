@@ -83,7 +83,7 @@
                                 <tr>
                                     <td colspan="7" class="text-center py-4">
                                         <div class="text-muted">
-                                            <i data-feather="dollar-sign" style="width: 48px; height: 48px;"></i>
+                                            <span style="font-size: 48px; font-weight: bold;">₹</span>
                                             <p class="mt-2 mb-0">No fee types found.</p>
                                             <a href="{{ route('admin.fees.types.create') }}" class="btn btn-primary mt-3">Add First Fee Type</a>
                                         </div>

@@ -78,7 +78,7 @@
 									<th>Student Name</th>
 									<th class="text-center bg-success text-white">Present</th>
 									<th class="text-center bg-danger text-white">Absent</th>
-									<th class="text-center bg-warning">Late</th>
+									<th class="text-center bg-warning text-dark">Late</th>
 									<th class="text-center bg-info text-white">Half Day</th>
 									<th class="text-center">Total Days</th>
 									<th class="text-center">Attendance %</th>
@@ -94,7 +94,7 @@
 										<td>
 											<strong>{{ $data['student']->full_name ?? 'N/A' }}</strong>
 											<br>
-											<small class="text-muted">{{ $data['student']->admission_number ?? '' }}</small>
+											<small class="text-muted">{{ $data['student']->admission_no ?? '' }}</small>
 										</td>
 										<td class="text-center">{{ $data['present'] }}</td>
 										<td class="text-center">{{ $data['absent'] }}</td>

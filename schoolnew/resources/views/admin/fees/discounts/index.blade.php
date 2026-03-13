@@ -32,7 +32,7 @@
 				<div class="d-flex justify-content-between align-items-center">
 					<h5>All Fee Discounts</h5>
 					<a href="{{ route('admin.fees.discounts.create') }}" class="btn btn-primary">
-						<i data-feather="plus" class="me-1"></i> Add Discount
+						<i data-feather="plus" class="me-1"></i> Add New
 					</a>
 				</div>
 			</div>

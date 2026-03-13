@@ -281,6 +281,26 @@
 				</div>
 			</div>
 
+			<!-- Login Credentials -->
+			<div class="card">
+				<div class="card-header">
+					<h5>Login Credentials</h5>
+				</div>
+				<div class="card-body">
+					<div class="mb-3">
+						<label for="password" class="form-label">Password</label>
+						<input type="text" class="form-control @error('password') is-invalid @enderror" id="password" name="password" value="{{ old('password') }}" placeholder="Leave empty for auto-generate">
+						@error('password')
+							<div class="invalid-feedback">{{ $message }}</div>
+						@enderror
+						<small class="text-muted">Min 6 characters. Leave empty to auto-generate a secure password.</small>
+					</div>
+					<div>
+						<small><i data-feather="info" style="width: 14px; height: 14px;"></i> Teacher will login using their <strong>Email</strong> and this password.</small>
+					</div>
+				</div>
+			</div>
+
 			<!-- Actions -->
 			<div class="card">
 				<div class="card-body">

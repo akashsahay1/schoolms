@@ -42,7 +42,7 @@
 							@endif
 						</a>
 						<a href="{{ route('admin.events.create') }}" class="btn btn-primary">
-							<i class="fa fa-plus me-1"></i> Add Event
+							<i class="fa fa-plus me-1"></i> Add New
 						</a>
 					</div>
 				</div>

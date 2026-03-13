@@ -25,7 +25,7 @@
                             <i data-feather="bar-chart-2" class="me-1"></i> Reports
                         </a>
                         <a href="{{ route('admin.transport.fees.create') }}" class="btn btn-primary">
-                            <i data-feather="plus" class="me-1"></i> Add Fee
+                            <i data-feather="plus" class="me-1"></i> Add New
                         </a>
                     </div>
                 </div>

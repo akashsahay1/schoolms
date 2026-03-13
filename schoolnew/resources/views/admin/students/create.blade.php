@@ -274,6 +274,34 @@
                 </div>
             </div>
 
+            <!-- Login Credentials -->
+            <div class="card">
+                <div class="card-header">
+                    <h5>Login Credentials</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="student_password" class="form-label">Student Password</label>
+                        <input type="text" class="form-control @error('student_password') is-invalid @enderror" id="student_password" name="student_password" value="{{ old('student_password') }}" placeholder="Leave empty for auto-generate">
+                        @error('student_password')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                        <small class="text-muted">Min 6 characters.</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="parent_password" class="form-label">Parent Password</label>
+                        <input type="text" class="form-control @error('parent_password') is-invalid @enderror" id="parent_password" name="parent_password" value="{{ old('parent_password') }}" placeholder="Leave empty for auto-generate">
+                        @error('parent_password')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                        <small class="text-muted">Min 6 characters. Only used if parent email is provided.</small>
+                    </div>
+                    <div class="alert alert-info mb-0">
+                        <small><i data-feather="info" style="width: 14px; height: 14px;"></i> Leave password fields empty to auto-generate secure passwords.</small>
+                    </div>
+                </div>
+            </div>
+
             <div class="card">
                 <div class="card-body">
                     <div class="d-grid gap-2">

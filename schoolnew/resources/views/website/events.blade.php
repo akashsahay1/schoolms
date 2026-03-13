@@ -21,49 +21,65 @@
 <!-- Events Content -->
 <section class="section-padding">
     <div class="container">
+        @if($events->count() > 0)
+            <div class="section-title">
+                <h2>Upcoming & Recent Events</h2>
+                <div class="divider"></div>
+                <p>Stay updated with our school activities and celebrations</p>
+            </div>
+        @endif
+
         <div class="row g-4">
             @forelse($events as $event)
                 <div class="col-lg-4 col-md-6">
                     <div class="event-card position-relative h-100">
-                        <div class="event-date">
-                            <span class="day">{{ $event->start_date->format('d') }}</span>
-                            <span class="month">{{ $event->start_date->format('M') }}</span>
+                        <div class="event-image-wrapper">
+                            <div class="event-date">
+                                <span class="day">{{ $event->start_date->format('d') }}</span>
+                                <span class="month">{{ $event->start_date->format('M') }}</span>
+                            </div>
+                            @if($event->photos->count() > 0)
+                                <img src="{{ asset('storage/' . $event->photos->first()->photo_path) }}" alt="{{ $event->title }}">
+                            @else
+                                <div class="event-placeholder">
+                                    <i data-feather="calendar"></i>
+                                </div>
+                            @endif
                         </div>
-                        @if($event->photos->count() > 0)
-                            <img src="{{ asset('storage/' . $event->photos->first()->photo_path) }}" alt="{{ $event->title }}">
-                        @else
-                            <img src="{{ asset('assets/images/event-default.jpg') }}" alt="{{ $event->title }}">
-                        @endif
                         <div class="event-content">
                             <h5>
-                                <a href="{{ route('website.events.show', $event) }}" class="text-dark text-decoration-none">
+                                <a href="{{ route('website.events.show', $event) }}">
                                     {{ $event->title }}
                                 </a>
                             </h5>
-                            <p class="text-muted small mb-2">
-                                <i data-feather="clock" style="width: 14px;"></i> {{ $event->start_date->format('h:i A') }}
-                                @if($event->end_date)
-                                    - {{ $event->end_date->format('h:i A') }}
+                            <div class="event-meta">
+                                <span>
+                                    <i data-feather="clock"></i> {{ $event->start_date->format('h:i A') }}
+                                </span>
+                                @if($event->location)
+                                    <span>
+                                        <i data-feather="map-pin"></i> {{ Str::limit($event->location, 20) }}
+                                    </span>
                                 @endif
-                            </p>
-                            @if($event->location)
-                                <p class="text-muted small mb-2">
-                                    <i data-feather="map-pin" style="width: 14px;"></i> {{ $event->location }}
-                                </p>
-                            @endif
-                            <p class="small mb-3">{{ Str::limit(strip_tags($event->description), 100) }}</p>
-                            <a href="{{ route('website.events.show', $event) }}" class="btn btn-sm btn-outline-primary">
-                                View Details
+                            </div>
+                            <p class="event-desc">{{ Str::limit(strip_tags($event->description), 100) }}</p>
+                            <a href="{{ route('website.events.show', $event) }}" class="btn btn-sm btn-primary">
+                                View Details <i data-feather="arrow-right" style="width: 14px;"></i>
                             </a>
                         </div>
                     </div>
                 </div>
             @empty
                 <div class="col-12">
-                    <div class="text-center py-5">
-                        <i data-feather="calendar" class="text-muted mb-3" style="width: 64px; height: 64px;"></i>
-                        <h5 class="text-muted">No events available yet</h5>
-                        <p class="text-muted">Check back later for updates!</p>
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <i data-feather="calendar"></i>
+                        </div>
+                        <h4>No Events Available</h4>
+                        <p>There are no events scheduled at the moment.<br>Check back later for updates!</p>
+                        <a href="{{ route('website.home') }}" class="btn btn-primary">
+                            <i data-feather="home" style="width: 16px;"></i> Back to Home
+                        </a>
                     </div>
                 </div>
             @endforelse

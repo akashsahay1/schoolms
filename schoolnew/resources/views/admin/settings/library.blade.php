@@ -33,7 +33,7 @@
                                 <div class="mb-3">
                                     <label class="form-label">Fine Per Day (Amount per overdue day) <span class="text-danger">*</span></label>
                                     <div class="input-group">
-                                        <span class="input-group-text">$</span>
+                                        <span class="input-group-text">₹</span>
                                         <input type="number" name="library_fine_per_day" class="form-control @error('library_fine_per_day') is-invalid @enderror" value="{{ old('library_fine_per_day', $settings['library_fine_per_day'] ?? 2) }}" step="0.01" min="0" required>
                                     </div>
                                     <small class="text-muted">Amount charged per day for overdue books</small>

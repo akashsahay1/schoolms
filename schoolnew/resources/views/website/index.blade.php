@@ -5,10 +5,10 @@
 @section('content')
 <!-- Hero Slider -->
 <section class="hero-section">
-    <div id="heroSlider" class="carousel slide hero-slider" data-bs-ride="carousel">
+    <div id="heroSlider" class="carousel slide hero-slider" data-bs-ride="carousel" data-bs-interval="5000">
         <div class="carousel-inner">
             @forelse($sliders as $index => $slider)
-                <div class="carousel-item {{ $index === 0 ? 'active' : '' }}" style="background-image: url('{{ $slider->image ? asset('storage/' . $slider->image) : asset('assets/images/default-banner.jpg') }}')">
+                <div class="carousel-item {{ $index === 0 ? 'active' : '' }}" style="background-image: url('{{ $slider->image ? asset('storage/' . $slider->image) : asset('assets/images/banner/'.($index % 4 + 1).'.jpg') }}')">
                     <div class="carousel-caption">
                         @if($slider->title)
                             <h1>{{ $slider->title }}</h1>
@@ -22,22 +22,49 @@
                     </div>
                 </div>
             @empty
-                <div class="carousel-item active" style="background-image: url('{{ asset('assets/images/default-banner.jpg') }}')">
+                <!-- Default Banner Slides when no sliders in database -->
+                <div class="carousel-item active" style="background-image: url('{{ asset('assets/images/banner/4.jpg') }}')">
                     <div class="carousel-caption">
                         <h1>Welcome to {{ \App\Models\Setting::get('school_name', config('app.name')) }}</h1>
-                        <p>Quality Education for a Brighter Future</p>
-                        <a href="{{ route('website.about') }}" class="btn btn-primary btn-lg">Learn More</a>
+                        <p>Nurturing Minds, Shaping Futures - Quality Education for Every Child</p>
+                        <a href="{{ route('website.about') }}" class="btn btn-primary btn-lg">Discover More</a>
+                    </div>
+                </div>
+                <div class="carousel-item" style="background-image: url('{{ asset('assets/images/banner/1.jpg') }}')">
+                    <div class="carousel-caption">
+                        <h1>Excellence in Education</h1>
+                        <p>Modern Learning Environment with State-of-the-Art Facilities</p>
+                        <a href="{{ route('website.facilities') }}" class="btn btn-primary btn-lg">Explore Facilities</a>
+                    </div>
+                </div>
+                <div class="carousel-item" style="background-image: url('{{ asset('assets/images/banner/2.jpg') }}')">
+                    <div class="carousel-caption">
+                        <h1>Building Tomorrow's Leaders</h1>
+                        <p>Empowering Students with Knowledge, Skills, and Values</p>
+                        <a href="{{ route('website.contact') }}" class="btn btn-primary btn-lg">Join Us Today</a>
                     </div>
                 </div>
             @endforelse
         </div>
-        @if($sliders->count() > 1)
+        @if($sliders->count() > 1 || $sliders->count() == 0)
             <button class="carousel-control-prev" type="button" data-bs-target="#heroSlider" data-bs-slide="prev">
                 <span class="carousel-control-prev-icon"></span>
             </button>
             <button class="carousel-control-next" type="button" data-bs-target="#heroSlider" data-bs-slide="next">
                 <span class="carousel-control-next-icon"></span>
             </button>
+            <!-- Carousel Indicators -->
+            <div class="carousel-indicators">
+                @if($sliders->count() > 0)
+                    @foreach($sliders as $index => $slider)
+                        <button type="button" data-bs-target="#heroSlider" data-bs-slide-to="{{ $index }}" class="{{ $index === 0 ? 'active' : '' }}"></button>
+                    @endforeach
+                @else
+                    <button type="button" data-bs-target="#heroSlider" data-bs-slide-to="0" class="active"></button>
+                    <button type="button" data-bs-target="#heroSlider" data-bs-slide-to="1"></button>
+                    <button type="button" data-bs-target="#heroSlider" data-bs-slide-to="2"></button>
+                @endif
+            </div>
         @endif
     </div>
 </section>
@@ -96,42 +123,54 @@
 <section class="about-section section-padding">
     <div class="container">
         <div class="row align-items-center">
-            <div class="col-lg-6 mb-4 mb-lg-0">
+            <div class="col-lg-6 mb-5 mb-lg-0">
                 <div class="about-image">
-                    <img src="{{ asset('assets/images/about-school.jpg') }}" alt="About School" class="img-fluid">
+                    <img src="{{ asset('assets/images/banner/4.jpg') }}" alt="About School" class="img-fluid w-100" style="max-height: 450px; object-fit: cover;">
                     <div class="experience-badge d-none d-md-block">
                         <h3>{{ \App\Models\Setting::get('school_years', '25') }}+</h3>
                         <span>Years of<br>Excellence</span>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-6">
-                <h6 class="text-primary fw-bold">ABOUT US</h6>
-                <h2 class="mb-4">A Legacy of Educational Excellence</h2>
-                <p class="mb-4">{{ \App\Models\Setting::get('school_about', 'Our school has been a beacon of educational excellence for over two decades. We are committed to providing quality education that shapes young minds and prepares them for the challenges of tomorrow.') }}</p>
-                <div class="row mb-4">
-                    <div class="col-6">
-                        <div class="d-flex align-items-center mb-3">
-                            <i data-feather="check-circle" class="text-primary me-2"></i>
-                            <span>Experienced Teachers</span>
+            <div class="col-lg-6 ps-lg-5">
+                <div class="about-content">
+                    <h6 class="text-primary fw-bold mb-3">ABOUT US</h6>
+                    <h2 class="mb-4" style="line-height: 1.3;">A Legacy of Educational Excellence</h2>
+                    <p class="mb-4 text-muted" style="line-height: 1.8;">{{ \App\Models\Setting::get('school_about', 'Our school has been a beacon of educational excellence for over two decades. We are committed to providing quality education that shapes young minds and prepares them for the challenges of tomorrow.') }}</p>
+                    <div class="row mb-4">
+                        <div class="col-6">
+                            <div class="check-item">
+                                <i data-feather="check-circle"></i>
+                                <span>Experienced Teachers</span>
+                            </div>
+                            <div class="check-item">
+                                <i data-feather="check-circle"></i>
+                                <span>Modern Curriculum</span>
+                            </div>
+                            <div class="check-item">
+                                <i data-feather="check-circle"></i>
+                                <span>Character Building</span>
+                            </div>
                         </div>
-                        <div class="d-flex align-items-center mb-3">
-                            <i data-feather="check-circle" class="text-primary me-2"></i>
-                            <span>Modern Curriculum</span>
+                        <div class="col-6">
+                            <div class="check-item">
+                                <i data-feather="check-circle"></i>
+                                <span>Sports Activities</span>
+                            </div>
+                            <div class="check-item">
+                                <i data-feather="check-circle"></i>
+                                <span>Smart Classes</span>
+                            </div>
+                            <div class="check-item">
+                                <i data-feather="check-circle"></i>
+                                <span>Safe Environment</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-6">
-                        <div class="d-flex align-items-center mb-3">
-                            <i data-feather="check-circle" class="text-primary me-2"></i>
-                            <span>Sports Activities</span>
-                        </div>
-                        <div class="d-flex align-items-center mb-3">
-                            <i data-feather="check-circle" class="text-primary me-2"></i>
-                            <span>Smart Classes</span>
-                        </div>
-                    </div>
+                    <a href="{{ route('website.about') }}" class="btn btn-primary btn-lg px-4">
+                        Read More <i data-feather="arrow-right" class="ms-2" style="width: 18px;"></i>
+                    </a>
                 </div>
-                <a href="{{ route('website.about') }}" class="btn btn-primary">Read More <i data-feather="arrow-right" class="ms-2" style="width: 16px;"></i></a>
             </div>
         </div>
     </div>

@@ -114,7 +114,7 @@
                         </div>
                         <div class="col-md-4 col-sm-6 mb-3">
                             <a href="{{ route('admin.library.reports.fines') }}" class="btn btn-outline-warning w-100 py-3">
-                                <i data-feather="dollar-sign" class="me-2"></i> Fine Collection Report
+                                <span class="me-2" style="font-weight: bold;">₹</span> Fine Collection Report
                             </a>
                         </div>
                         <div class="col-md-4 col-sm-6 mb-3">

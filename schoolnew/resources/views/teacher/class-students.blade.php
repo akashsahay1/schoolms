@@ -34,10 +34,12 @@
 	<!-- Students List -->
 	<div class="col-12">
 		<div class="card">
-			<div class="card-header pb-0">
+			<div class="card-header pb-0 border-0">
 				<div class="row align-items-center">
 					<div class="col-md-6">
-						<h5 class="mb-0">Student List</h5>
+						<h5 class="mb-0">
+							<i data-feather="users" style="width: 18px; height: 18px;" class="me-2"></i>Student List
+						</h5>
 					</div>
 					<div class="col-md-6">
 						<div class="input-group">
@@ -51,7 +53,7 @@
 				@if($students->count() > 0)
 					<div class="table-responsive">
 						<table class="table table-hover" id="studentTable">
-							<thead>
+							<thead class="bg-light">
 								<tr>
 									<th>#</th>
 									<th>Photo</th>
@@ -76,11 +78,11 @@
 												</div>
 											@endif
 										</td>
-										<td><span class="badge bg-light text-dark">{{ $student->admission_number }}</span></td>
+										<td><span class="badge bg-light text-dark">{{ $student->admission_no }}</span></td>
 										<td>
 											<strong>{{ $student->full_name }}</strong>
 										</td>
-										<td>{{ $student->roll_number ?? '-' }}</td>
+										<td>{{ $student->roll_no ?? '-' }}</td>
 										<td>
 											@if($student->gender == 'male')
 												<span class="badge bg-info">Male</span>

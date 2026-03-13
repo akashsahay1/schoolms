@@ -9,8 +9,11 @@ use App\Models\User;
 use App\Models\Student;
 use App\Models\SchoolClass;
 use App\Models\Section;
+use App\Notifications\GeneralNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Notification;
 
 class BulkMessagingController extends Controller
 {
@@ -217,8 +220,7 @@ class BulkMessagingController extends Controller
                     'status' => BulkMessageLog::STATUS_PENDING,
                 ]);
 
-                // Simulate sending (in production, integrate with actual SMS/Email services)
-                $success = $this->sendMessage($log, $bulkMessage->message, $channel);
+                $success = $this->sendMessage($log, $bulkMessage->message, $channel, $bulkMessage->title);
 
                 if ($success) {
                     $log->update([
@@ -251,26 +253,21 @@ class BulkMessagingController extends Controller
     {
         switch ($bulkMessage->recipient_type) {
             case BulkMessage::RECIPIENT_ALL_STUDENTS:
-                return Student::where('status', 'active')->get();
+                $studentUserIds = Student::where('status', 'active')->whereNotNull('user_id')->pluck('user_id');
+                return User::whereIn('id', $studentUserIds)->get();
 
             case BulkMessage::RECIPIENT_ALL_PARENTS:
-                return User::whereHas('roles', function ($query) {
-                    $query->where('name', 'parent');
-                })->where('status', 'active')->get();
+                return User::role('Parent')->get();
 
             case BulkMessage::RECIPIENT_ALL_TEACHERS:
-                return User::whereHas('roles', function ($query) {
-                    $query->where('name', 'teacher');
-                })->where('status', 'active')->get();
+                return User::role('Teacher')->get();
 
             case BulkMessage::RECIPIENT_ALL_STAFF:
-                return User::whereHas('roles', function ($query) {
-                    $query->whereIn('name', ['staff', 'admin', 'accountant', 'librarian']);
-                })->where('status', 'active')->get();
+                return User::role(['Admin', 'Accountant', 'Librarian', 'Receptionist'])->get();
 
             case BulkMessage::RECIPIENT_CLASS_WISE:
                 $filters = $bulkMessage->recipient_filters ?? [];
-                $query = Student::where('status', 'active');
+                $query = Student::where('status', 'active')->whereNotNull('user_id');
 
                 if (!empty($filters['class_ids'])) {
                     $query->whereIn('class_id', $filters['class_ids']);
@@ -279,7 +276,8 @@ class BulkMessagingController extends Controller
                     $query->whereIn('section_id', $filters['section_ids']);
                 }
 
-                return $query->get();
+                $studentUserIds = $query->pluck('user_id');
+                return User::whereIn('id', $studentUserIds)->get();
 
             default:
                 return collect();
@@ -301,31 +299,46 @@ class BulkMessagingController extends Controller
         };
     }
 
-    protected function sendMessage(BulkMessageLog $log, string $message, string $channel): bool
+    protected function sendMessage(BulkMessageLog $log, string $message, string $channel, string $title = ''): bool
     {
-        // In production, integrate with actual SMS/Email services
-        // For now, simulate successful sending
         try {
             switch ($channel) {
                 case BulkMessageLog::CHANNEL_SMS:
-                    // Integrate with SMS gateway (e.g., Twilio, MSG91)
-                    // Example: SmsService::send($log->recipient_phone, $message);
-                    break;
+                    // SMS gateway not configured - mark as failed
+                    $log->update(['error_message' => 'SMS gateway not configured']);
+                    return false;
 
                 case BulkMessageLog::CHANNEL_EMAIL:
-                    // Send email using Laravel's Mail facade
-                    // Example: Mail::to($log->recipient_email)->send(new BulkNotification($message));
-                    break;
+                    if (empty($log->recipient_email)) {
+                        $log->update(['error_message' => 'No email address']);
+                        return false;
+                    }
+                    Mail::raw($message, function ($mail) use ($log, $title) {
+                        $mail->to($log->recipient_email)
+                             ->subject($title ?: 'Notification from ' . config('app.name'));
+                    });
+                    return true;
 
                 case BulkMessageLog::CHANNEL_NOTIFICATION:
-                    // Create in-app notification
                     if ($log->user_id) {
-                        // Notification::create(['user_id' => $log->user_id, 'message' => $message]);
+                        $user = User::find($log->user_id);
+                        if ($user) {
+                            $user->notify(new GeneralNotification(
+                                $title ?: 'Notification',
+                                $message,
+                                'message-circle',
+                                'info',
+                                '#'
+                            ));
+                            return true;
+                        }
                     }
-                    break;
+                    $log->update(['error_message' => 'No linked user account']);
+                    return false;
             }
-            return true;
+            return false;
         } catch (\Exception $e) {
+            $log->update(['error_message' => $e->getMessage()]);
             return false;
         }
     }

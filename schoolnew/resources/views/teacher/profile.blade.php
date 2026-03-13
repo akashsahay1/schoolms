@@ -29,7 +29,7 @@
 				@endif
 				<hr>
 				<div class="text-start">
-					<p class="mb-2">
+					<p class="mb-2" style="word-break: break-all;">
 						<i data-feather="mail" class="me-2 text-primary" style="width: 16px; height: 16px;"></i>
 						{{ $user->email }}
 					</p>
@@ -53,8 +53,10 @@
 	<!-- Profile Details -->
 	<div class="col-xl-8 mb-4">
 		<div class="card">
-			<div class="card-header pb-0">
-				<h5 class="mb-0">Profile Information</h5>
+			<div class="card-header pb-0 border-0">
+				<h5 class="mb-0">
+					<i data-feather="info" style="width: 18px; height: 18px;" class="me-2"></i>Profile Information
+				</h5>
 			</div>
 			<div class="card-body">
 				<div class="row g-4">
@@ -99,7 +101,7 @@
 					</div>
 					<div class="col-md-6">
 						<label class="text-muted small">Email</label>
-						<p class="mb-0 fw-medium">{{ $staff->email ?? $user->email }}</p>
+						<p class="mb-0 fw-medium" style="word-break: break-all;">{{ $staff->email ?? $user->email }}</p>
 					</div>
 					<div class="col-md-6">
 						<label class="text-muted small">Phone</label>
@@ -180,6 +182,53 @@
 					</div>
 					@endif
 				</div>
+			</div>
+		</div>
+	</div>
+	<!-- Change Password -->
+	<div class="col-xl-6 mb-4">
+		<div class="card">
+			<div class="card-header pb-0 border-0">
+				<h5 class="mb-0">
+					<i data-feather="lock" style="width: 18px; height: 18px;" class="me-2"></i>Change Password
+				</h5>
+			</div>
+			<div class="card-body">
+				@if(session('success'))
+					<div class="alert alert-success alert-dismissible fade show" role="alert">
+						{{ session('success') }}
+						<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+					</div>
+				@endif
+				@if($errors->any())
+					<div class="alert alert-danger alert-dismissible fade show" role="alert">
+						<ul class="mb-0">
+							@foreach($errors->all() as $error)
+								<li>{{ $error }}</li>
+							@endforeach
+						</ul>
+						<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+					</div>
+				@endif
+				<form action="{{ route('teacher.profile.update-password') }}" method="POST">
+					@csrf
+					@method('PUT')
+					<div class="mb-3">
+						<label class="form-label">Current Password <span class="text-danger">*</span></label>
+						<input type="password" name="current_password" class="form-control" required>
+					</div>
+					<div class="mb-3">
+						<label class="form-label">New Password <span class="text-danger">*</span></label>
+						<input type="password" name="password" class="form-control" required>
+					</div>
+					<div class="mb-3">
+						<label class="form-label">Confirm New Password <span class="text-danger">*</span></label>
+						<input type="password" name="password_confirmation" class="form-control" required>
+					</div>
+					<button type="submit" class="btn btn-primary">
+						<i data-feather="save" style="width: 14px; height: 14px;" class="me-1"></i> Update Password
+					</button>
+				</form>
 			</div>
 		</div>
 	</div>

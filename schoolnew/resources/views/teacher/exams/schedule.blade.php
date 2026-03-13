@@ -11,7 +11,9 @@
 <div class="row">
 	<div class="col-12 mb-4">
 		<div class="d-flex justify-content-between align-items-center">
-			<h5 class="mb-0">My Exam Schedule</h5>
+			<h5 class="mb-0">
+				<i data-feather="clipboard" style="width: 18px; height: 18px;" class="me-2"></i>My Exam Schedule
+			</h5>
 			<a href="{{ route('teacher.exams.marks') }}" class="btn btn-primary">
 				<i data-feather="edit" style="width: 14px; height: 14px;"></i> Enter Marks
 			</a>
@@ -21,42 +23,42 @@
 	<div class="col-12">
 		<div class="card">
 			<div class="card-body">
-				@if($exams->count() > 0)
+				@if($schedules->count() > 0)
 					<div class="table-responsive">
 						<table class="table table-hover">
-							<thead>
+							<thead class="bg-light">
 								<tr>
 									<th>Exam</th>
 									<th>Class</th>
 									<th>Subject</th>
 									<th>Date</th>
 									<th>Time</th>
-									<th>Total Marks</th>
+									<th>Full Marks</th>
 									<th>Status</th>
 								</tr>
 							</thead>
 							<tbody>
-								@foreach($exams as $exam)
+								@foreach($schedules as $schedule)
 									<tr>
-										<td><strong>{{ $exam->name }}</strong></td>
-										<td>{{ $exam->schoolClass->name ?? 'N/A' }}</td>
-										<td>{{ $exam->subject->name ?? 'N/A' }}</td>
-										<td>{{ $exam->exam_date->format('M d, Y') }}</td>
+										<td><strong>{{ $schedule->exam->name ?? 'N/A' }}</strong></td>
+										<td>{{ $schedule->schoolClass->name ?? 'N/A' }}</td>
+										<td>{{ $schedule->subject->name ?? 'N/A' }}</td>
+										<td>{{ $schedule->exam_date->format('M d, Y') }}</td>
 										<td>
-											@if($exam->start_time)
-												{{ \Carbon\Carbon::parse($exam->start_time)->format('h:i A') }}
-												@if($exam->end_time)
-													- {{ \Carbon\Carbon::parse($exam->end_time)->format('h:i A') }}
+											@if($schedule->start_time)
+												{{ \Carbon\Carbon::parse($schedule->start_time)->format('h:i A') }}
+												@if($schedule->end_time)
+													- {{ \Carbon\Carbon::parse($schedule->end_time)->format('h:i A') }}
 												@endif
 											@else
 												-
 											@endif
 										</td>
-										<td>{{ $exam->total_marks }}</td>
+										<td>{{ $schedule->full_marks }}</td>
 										<td>
-											@if($exam->exam_date->isFuture())
+											@if($schedule->exam_date->isFuture())
 												<span class="badge bg-info">Upcoming</span>
-											@elseif($exam->exam_date->isToday())
+											@elseif($schedule->exam_date->isToday())
 												<span class="badge bg-warning">Today</span>
 											@else
 												<span class="badge bg-success">Completed</span>

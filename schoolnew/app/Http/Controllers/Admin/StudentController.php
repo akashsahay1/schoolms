@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Carbon\Carbon;
 
 class StudentController extends Controller
@@ -79,7 +80,7 @@ class StudentController extends Controller
             // Academic Information
             'class_id' => ['required', 'exists:classes,id'],
             'section_id' => ['required', 'exists:sections,id'],
-            'roll_no' => ['nullable', 'string', 'max:50'],
+            'roll_no' => ['nullable', 'string', 'max:50', 'unique:students,roll_no,NULL,id,class_id,' . $request->class_id . ',section_id,' . $request->section_id],
             'admission_date' => ['required', 'date_format:d-m-Y'],
             'previous_school' => ['nullable', 'string', 'max:255'],
 
@@ -101,6 +102,10 @@ class StudentController extends Controller
 
             // Photo
             'photo' => ['nullable', 'image', 'max:2048'],
+
+            // Login Passwords (optional - auto-generate if empty)
+            'student_password' => ['nullable', 'string', 'min:6', 'max:50'],
+            'parent_password' => ['nullable', 'string', 'min:6', 'max:50'],
         ]);
 
         try {
@@ -117,8 +122,37 @@ class StudentController extends Controller
                 ->first();
             $admissionNo = 'STU' . $academicYear->id . str_pad(($lastAdmission ? $lastAdmission->id + 1 : 1), 5, '0', STR_PAD_LEFT);
 
+            // Create parent user account if email is provided
+            $parentUserId = null;
+            $parentEmail = $validated['father_email'] ?? $validated['mother_email'] ?? null;
+            $parentPassword = !empty($validated['parent_password']) ? $validated['parent_password'] : $admissionNo;
+
+            if ($parentEmail) {
+                // Check if parent user with this email already exists
+                $existingParentUser = User::where('email', $parentEmail)->first();
+
+                if ($existingParentUser) {
+                    // Use existing parent user
+                    $parentUserId = $existingParentUser->id;
+                } else {
+                    // Create new parent user account
+                    $parentName = $validated['father_name'] ?? $validated['mother_name'] ?? 'Parent';
+                    $parentUser = User::create([
+                        'name' => $parentName,
+                        'email' => $parentEmail,
+                        'password' => Hash::make($parentPassword),
+                        'plain_password' => $parentPassword,
+                    ]);
+
+                    // Assign parent role
+                    $parentUser->assignRole('Parent');
+                    $parentUserId = $parentUser->id;
+                }
+            }
+
             // Create parent record
             $parent = ParentGuardian::create([
+                'user_id' => $parentUserId,
                 'father_name' => $validated['father_name'],
                 'father_phone' => $validated['father_phone'] ?? null,
                 'father_email' => $validated['father_email'] ?? null,
@@ -139,16 +173,17 @@ class StudentController extends Controller
 
             // Create user account for student login
             $studentEmail = $validated['email'] ?? strtolower(str_replace(' ', '', $validated['first_name'])) . '.' . $admissionNo . '@student.school.com';
-            $defaultPassword = $admissionNo; // Password is the admission number
+            $studentPassword = !empty($validated['student_password']) ? $validated['student_password'] : $admissionNo;
 
             $user = User::create([
                 'name' => trim($validated['first_name'] . ' ' . ($validated['last_name'] ?? '')),
                 'email' => $studentEmail,
-                'password' => Hash::make($defaultPassword),
+                'password' => Hash::make($studentPassword),
+                'plain_password' => $studentPassword,
             ]);
 
             // Assign student role
-            $user->assignRole('student');
+            $user->assignRole('Student');
 
             // Create student record
             $student = Student::create([
@@ -181,8 +216,16 @@ class StudentController extends Controller
 
             $message = "Student registered successfully.\n";
             $message .= "Admission No: {$admissionNo}\n";
-            $message .= "Login Email: {$studentEmail}\n";
-            $message .= "Password: {$defaultPassword}";
+            $studentPwdNote = !empty($validated['student_password']) ? '' : ' (default: Admission Number)';
+            $message .= "Student Login - Email: {$studentEmail}, Password: {$studentPassword}{$studentPwdNote}";
+
+            // Add parent login details if parent account was created
+            if ($parentEmail && !isset($existingParentUser)) {
+                $parentPwdNote = !empty($validated['parent_password']) ? '' : ' (default: Admission Number)';
+                $message .= "\nParent Login - Email: {$parentEmail}, Password: {$parentPassword}{$parentPwdNote}";
+            } elseif ($parentEmail && isset($existingParentUser)) {
+                $message .= "\nParent Login - Email: {$parentEmail} (existing account, use existing password)";
+            }
 
             return redirect()->route('admin.students.index')
                 ->with('success', $message);
@@ -224,7 +267,7 @@ class StudentController extends Controller
             // Academic Information
             'class_id' => ['required', 'exists:classes,id'],
             'section_id' => ['required', 'exists:sections,id'],
-            'roll_no' => ['nullable', 'string', 'max:50'],
+            'roll_no' => ['nullable', 'string', 'max:50', 'unique:students,roll_no,' . $student->id . ',id,class_id,' . $request->class_id . ',section_id,' . $request->section_id],
 
             // Contact Information
             'email' => ['nullable', 'email', 'max:255'],
@@ -496,5 +539,50 @@ class StudentController extends Controller
             DB::rollBack();
             return back()->with('error', 'An error occurred: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Reset password for a student's user account.
+     */
+    public function resetPassword(Request $request, Student $student)
+    {
+        $request->validate([
+            'new_password' => 'required|string|min:6|max:50',
+        ]);
+
+        if (!$student->user) {
+            return back()->with('error', 'No user account linked to this student.');
+        }
+
+        $student->user->update([
+            'password' => Hash::make($request->new_password),
+            'plain_password' => $request->new_password,
+        ]);
+
+        return back()->with('success', 'Student password has been reset successfully.');
+    }
+
+    public function updateEmail(Request $request, Student $student)
+    {
+        $request->validate([
+            'new_email' => [
+                'required',
+                'email',
+                'max:255',
+                'unique:users,email,' . ($student->user_id ?? 0),
+            ],
+        ], [
+            'new_email.unique' => 'This email is already used by another account. Please use a different email.',
+        ]);
+
+        if (!$student->user) {
+            return back()->with('error', 'No user account linked to this student.');
+        }
+
+        $student->user->update([
+            'email' => $request->new_email,
+        ]);
+
+        return back()->with('success', 'Login email updated successfully.');
     }
 }

@@ -44,11 +44,16 @@
                         </div>
 
                         <div class="col-md-6">
-                            <label for="code" class="form-label">Code <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('code') is-invalid @enderror"
-                                   id="code" name="code" value="{{ old('code') }}"
-                                   placeholder="e.g., TUI, TRN" style="text-transform: uppercase;" required>
-                            <small class="text-muted">Unique short code for the fee type</small>
+                            <label for="code" class="form-label">Fee Code <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="text" class="form-control @error('code') is-invalid @enderror"
+                                       id="code" name="code" value="{{ old('code') }}"
+                                       placeholder="Auto-generated" style="text-transform: uppercase;" required>
+                                <button type="button" class="btn btn-outline-secondary" id="edit-code-btn" title="Edit code manually">
+                                    <i data-feather="edit-2"></i>
+                                </button>
+                            </div>
+                            <small class="text-muted">Auto-generated from name. Click edit to change.</small>
                             @error('code')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -89,3 +94,39 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+jQuery(document).ready(function() {
+	var autoGenerate = true;
+
+	jQuery('#name').on('input', function() {
+		if (!autoGenerate) return;
+		var name = jQuery(this).val().trim();
+		if (name) {
+			var words = name.split(/\s+/);
+			var code;
+			if (words.length >= 2) {
+				code = words.slice(0, 5).map(function(w) { return w.charAt(0); }).join('');
+			} else {
+				code = name.substring(0, 4);
+			}
+			jQuery('#code').val(code.toUpperCase());
+		} else {
+			jQuery('#code').val('');
+		}
+	});
+
+	jQuery('#edit-code-btn').on('click', function() {
+		autoGenerate = !autoGenerate;
+		if (autoGenerate) {
+			jQuery(this).removeClass('btn-primary').addClass('btn-outline-secondary');
+			jQuery('#name').trigger('input');
+		} else {
+			jQuery(this).removeClass('btn-outline-secondary').addClass('btn-primary');
+		}
+		jQuery('#code').focus();
+	});
+});
+</script>
+@endpush

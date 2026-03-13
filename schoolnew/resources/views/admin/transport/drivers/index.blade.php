@@ -6,7 +6,7 @@
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('admin.vehicles.index') }}">Transport</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('admin.transport.vehicles.index') }}">Transport</a></li>
     <li class="breadcrumb-item active">Drivers</li>
 @endsection
 
@@ -25,7 +25,7 @@
                             <i data-feather="download" class="me-1"></i> Export CSV
                         </a>
                         <a href="{{ route('admin.drivers.create') }}" class="btn btn-primary">
-                            <i data-feather="plus" class="me-1"></i> Add Driver
+                            <i data-feather="plus" class="me-1"></i> Add New
                         </a>
                     </div>
                 </div>

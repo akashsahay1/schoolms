@@ -44,7 +44,7 @@
 							@endif
 						</a>
 						<a href="{{ route('admin.library.books.create') }}" class="btn btn-primary">
-							<i data-feather="plus" class="me-1"></i> Add Book
+							<i data-feather="plus" class="me-1"></i> Add New
 						</a>
 					</div>
 				</div>
