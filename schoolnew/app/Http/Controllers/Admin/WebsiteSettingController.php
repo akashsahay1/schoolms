@@ -11,6 +11,7 @@ use App\Models\WebsiteSection;
 use App\Models\WebsiteSlider;
 use App\Models\WebsiteTestimonial;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -366,6 +367,7 @@ class WebsiteSettingController extends Controller
             'meta_keywords' => 'nullable|string|max:255',
             'content' => 'nullable|string',
             'banner_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'banner_color' => 'nullable|string|max:7',
             'is_active' => 'boolean',
         ]);
 
@@ -376,7 +378,16 @@ class WebsiteSettingController extends Controller
             $validated['banner_image'] = $request->file('banner_image')->store('website/pages', 'public');
         }
 
+        // Handle banner image removal
+        if ($request->has('remove_banner_image') && $request->remove_banner_image == '1') {
+            if ($page->banner_image) {
+                Storage::disk('public')->delete($page->banner_image);
+            }
+            $validated['banner_image'] = null;
+        }
+
         $validated['is_active'] = $request->has('is_active');
+        $validated['banner_color'] = $request->input('banner_color') ?: null;
 
         $page->update($validated);
 
@@ -421,7 +432,25 @@ class WebsiteSettingController extends Controller
 
         $contact->sendReply($validated['reply']);
 
-        // TODO: Send email to the contact
+        // Send reply email to the contact
+        if ($contact->email && config('mail.default') !== 'log') {
+            try {
+                Mail::send('emails.contact-reply', [
+                    'contactName' => $contact->name,
+                    'contactSubject' => $contact->subject,
+                    'contactMessage' => $contact->message,
+                    'replyMessage' => $validated['reply'],
+                    'schoolName' => config('app.name'),
+                ], function ($mail) use ($contact) {
+                    $mail->to($contact->email)
+                         ->subject('Re: ' . $contact->subject);
+                });
+            } catch (\Exception $e) {
+                \Log::warning("Contact reply email failed: " . $e->getMessage());
+                return redirect()->route('admin.website.contacts.show', $contact)
+                    ->with('success', 'Reply saved but email delivery failed.');
+            }
+        }
 
         return redirect()->route('admin.website.contacts.show', $contact)->with('success', 'Reply sent successfully.');
     }

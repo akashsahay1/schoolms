@@ -70,14 +70,24 @@
                 </div>
             </div>
 
-            <!-- Submission Form -->
-            @if(!$submission || !in_array($submission->status, ['submitted', 'evaluated', 'late']))
+            <!-- Submission Form: Show for new submissions OR editable (submitted/late but not evaluated) -->
+            @if(!$submission || !in_array($submission->status, ['evaluated']))
+                @php
+                    $isEditing = $submission && in_array($submission->status, ['submitted', 'late']);
+                @endphp
                 <div class="card">
                     <div class="card-header pb-0">
-                        <h5>Submit Homework</h5>
+                        <h5>{{ $isEditing ? 'Edit Submission' : 'Submit Homework' }}</h5>
                     </div>
                     <div class="card-body">
-                        @if($isOverdue)
+                        @if($isEditing)
+                            <div class="alert alert-info">
+                                <i class="fa fa-info-circle me-2"></i>
+                                You can edit your submission until the teacher evaluates it.
+                            </div>
+                        @endif
+
+                        @if($isOverdue && !$isEditing)
                             <div class="alert alert-warning">
                                 <i class="fa fa-exclamation-triangle me-2"></i>
                                 This homework is overdue. Your submission will be marked as late.
@@ -88,25 +98,42 @@
                             @csrf
                             <div class="mb-3">
                                 <label class="form-label">Your Answer / Notes</label>
-                                <textarea name="submission_text" class="form-control @error('submission_text') is-invalid @enderror" rows="6" placeholder="Write your answer or notes here...">{{ old('submission_text') }}</textarea>
+                                <textarea name="submission_text" class="form-control @error('submission_text') is-invalid @enderror" rows="6" placeholder="Write your answer or notes here...">{{ old('submission_text', $submission->submission_text ?? '') }}</textarea>
                                 @error('submission_text')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
 
                             <div class="mb-3">
-                                <label class="form-label">Upload File (Optional)</label>
-                                <input type="file" name="attachment" class="form-control @error('attachment') is-invalid @enderror" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.zip">
-                                <small class="text-muted">Allowed: PDF, DOC, DOCX, JPG, PNG, ZIP (Max: 5MB)</small>
-                                @error('attachment')
-                                    <div class="invalid-feedback">{{ $message }}</div>
+                                <label class="form-label">Upload File <span class="text-danger">*</span></label>
+                                <input type="file" name="attachments[]" class="form-control @error('attachments') is-invalid @enderror @error('attachments.*') is-invalid @enderror" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.zip" multiple {{ $isEditing && $submission->attachment ? '' : 'required' }}>
+                                <small class="text-muted">Allowed: PDF, DOC, DOCX, JPG, PNG, ZIP (Max: 5MB each). You can select multiple files.</small>
+                                @if($isEditing && $submission->attachment)
+                                    <small class="text-info d-block mt-1">
+                                        <i class="fa fa-paperclip me-1"></i> Current file(s) attached. Upload new files to replace them, or leave empty to keep existing.
+                                    </small>
+                                @endif
+                                @error('attachments')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                                @error('attachments.*')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
                                 @enderror
                             </div>
 
                             <button type="submit" class="btn btn-primary">
-                                <i class="fa fa-paper-plane me-2"></i> Submit Homework
+                                <i class="fa fa-paper-plane me-2"></i> {{ $isEditing ? 'Update Submission' : 'Submit Homework' }}
                             </button>
                         </form>
+                    </div>
+                </div>
+            @else
+                <div class="card">
+                    <div class="card-body">
+                        <div class="alert alert-light mb-0 text-center">
+                            <i class="fa fa-lock me-2"></i>
+                            This homework has been evaluated. You can no longer edit your submission.
+                        </div>
                     </div>
                 </div>
             @endif
@@ -184,10 +211,22 @@
 
                         @if($submission->attachment)
                             <div class="mt-3">
-                                <h6>Your Attachment</h6>
-                                <a href="{{ Storage::url($submission->attachment) }}" target="_blank" class="btn btn-outline-primary btn-sm w-100">
-                                    <i class="fa fa-download me-2"></i> Download
-                                </a>
+                                <h6>Your Attachment(s)</h6>
+                                @php
+                                    $attachments = json_decode($submission->attachment, true);
+                                    $isSingle = !is_array($attachments);
+                                @endphp
+                                @if($isSingle)
+                                    <a href="{{ Storage::url($submission->attachment) }}" target="_blank" class="btn btn-outline-primary btn-sm w-100">
+                                        <i class="fa fa-download me-2"></i> Download
+                                    </a>
+                                @else
+                                    @foreach($attachments as $idx => $filePath)
+                                        <a href="{{ Storage::url($filePath) }}" target="_blank" class="btn btn-outline-primary btn-sm w-100 mb-1">
+                                            <i class="fa fa-download me-2"></i> File {{ $idx + 1 }} ({{ strtoupper(pathinfo($filePath, PATHINFO_EXTENSION)) }})
+                                        </a>
+                                    @endforeach
+                                @endif
                             </div>
                         @endif
 

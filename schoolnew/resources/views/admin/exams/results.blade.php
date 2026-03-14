@@ -71,13 +71,11 @@
 				@if($selectedExam && $selectedClass)
 					<!-- Print Header - Compact with Logo -->
 					<div class="print-header">
-						<div class="logo-section">
-							@if(\App\Models\Setting::get('school_logo'))
+						@if(\App\Models\Setting::get('school_logo'))
+							<div class="logo-section">
 								<img src="{{ asset('storage/' . \App\Models\Setting::get('school_logo')) }}" alt="" class="school-logo">
-							@else
-								<img src="{{ asset('assets/images/logo/logo-1.png') }}" alt="" class="school-logo" onerror="this.style.display='none'">
-							@endif
-						</div>
+							</div>
+						@endif
 						<div class="school-info">
 							<h1 class="school-name">{{ \App\Models\Setting::get('school_name', config('app.name', 'School Management System')) }}</h1>
 							<p class="school-address">{{ \App\Models\Setting::get('school_address', '123 Education Street, Knowledge City') }} | Phone: {{ \App\Models\Setting::get('school_phone', '+91 1234567890') }}</p>

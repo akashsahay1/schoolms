@@ -6,7 +6,7 @@
 
 @section('content')
 <!-- Page Banner -->
-<section class="page-banner">
+<section class="page-banner" @if($page) style="{{ $page->banner_image ? 'background-image: url(' . asset('storage/' . $page->banner_image) . ');' : '' }}{{ $page->banner_color ? '--banner-color: ' . $page->banner_color . ';' : '' }}" @endif>
     <div class="container">
         <h1>Contact Us</h1>
         <nav aria-label="breadcrumb">
@@ -136,6 +136,7 @@
                 </div>
             </div>
 
+            @if(\App\Models\Setting::get('show_map') && \App\Models\Setting::get('school_map_embed'))
             <div class="col-lg-6">
                 <!-- Map -->
                 <div class="contact-map-wrapper">
@@ -144,19 +145,30 @@
                         <h4>Find Us on Map</h4>
                     </div>
                     <div class="contact-map">
-                        @if(\App\Models\Setting::get('school_map_embed'))
-                            {!! \App\Models\Setting::get('school_map_embed') !!}
-                        @else
-                            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.2!2d-73.98!3d40.75!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zM40xMzQnMTYuOCJOIDczwrA1OCc0OC4wIlc!5e0!3m2!1sen!2sus!4v1600000000000!5m2!1sen!2sus" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
-                        @endif
+                        {!! \App\Models\Setting::get('school_map_embed') !!}
                     </div>
                 </div>
             </div>
+            @endif
         </div>
     </div>
 </section>
 
 <!-- Office Hours -->
+@php
+    $officeHours = [
+        ['label' => 'School Office', 'icon' => 'briefcase', 'prefix' => 'school', 'days' => [
+            ['key' => 'mf', 'label' => 'Monday - Friday', 'def_open' => '8:00 AM', 'def_close' => '4:00 PM', 'def_status' => 'open'],
+            ['key' => 'sat', 'label' => 'Saturday', 'def_open' => '9:00 AM', 'def_close' => '1:00 PM', 'def_status' => 'open'],
+            ['key' => 'sun', 'label' => 'Sunday', 'def_open' => '', 'def_close' => '', 'def_status' => 'closed'],
+        ]],
+        ['label' => 'Admissions Office', 'icon' => 'user-plus', 'prefix' => 'admission', 'days' => [
+            ['key' => 'mf', 'label' => 'Monday - Friday', 'def_open' => '9:00 AM', 'def_close' => '3:00 PM', 'def_status' => 'open'],
+            ['key' => 'sat', 'label' => 'Saturday', 'def_open' => '10:00 AM', 'def_close' => '12:00 PM', 'def_status' => 'open'],
+            ['key' => 'sun', 'label' => 'Sunday', 'def_open' => '', 'def_close' => '', 'def_status' => 'closed'],
+        ]],
+    ];
+@endphp
 <section class="section-padding bg-light">
     <div class="container">
         <div class="section-title">
@@ -166,54 +178,31 @@
         </div>
 
         <div class="row g-4 justify-content-center">
-            <div class="col-lg-5 col-md-6">
-                <div class="office-hours-card">
-                    <div class="office-hours-header">
-                        <div class="office-hours-icon">
-                            <i data-feather="briefcase"></i>
+            @foreach($officeHours as $office)
+                <div class="col-lg-5 col-md-6">
+                    <div class="office-hours-card">
+                        <div class="office-hours-header">
+                            <div class="office-hours-icon">
+                                <i data-feather="{{ $office['icon'] }}"></i>
+                            </div>
+                            <h5>{{ $office['label'] }}</h5>
                         </div>
-                        <h5>School Office</h5>
-                    </div>
-                    <div class="office-hours-body">
-                        <div class="hours-item">
-                            <span class="hours-day">Monday - Friday</span>
-                            <span class="hours-time">8:00 AM - 4:00 PM</span>
-                        </div>
-                        <div class="hours-item">
-                            <span class="hours-day">Saturday</span>
-                            <span class="hours-time">9:00 AM - 1:00 PM</span>
-                        </div>
-                        <div class="hours-item closed">
-                            <span class="hours-day">Sunday</span>
-                            <span class="hours-time">Closed</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-5 col-md-6">
-                <div class="office-hours-card">
-                    <div class="office-hours-header">
-                        <div class="office-hours-icon">
-                            <i data-feather="user-plus"></i>
-                        </div>
-                        <h5>Admissions Office</h5>
-                    </div>
-                    <div class="office-hours-body">
-                        <div class="hours-item">
-                            <span class="hours-day">Monday - Friday</span>
-                            <span class="hours-time">9:00 AM - 3:00 PM</span>
-                        </div>
-                        <div class="hours-item">
-                            <span class="hours-day">Saturday</span>
-                            <span class="hours-time">10:00 AM - 12:00 PM</span>
-                        </div>
-                        <div class="hours-item closed">
-                            <span class="hours-day">Sunday</span>
-                            <span class="hours-time">Closed</span>
+                        <div class="office-hours-body">
+                            @foreach($office['days'] as $day)
+                                @php
+                                    $status = \App\Models\Setting::get('office_hours_' . $office['prefix'] . '_' . $day['key'] . '_status', $day['def_status']);
+                                    $open = \App\Models\Setting::get('office_hours_' . $office['prefix'] . '_' . $day['key'] . '_open', $day['def_open']);
+                                    $close = \App\Models\Setting::get('office_hours_' . $office['prefix'] . '_' . $day['key'] . '_close', $day['def_close']);
+                                @endphp
+                                <div class="hours-item{{ $status === 'closed' ? ' closed' : '' }}">
+                                    <span class="hours-day">{{ $day['label'] }}</span>
+                                    <span class="hours-time">{{ $status === 'closed' ? 'Closed' : $open . ' - ' . $close }}</span>
+                                </div>
+                            @endforeach
                         </div>
                     </div>
                 </div>
-            </div>
+            @endforeach
         </div>
     </div>
 </section>

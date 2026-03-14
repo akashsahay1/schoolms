@@ -356,23 +356,18 @@ class NoticeController extends Controller
 
         $users = User::whereIn('id', $userIds->unique())->get();
         if ($users->isNotEmpty()) {
-            // Always send database notifications (bell icon) - this never fails
+            // Always send database notifications (bell icon) - this is instant
             Notification::send($users, new NoticePublished($notice, false));
 
-            // Send emails separately so SMTP failure doesn't break anything
+            // Queue emails in background so the request doesn't timeout
             if ($sendEmail) {
-                $emailFailed = 0;
+                $emailNotification = new \App\Notifications\NoticeEmailNotification($notice);
                 foreach ($users as $user) {
-                    try {
-                        $user->notify(new NoticePublished($notice, false, true));
-                    } catch (\Exception $e) {
-                        $emailFailed++;
-                        \Log::warning("Notice email failed for {$user->email}: " . $e->getMessage());
+                    if (!empty($user->email)) {
+                        $user->notify($emailNotification);
                     }
                 }
-                if ($emailFailed > 0) {
-                    session()->flash('warning', "Notice created but {$emailFailed} email(s) failed to send. Check SMTP settings.");
-                }
+                session()->flash('info', "Emails are being sent to {$users->count()} recipients in the background.");
             }
         }
     }

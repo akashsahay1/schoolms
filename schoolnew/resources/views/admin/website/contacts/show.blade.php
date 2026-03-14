@@ -41,7 +41,7 @@
                 @if($contact->reply)
                     <div class="mb-4">
                         <h6 class="text-muted mb-2">Your Reply <small>({{ $contact->replied_at->format('M d, Y h:i A') }})</small></h6>
-                        <div class="bg-success bg-opacity-10 p-3 rounded border-start border-success border-3">
+                        <div class="p-3 rounded border-start border-success border-3" style="background-color: #e8f5e9; color: #2c323f;">
                             {{ $contact->reply }}
                         </div>
                     </div>

@@ -25,6 +25,7 @@ class SettingController extends Controller
             'school_email' => 'required|email|max:255',
             'school_website' => 'nullable|string|max:255',
             'school_tagline' => 'nullable|string|max:255',
+            'school_map_embed' => 'nullable|string|max:2000',
             'school_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
@@ -35,6 +36,7 @@ class SettingController extends Controller
         Setting::set('school_email', $request->school_email);
         Setting::set('school_website', $request->school_website);
         Setting::set('school_tagline', $request->school_tagline);
+        Setting::set('school_map_embed', $request->school_map_embed);
 
         // Handle logo upload
         if ($request->hasFile('school_logo')) {

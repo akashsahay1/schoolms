@@ -63,7 +63,7 @@
                             <table class="table table-borderless table-sm">
                                 <tr>
                                     <td class="text-muted">Name:</td>
-                                    <td><strong>{{ $student->name }}</strong></td>
+                                    <td><strong>{{ $student->full_name }}</strong></td>
                                 </tr>
                                 <tr>
                                     <td class="text-muted">Class:</td>
@@ -71,11 +71,11 @@
                                 </tr>
                                 <tr>
                                     <td class="text-muted">Roll No:</td>
-                                    <td>{{ $student->roll_number ?? 'N/A' }}</td>
+                                    <td>{{ $student->roll_no ?? 'N/A' }}</td>
                                 </tr>
                                 <tr>
                                     <td class="text-muted">Admission No:</td>
-                                    <td>{{ $student->admission_number ?? 'N/A' }}</td>
+                                    <td>{{ $student->admission_no ?? 'N/A' }}</td>
                                 </tr>
                             </table>
                         </div>

@@ -27,11 +27,12 @@ class SecurityHeaders
         // Content Security Policy (adjust as needed for your application)
         $csp = implode('; ', [
             "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com",
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://checkout.razorpay.com",
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net",
             "img-src 'self' data: https: blob:",
             "font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net data:",
-            "connect-src 'self'",
+            "connect-src 'self' https://lumberjack.razorpay.com https://api.razorpay.com",
+            "frame-src 'self' https://www.google.com https://maps.google.com https://api.razorpay.com https://checkout.razorpay.com",
             "frame-ancestors 'self'",
             "base-uri 'self'",
             "form-action 'self'",

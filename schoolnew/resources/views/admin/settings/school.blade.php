@@ -99,6 +99,15 @@
                                 @enderror
                             </div>
 
+                            <div class="mb-3">
+                                <label for="school_map_embed" class="form-label">Google Map Embed Code</label>
+                                <textarea class="form-control @error('school_map_embed') is-invalid @enderror" id="school_map_embed" name="school_map_embed" rows="3" placeholder='Paste Google Maps embed iframe code here...'>{{ old('school_map_embed', $settings['school_map_embed'] ?? '') }}</textarea>
+                                @error('school_map_embed')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                                <small class="text-muted">Go to Google Maps → Search your location → Click "Share" → "Embed a map" → Copy the iframe code. Leave empty to hide the map.</small>
+                            </div>
+
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">

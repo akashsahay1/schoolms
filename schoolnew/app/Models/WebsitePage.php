@@ -14,6 +14,7 @@ class WebsitePage extends Model
         'meta_keywords',
         'content',
         'banner_image',
+        'banner_color',
         'is_active',
     ];
 

@@ -1,10 +1,15 @@
+@php $__logo = \App\Models\Setting::get('school_logo'); @endphp
 <div class="sidebar-wrapper" data-sidebar-layout="stroke-svg">
 	<div>
 		<!-- Logo -->
 		<div class="logo-wrapper d-flex align-items-center justify-content-between">
 			<a href="{{ route('admin.dashboard') }}">
-				<img class="img-fluid for-light logo-custom" src="{{ asset('assets/images/logo/logo.png') }}" alt="">
-				<img class="img-fluid for-dark logo-custom" src="{{ asset('assets/images/logo/logo_dark.png') }}" alt="">
+				@if($__logo)
+					<img class="img-fluid for-light logo-custom" src="{{ asset('storage/' . $__logo) }}" alt="">
+					<img class="img-fluid for-dark logo-custom" src="{{ asset('storage/' . $__logo) }}" alt="">
+				@else
+					<span class="logo-custom" style="font-size: 16px; font-weight: 600; color: #2c323f; white-space: nowrap;">{{ \App\Models\Setting::get('school_name', config('app.name')) }}</span>
+				@endif
 			</a>
 			<div class="back-btn d-lg-none" style="cursor: pointer; padding: 8px;">
 				<i class="fa-solid fa-times" style="font-size: 18px; color: #2c323f;"></i>
@@ -12,7 +17,11 @@
 		</div>
 		<div class="logo-icon-wrapper">
 			<a href="{{ route('admin.dashboard') }}">
-				<img class="img-fluid logo-custom" src="{{ asset('assets/images/logo/logo.png') }}" alt="">
+				@if($__logo)
+					<img class="img-fluid logo-custom" src="{{ asset('storage/' . $__logo) }}" alt="">
+				@else
+					<span style="font-size: 14px; font-weight: 600;">{{ substr(\App\Models\Setting::get('school_name', config('app.name')), 0, 2) }}</span>
+				@endif
 			</a>
 		</div>
 
@@ -23,7 +32,9 @@
 				<ul class="sidebar-links" id="simple-bar">
 					<li class="back-btn d-none">
 						<a href="{{ route('admin.dashboard') }}">
-							<img class="img-fluid logo-custom" src="{{ asset('assets/images/logo/logo.png') }}" alt="">
+							@if($__logo)
+								<img class="img-fluid logo-custom" src="{{ asset('storage/' . $__logo) }}" alt="">
+							@endif
 						</a>
 						<div class="mobile-back text-end">
 							<span>Back</span>

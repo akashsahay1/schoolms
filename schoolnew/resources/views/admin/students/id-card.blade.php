@@ -24,7 +24,9 @@
 			<div class="id-card id-card-front">
 				<div class="id-card-header">
 					<div class="school-logo">
-						<img src="{{ asset('assets/images/logo/logo.png') }}" alt="School Logo">
+						@if(\App\Models\Setting::get('school_logo'))
+							<img src="{{ asset('storage/' . \App\Models\Setting::get('school_logo')) }}" alt="School Logo">
+						@endif
 					</div>
 					<div class="school-name">
 						<h2>{{ config('app.name', 'Shree Education Academy') }}</h2>

@@ -49,9 +49,9 @@
                                     </td>
                                     <td>
                                         @if($page->is_active)
-                                            <span class="badge badge-light-success">Active</span>
+                                            <span class="badge badge-light-success">Visible</span>
                                         @else
-                                            <span class="badge badge-light-danger">Inactive</span>
+                                            <span class="badge badge-light-warning">Hidden</span>
                                         @endif
                                     </td>
                                     <td>

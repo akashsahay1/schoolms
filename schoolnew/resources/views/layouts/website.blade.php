@@ -9,8 +9,9 @@
     <meta name="author" content="{{ \App\Models\Setting::get('school_name', config('app.name')) }}">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <link rel="icon" href="{{ asset('assets/images/favicon.png') }}" type="image/x-icon">
-    <link rel="shortcut icon" href="{{ asset('assets/images/favicon.png') }}" type="image/x-icon">
+    @php $__favicon = \App\Models\Setting::get('school_favicon'); @endphp
+    <link rel="icon" href="{{ $__favicon ? asset('storage/' . $__favicon) : asset('assets/images/favicon.png') }}" type="image/x-icon">
+    <link rel="shortcut icon" href="{{ $__favicon ? asset('storage/' . $__favicon) : asset('assets/images/favicon.png') }}" type="image/x-icon">
 
     <title>@yield('title', 'Home') - {{ \App\Models\Setting::get('school_name', config('app.name')) }}</title>
 
@@ -46,6 +47,32 @@
             font-family: 'Poppins', sans-serif;
             color: var(--text-color);
             overflow-x: hidden;
+        }
+
+        /* Force white text/icons on colored backgrounds */
+        .page-banner h1,
+        .page-banner .breadcrumb-item,
+        .page-banner .breadcrumb-item.active,
+        .cta-section .content h2,
+        .cta-section .content p,
+        .footer h4,
+        .footer h5,
+        .footer p,
+        .footer li,
+        .footer a,
+        .office-hours-header h5,
+        .contact-info-card .icon i,
+        .feature-card .icon i {
+            color: #fff !important;
+        }
+
+        .page-banner svg,
+        .cta-section svg,
+        .footer svg,
+        .office-hours-header svg,
+        .contact-info-card .icon svg,
+        .feature-card .icon svg {
+            stroke: #fff !important;
         }
 
         /* Top Bar */
@@ -342,7 +369,7 @@
             align-items: center;
             justify-content: center;
             margin: 0 auto 25px;
-            color: #fff;
+            color: #fff !important;
             font-size: 36px;
             box-shadow: 0 10px 30px rgba(121, 110, 211, 0.3);
             transition: all 0.4s ease;
@@ -424,8 +451,10 @@
             transition: all 0.4s ease;
         }
 
-        .methodology-icon i {
+        .methodology-icon i,
+        .methodology-icon svg {
             color: var(--primary-color);
+            stroke: var(--primary-color);
             width: 36px;
             height: 36px;
             transition: all 0.4s ease;
@@ -435,8 +464,10 @@
             background: var(--accent-color);
         }
 
-        .methodology-card:hover .methodology-icon i {
+        .methodology-card:hover .methodology-icon i,
+        .methodology-card:hover .methodology-icon svg {
             color: #fff;
+            stroke: #fff !important;
         }
 
         .methodology-card h5 {
@@ -1515,7 +1546,7 @@
         .cta-section .content {
             position: relative;
             z-index: 1;
-            color: #fff;
+            color: #fff !important;
             text-align: center;
         }
 
@@ -1523,6 +1554,7 @@
             font-size: 3rem;
             font-weight: 700;
             margin-bottom: 25px;
+            color: #fff !important;
             text-shadow: 2px 2px 10px rgba(0,0,0,0.3);
         }
 
@@ -1556,7 +1588,7 @@
         /* Footer */
         .footer {
             background: #796ed3;
-            color: #fff;
+            color: #fff !important;
             padding: 80px 0 30px;
             position: relative;
         }
@@ -1567,6 +1599,7 @@
             position: relative;
             padding-bottom: 15px;
             font-size: 1.15rem;
+            color: #fff !important;
         }
 
         .footer h5::after {
@@ -1634,6 +1667,16 @@
             color: rgba(255, 255, 255, 0.85);
         }
 
+        .footer-contact a {
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-contact a:hover {
+            color: #fff;
+        }
+
         .footer-contact li i {
             color: #fff;
             margin-right: 15px;
@@ -1678,10 +1721,17 @@
         .page-banner {
             background: url('/assets/images/banner/4.jpg') center/cover no-repeat fixed;
             padding: 120px 0 80px;
-            color: #fff;
+            color: #fff !important;
             text-align: center;
             position: relative;
             overflow: hidden;
+        }
+
+        .page-banner[style*="background-image"] {
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
         }
 
         .page-banner::before {
@@ -1691,7 +1741,8 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(96, 101, 242, 0.85);
+            background: var(--banner-color, #6065f2);
+            opacity: 0.85;
             pointer-events: none;
         }
 
@@ -1699,6 +1750,7 @@
             font-size: 3rem;
             font-weight: 700;
             margin-bottom: 20px;
+            color: #fff !important;
             text-shadow: 2px 2px 8px rgba(0,0,0,0.2);
             position: relative;
             z-index: 1;
@@ -1773,7 +1825,7 @@
             align-items: center;
             justify-content: center;
             margin: 0 auto 25px;
-            color: #fff;
+            color: #fff !important;
             font-size: 28px;
             box-shadow: 0 10px 30px rgba(121, 110, 211, 0.3);
             transition: all 0.4s ease;
@@ -1965,15 +2017,17 @@
             justify-content: center;
         }
 
-        .office-hours-icon i {
-            color: #fff;
+        .office-hours-icon i,
+        .office-hours-icon svg {
+            color: #fff !important;
+            stroke: #fff !important;
             width: 24px;
             height: 24px;
         }
 
         .office-hours-header h5 {
             margin: 0;
-            color: #fff;
+            color: #fff !important;
             font-weight: 600;
         }
 
@@ -2327,14 +2381,27 @@
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-md-6">
-                    <span class="me-4"><i data-feather="phone" class="me-2" style="width: 14px;"></i> {{ \App\Models\Setting::get('school_phone', '+1 234 567 890') }}</span>
-                    <span><i data-feather="mail" class="me-2" style="width: 14px;"></i> {{ \App\Models\Setting::get('school_email', 'info@school.com') }}</span>
+                    <a href="tel:{{ \App\Models\Setting::get('school_phone', '+1234567890') }}" class="me-4 text-white text-decoration-none"><i data-feather="phone" class="me-2" style="width: 14px;"></i> {{ \App\Models\Setting::get('school_phone', '+1 234 567 890') }}</a>
+                    <a href="mailto:{{ \App\Models\Setting::get('school_email', 'info@school.com') }}" class="text-white text-decoration-none"><i data-feather="mail" class="me-2" style="width: 14px;"></i> {{ \App\Models\Setting::get('school_email', 'info@school.com') }}</a>
                 </div>
                 <div class="col-md-6 text-end">
-                    <a href="#" class="me-3"><i data-feather="facebook" style="width: 14px;"></i></a>
-                    <a href="#" class="me-3"><i data-feather="twitter" style="width: 14px;"></i></a>
-                    <a href="#" class="me-3"><i data-feather="instagram" style="width: 14px;"></i></a>
-                    <a href="#"><i data-feather="youtube" style="width: 14px;"></i></a>
+                    @php
+                        $__socialLinks = [
+                            ['key' => 'social_facebook', 'icon' => 'facebook'],
+                            ['key' => 'social_twitter', 'icon' => 'twitter'],
+                            ['key' => 'social_instagram', 'icon' => 'instagram'],
+                            ['key' => 'social_youtube', 'icon' => 'youtube'],
+                            ['key' => 'social_linkedin', 'icon' => 'linkedin'],
+                        ];
+                    @endphp
+                    @foreach($__socialLinks as $__social)
+                        @if(\App\Models\Setting::get($__social['key']))
+                            <a href="{{ \App\Models\Setting::get($__social['key']) }}" target="_blank" rel="noopener noreferrer" class="me-3"><i data-feather="{{ $__social['icon'] }}" style="width: 14px;"></i></a>
+                        @endif
+                    @endforeach
+                    @if(\App\Models\Setting::get('social_whatsapp'))
+                        <a href="{{ \App\Models\Setting::get('social_whatsapp') }}" target="_blank" rel="noopener noreferrer"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg></a>
+                    @endif
                 </div>
             </div>
         </div>
@@ -2347,7 +2414,7 @@
                 @if(\App\Models\Setting::get('school_logo'))
                     <img src="{{ asset('storage/' . \App\Models\Setting::get('school_logo')) }}" alt="{{ \App\Models\Setting::get('school_name', config('app.name')) }}">
                 @else
-                    <img src="{{ asset('assets/images/logo/logo.png') }}" alt="{{ \App\Models\Setting::get('school_name', config('app.name')) }}">
+                    <span style="font-size: 20px; font-weight: 700; color: #2c323f;">{{ \App\Models\Setting::get('school_name', config('app.name')) }}</span>
                 @endif
             </a>
 
@@ -2355,29 +2422,44 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
 
+            @php
+                $navPages = \App\Models\WebsitePage::where('is_active', true)->pluck('slug')->toArray();
+            @endphp
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav mx-auto">
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('website.home') ? 'active' : '' }}" href="{{ route('website.home') }}">Home</a>
                     </li>
+                    @if(in_array('about', $navPages))
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('website.about') ? 'active' : '' }}" href="{{ route('website.about') }}">About Us</a>
                     </li>
+                    @endif
+                    @if(in_array('academics', $navPages))
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('website.academics') ? 'active' : '' }}" href="{{ route('website.academics') }}">Academics</a>
                     </li>
+                    @endif
+                    @if(in_array('facilities', $navPages))
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('website.facilities') ? 'active' : '' }}" href="{{ route('website.facilities') }}">Facilities</a>
                     </li>
+                    @endif
+                    @if(in_array('gallery', $navPages))
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('website.gallery*') ? 'active' : '' }}" href="{{ route('website.gallery') }}">Gallery</a>
                     </li>
+                    @endif
+                    @if(in_array('news', $navPages) || in_array('events', $navPages))
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('website.news*') ? 'active' : '' }}" href="{{ route('website.news') }}">News</a>
                     </li>
+                    @endif
+                    @if(in_array('contact', $navPages))
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('website.contact') ? 'active' : '' }}" href="{{ route('website.contact') }}">Contact</a>
                     </li>
+                    @endif
                 </ul>
                 <a href="{{ route('login') }}" class="btn btn-login">
                     <i data-feather="log-in" class="me-1" style="width: 16px;"></i> Login
@@ -2394,24 +2476,32 @@
         <div class="container">
             <div class="row">
                 <div class="col-lg-4 col-md-6 mb-4">
-                    <img src="{{ asset('assets/images/logo/logo.png') }}" alt="Logo" class="footer-logo">
+                    @if(\App\Models\Setting::get('school_logo'))
+                        <img src="{{ asset('storage/' . \App\Models\Setting::get('school_logo')) }}" alt="Logo" class="footer-logo">
+                    @else
+                        <h4 style="font-weight: 700; color: #fff;">{{ \App\Models\Setting::get('school_name', config('app.name')) }}</h4>
+                    @endif
                     <p>{{ \App\Models\Setting::get('school_about', 'Providing quality education and nurturing young minds for a brighter future. Join us in this journey of excellence.') }}</p>
                     <div class="social-links mt-4">
-                        <a href="#"><i data-feather="facebook"></i></a>
-                        <a href="#"><i data-feather="twitter"></i></a>
-                        <a href="#"><i data-feather="instagram"></i></a>
-                        <a href="#"><i data-feather="youtube"></i></a>
+                        @foreach($__socialLinks as $__social)
+                            @if(\App\Models\Setting::get($__social['key']))
+                                <a href="{{ \App\Models\Setting::get($__social['key']) }}" target="_blank" rel="noopener noreferrer"><i data-feather="{{ $__social['icon'] }}"></i></a>
+                            @endif
+                        @endforeach
+                        @if(\App\Models\Setting::get('social_whatsapp'))
+                            <a href="{{ \App\Models\Setting::get('social_whatsapp') }}" target="_blank" rel="noopener noreferrer"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg></a>
+                        @endif
                     </div>
                 </div>
 
                 <div class="col-lg-2 col-md-6 mb-4">
                     <h5>Quick Links</h5>
                     <ul class="footer-links">
-                        <li><a href="{{ route('website.about') }}">About Us</a></li>
-                        <li><a href="{{ route('website.academics') }}">Academics</a></li>
-                        <li><a href="{{ route('website.facilities') }}">Facilities</a></li>
-                        <li><a href="{{ route('website.gallery') }}">Gallery</a></li>
-                        <li><a href="{{ route('website.contact') }}">Contact Us</a></li>
+                        @if(in_array('about', $navPages))<li><a href="{{ route('website.about') }}">About Us</a></li>@endif
+                        @if(in_array('academics', $navPages))<li><a href="{{ route('website.academics') }}">Academics</a></li>@endif
+                        @if(in_array('facilities', $navPages))<li><a href="{{ route('website.facilities') }}">Facilities</a></li>@endif
+                        @if(in_array('gallery', $navPages))<li><a href="{{ route('website.gallery') }}">Gallery</a></li>@endif
+                        @if(in_array('contact', $navPages))<li><a href="{{ route('website.contact') }}">Contact Us</a></li>@endif
                     </ul>
                 </div>
 
@@ -2434,11 +2524,11 @@
                         </li>
                         <li>
                             <i data-feather="phone"></i>
-                            <span>{{ \App\Models\Setting::get('school_phone', '+1 234 567 890') }}</span>
+                            <a href="tel:{{ \App\Models\Setting::get('school_phone', '+1234567890') }}">{{ \App\Models\Setting::get('school_phone', '+1 234 567 890') }}</a>
                         </li>
                         <li>
                             <i data-feather="mail"></i>
-                            <span>{{ \App\Models\Setting::get('school_email', 'info@school.com') }}</span>
+                            <a href="mailto:{{ \App\Models\Setting::get('school_email', 'info@school.com') }}">{{ \App\Models\Setting::get('school_email', 'info@school.com') }}</a>
                         </li>
                     </ul>
                 </div>

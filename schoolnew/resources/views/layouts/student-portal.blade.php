@@ -19,8 +19,9 @@
 	<meta name="author" content="School Management System">
 	<meta name="csrf-token" content="{{ csrf_token() }}">
 
-	<link rel="icon" href="{{ asset('assets/images/favicon.png') }}" type="image/x-icon">
-	<link rel="shortcut icon" href="{{ asset('assets/images/favicon.png') }}" type="image/x-icon">
+	@php $__favicon = \App\Models\Setting::get('school_favicon'); @endphp
+	<link rel="icon" href="{{ $__favicon ? asset('storage/' . $__favicon) : asset('assets/images/favicon.png') }}" type="image/x-icon">
+	<link rel="shortcut icon" href="{{ $__favicon ? asset('storage/' . $__favicon) : asset('assets/images/favicon.png') }}" type="image/x-icon">
 
 	<title>@yield('title', $isParentPortal ? 'Parent Portal' : 'Student Portal') - {{ config('app.name') }}</title>
 
@@ -147,6 +148,26 @@
 		.bg-white svg, .bg-white [data-feather],
 		.bg-light svg, .bg-light [data-feather] {
 			stroke: #000 !important;
+		}
+
+		/* Table checkbox fix */
+		table .form-check-input[type="checkbox"] {
+			width: 18px;
+			height: 18px;
+			margin-top: 0;
+			cursor: pointer;
+			border: 2px solid #d0d5dd;
+			border-radius: 4px;
+			vertical-align: middle;
+		}
+
+		table .form-check-input[type="checkbox"]:checked {
+			background-color: #7366ff;
+			border-color: #7366ff;
+		}
+
+		table .form-check-input[type="checkbox"]:focus {
+			box-shadow: 0 0 0 0.2rem rgba(115, 102, 255, 0.25);
 		}
 	</style>
 </head>

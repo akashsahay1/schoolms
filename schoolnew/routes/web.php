@@ -157,6 +157,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Super Admin,Ad
         Route::get('/', [TimetableController::class, 'index'])->name('index');
         Route::get('/create', [TimetableController::class, 'create'])->name('create');
         Route::post('/', [TimetableController::class, 'store'])->name('store');
+        Route::put('/{timetable}', [TimetableController::class, 'update'])->name('update');
         Route::delete('/{timetable}', [TimetableController::class, 'destroy'])->name('destroy');
         Route::get('/print', [TimetableController::class, 'print'])->name('print');
         Route::get('/teacher', [TimetableController::class, 'teacherTimetable'])->name('teacher');
@@ -239,6 +240,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Super Admin,Ad
         Route::put('/{homework}', [HomeworkController::class, 'update'])->name('update');
         Route::delete('/{homework}', [HomeworkController::class, 'destroy'])->name('destroy');
         Route::get('/{homework}/submissions', [HomeworkController::class, 'submissions'])->name('submissions');
+        Route::post('/submissions/{submission}/evaluate', [HomeworkController::class, 'evaluateSubmission'])->name('evaluate-submission');
         Route::get('/sections/{classId}', [HomeworkController::class, 'getSections'])->name('sections');
         Route::post('/bulk-delete', [HomeworkController::class, 'bulkDelete'])->name('bulk-delete');
         Route::get('-trash', [HomeworkController::class, 'trash'])->name('trash');

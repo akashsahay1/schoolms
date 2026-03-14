@@ -96,9 +96,9 @@ class FeeTypeController extends Controller
 	public function destroy(FeeType $feeType)
 	{
 		try {
-			// Check if fee type is used in any fee structure
-			if ($feeType->feeStructures()->count() > 0) {
-				return back()->with('error', 'Cannot delete fee type that is used in fee structures. Please remove it from structures first.');
+			// Check if fee type is used in any fee structure (including soft-deleted)
+			if ($feeType->feeStructures()->withTrashed()->count() > 0) {
+				return back()->with('error', 'Cannot delete this fee type because it has fee structures linked to it. Please remove or delete those fee structures first.');
 			}
 
 			$feeType->delete();
@@ -106,8 +106,13 @@ class FeeTypeController extends Controller
 			return redirect()->route('admin.fees.types.index')
 				->with('success', 'Fee type moved to trash successfully.');
 
+		} catch (\Illuminate\Database\QueryException $e) {
+			if ($e->getCode() === '23000') {
+				return back()->with('error', 'Cannot delete this fee type because it is linked to other records. Please remove the linked records first.');
+			}
+			return back()->with('error', 'An error occurred while deleting the fee type. Please try again.');
 		} catch (\Exception $e) {
-			return back()->with('error', 'An error occurred: ' . $e->getMessage());
+			return back()->with('error', 'An error occurred while deleting the fee type. Please try again.');
 		}
 	}
 

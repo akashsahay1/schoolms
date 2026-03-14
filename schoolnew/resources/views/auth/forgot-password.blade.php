@@ -71,9 +71,14 @@
 <div class="login-card login-dark">
 	<div>
 		<div>
+			@php $__logo = \App\Models\Setting::get('school_logo'); @endphp
 			<a class="logo" href="{{ url('/') }}">
-				<img class="img-fluid for-light" src="{{ asset('assets/images/logo/logo.png') }}" alt="School Management">
-				<img class="img-fluid for-dark" src="{{ asset('assets/images/logo/logo_dark.png') }}" alt="School Management">
+				@if($__logo)
+					<img class="img-fluid for-light" src="{{ asset('storage/' . $__logo) }}" alt="School Management">
+					<img class="img-fluid for-dark" src="{{ asset('storage/' . $__logo) }}" alt="School Management">
+				@else
+					<h4 class="mb-0" style="font-weight: 600;">{{ \App\Models\Setting::get('school_name', config('app.name')) }}</h4>
+				@endif
 			</a>
 		</div>
 		<div class="login-main">

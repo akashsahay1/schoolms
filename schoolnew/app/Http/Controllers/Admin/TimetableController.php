@@ -25,12 +25,20 @@ class TimetableController extends Controller
         $periods = collect();
         $selectedClass = null;
         $selectedSection = null;
+        $subjects = collect();
+        $teachers = collect();
 
         if ($request->filled('class_id') && $request->filled('section_id')) {
             $selectedClass = SchoolClass::find($request->class_id);
             $selectedSection = Section::find($request->section_id);
 
             $periods = TimetablePeriod::active()->ordered()->get();
+            $subjects = Subject::active()->ordered()->get();
+            $teachers = Staff::with('designation')
+                ->teachers()
+                ->active()
+                ->orderBy('first_name')
+                ->get();
 
             if ($activeYear) {
                 $timetableData = Timetable::with(['subject', 'teacher', 'period'])
@@ -51,7 +59,9 @@ class TimetableController extends Controller
             'days',
             'activeYear',
             'selectedClass',
-            'selectedSection'
+            'selectedSection',
+            'subjects',
+            'teachers'
         ));
     }
 
@@ -126,13 +136,13 @@ class TimetableController extends Controller
             ->first();
 
         if ($existingSlot) {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'A timetable entry already exists for this class, section, day, and period.');
+            $msg = 'A timetable entry already exists for this class, section, day, and period.';
+            if ($request->ajax()) return response()->json(['success' => false, 'message' => $msg], 422);
+            return redirect()->back()->withInput()->with('error', $msg);
         }
 
         // Check teacher conflict
-        if ($validated['teacher_id']) {
+        if (!empty($validated['teacher_id'])) {
             $teacherConflict = Timetable::where('academic_year_id', $activeYear->id)
                 ->where('teacher_id', $validated['teacher_id'])
                 ->where('day', $validated['day'])
@@ -141,9 +151,9 @@ class TimetableController extends Controller
                 ->first();
 
             if ($teacherConflict) {
-                return redirect()->back()
-                    ->withInput()
-                    ->with('error', 'This teacher is already assigned to another class during this period.');
+                $msg = 'This teacher is already assigned to another class during this period.';
+                if ($request->ajax()) return response()->json(['success' => false, 'message' => $msg], 422);
+                return redirect()->back()->withInput()->with('error', $msg);
             }
         }
 
@@ -159,22 +169,74 @@ class TimetableController extends Controller
             if ($roomConflict) {
                 $conflictClass = SchoolClass::find($roomConflict->class_id);
                 $conflictSection = Section::find($roomConflict->section_id);
-                return redirect()->back()
-                    ->withInput()
-                    ->with('error', 'Room ' . $validated['room_number'] . ' is already assigned to ' .
-                        ($conflictClass->name ?? '') . ' - ' . ($conflictSection->name ?? '') . ' during this period.');
+                $msg = 'Room ' . $validated['room_number'] . ' is already assigned to ' .
+                    ($conflictClass->name ?? '') . ' - ' . ($conflictSection->name ?? '') . ' during this period.';
+                if ($request->ajax()) return response()->json(['success' => false, 'message' => $msg], 422);
+                return redirect()->back()->withInput()->with('error', $msg);
             }
         }
 
         $validated['academic_year_id'] = $activeYear->id;
         $validated['is_active'] = true;
 
-        Timetable::create($validated);
+        $entry = Timetable::create($validated);
+
+        if ($request->ajax()) {
+            $entry->load(['subject', 'teacher', 'period']);
+            return response()->json(['success' => true, 'message' => 'Timetable entry added successfully.', 'entry' => $entry]);
+        }
 
         return redirect()->route('admin.timetable.create', [
             'class_id' => $validated['class_id'],
             'section_id' => $validated['section_id']
         ])->with('success', 'Timetable entry added successfully.');
+    }
+
+    public function update(Request $request, Timetable $timetable)
+    {
+        $validated = $request->validate([
+            'subject_id' => 'required|exists:subjects,id',
+            'teacher_id' => 'nullable|exists:staff,id',
+            'room_number' => 'nullable|string|max:50',
+            'notes' => 'nullable|string|max:255',
+        ]);
+
+        $activeYear = AcademicYear::getActive();
+
+        // Check teacher conflict (exclude current entry)
+        if (!empty($validated['teacher_id'])) {
+            $teacherConflict = Timetable::where('academic_year_id', $activeYear->id)
+                ->where('teacher_id', $validated['teacher_id'])
+                ->where('day', $timetable->day)
+                ->where('period_id', $timetable->period_id)
+                ->where('is_active', true)
+                ->where('id', '!=', $timetable->id)
+                ->first();
+
+            if ($teacherConflict) {
+                return response()->json(['success' => false, 'message' => 'This teacher is already assigned to another class during this period.'], 422);
+            }
+        }
+
+        // Check room conflict (exclude current entry)
+        if (!empty($validated['room_number'])) {
+            $roomConflict = Timetable::where('academic_year_id', $activeYear->id)
+                ->where('room_number', $validated['room_number'])
+                ->where('day', $timetable->day)
+                ->where('period_id', $timetable->period_id)
+                ->where('is_active', true)
+                ->where('id', '!=', $timetable->id)
+                ->first();
+
+            if ($roomConflict) {
+                return response()->json(['success' => false, 'message' => 'Room ' . $validated['room_number'] . ' is already occupied during this period.'], 422);
+            }
+        }
+
+        $timetable->update($validated);
+        $timetable->load(['subject', 'teacher', 'period']);
+
+        return response()->json(['success' => true, 'message' => 'Timetable entry updated successfully.', 'entry' => $timetable]);
     }
 
     public function destroy(Timetable $timetable)
@@ -183,6 +245,10 @@ class TimetableController extends Controller
         $sectionId = $timetable->section_id;
 
         $timetable->delete();
+
+        if (request()->ajax()) {
+            return response()->json(['success' => true, 'message' => 'Timetable entry deleted successfully.']);
+        }
 
         return redirect()->route('admin.timetable.index', [
             'class_id' => $classId,

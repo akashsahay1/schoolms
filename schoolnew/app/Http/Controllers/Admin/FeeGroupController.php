@@ -87,9 +87,9 @@ class FeeGroupController extends Controller
 	public function destroy(FeeGroup $feeGroup)
 	{
 		try {
-			// Check if fee group is used in any fee structure
-			if ($feeGroup->feeStructures()->count() > 0) {
-				return back()->with('error', 'Cannot delete fee group that is used in fee structures. Please remove it from structures first.');
+			// Check if fee group is used in any fee structure (including soft-deleted)
+			if ($feeGroup->feeStructures()->withTrashed()->count() > 0) {
+				return back()->with('error', 'Cannot delete this fee group because it has fee structures linked to it. Please remove or delete those fee structures first.');
 			}
 
 			$feeGroup->delete();
@@ -97,8 +97,13 @@ class FeeGroupController extends Controller
 			return redirect()->route('admin.fees.groups.index')
 				->with('success', 'Fee group deleted successfully.');
 
+		} catch (\Illuminate\Database\QueryException $e) {
+			if ($e->getCode() === '23000') {
+				return back()->with('error', 'Cannot delete this fee group because it is linked to other records. Please remove the linked records first.');
+			}
+			return back()->with('error', 'An error occurred while deleting the fee group. Please try again.');
 		} catch (\Exception $e) {
-			return back()->with('error', 'An error occurred: ' . $e->getMessage());
+			return back()->with('error', 'An error occurred while deleting the fee group. Please try again.');
 		}
 	}
 }

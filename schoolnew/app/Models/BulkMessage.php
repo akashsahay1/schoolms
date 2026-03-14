@@ -45,7 +45,6 @@ class BulkMessage extends Model
     const RECIPIENT_ALL_TEACHERS = 'all_teachers';
     const RECIPIENT_ALL_STAFF = 'all_staff';
     const RECIPIENT_CLASS_WISE = 'class_wise';
-    const RECIPIENT_CUSTOM = 'custom';
 
     public function creator(): BelongsTo
     {
@@ -101,7 +100,6 @@ class BulkMessage extends Model
             self::RECIPIENT_ALL_TEACHERS => 'All Teachers',
             self::RECIPIENT_ALL_STAFF => 'All Staff',
             self::RECIPIENT_CLASS_WISE => 'Class Wise',
-            self::RECIPIENT_CUSTOM => 'Custom Selection',
             default => ucfirst($this->recipient_type),
         };
     }
@@ -131,7 +129,6 @@ class BulkMessage extends Model
             self::RECIPIENT_ALL_TEACHERS => 'All Teachers',
             self::RECIPIENT_ALL_STAFF => 'All Staff',
             self::RECIPIENT_CLASS_WISE => 'Specific Classes',
-            self::RECIPIENT_CUSTOM => 'Custom Selection',
         ];
     }
 }

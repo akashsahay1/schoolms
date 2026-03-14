@@ -11,7 +11,10 @@ use App\Models\WebsiteGallery;
 use App\Models\WebsitePage;
 use App\Models\WebsiteSlider;
 use App\Models\WebsiteTestimonial;
+use App\Models\User;
+use App\Notifications\GeneralNotification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Notification;
 
 class WebsiteController extends Controller
 {
@@ -173,7 +176,19 @@ class WebsiteController extends Controller
             'message' => 'required|string|max:2000',
         ]);
 
-        WebsiteContact::create($validated);
+        $contact = WebsiteContact::create($validated);
+
+        // Notify admin users
+        $adminUsers = User::role(['Super Admin', 'Admin'])->get();
+        if ($adminUsers->isNotEmpty()) {
+            Notification::send($adminUsers, new GeneralNotification(
+                'New Website Contact',
+                $validated['name'] . ': ' . $validated['subject'],
+                'mail',
+                'info',
+                '/admin/website/contacts/' . $contact->id
+            ));
+        }
 
         return back()->with('success', 'Thank you for contacting us. We will get back to you soon.');
     }

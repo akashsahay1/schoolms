@@ -25,13 +25,11 @@
 				<div class="receipt-container">
 					<!-- School Header -->
 					<div class="receipt-header">
-						<div class="school-logo">
-							@if($schoolSettings['school_logo'])
+						@if($schoolSettings['school_logo'])
+							<div class="school-logo">
 								<img src="{{ asset('storage/' . $schoolSettings['school_logo']) }}" alt="School Logo">
-							@else
-								<img src="{{ asset('assets/images/logo/logo.png') }}" alt="School Logo">
-							@endif
-						</div>
+							</div>
+						@endif
 						<div class="school-info">
 							<h2>{{ $schoolSettings['school_name'] ?? config('app.name') }}</h2>
 							<p>{{ $schoolSettings['school_address'] ?? '' }}</p>

@@ -113,7 +113,7 @@
     </div>
 
     <div class="header">
-        <h1>{{ config('app.name', 'School Management System') }}</h1>
+        <h1>{{ \App\Models\Setting::get('school_name', config('app.name')) }}</h1>
         <h2>Teacher Timetable</h2>
         <p><strong>Teacher:</strong> {{ $selectedTeacher->first_name ?? '' }} {{ $selectedTeacher->last_name ?? '' }} | <strong>Academic Year:</strong> {{ $activeYear->name ?? '-' }}</p>
     </div>
@@ -123,8 +123,8 @@
             <tr>
                 <th>Period</th>
                 <th>Time</th>
-                @foreach($days as $day)
-                    <th>{{ ucfirst($day) }}</th>
+                @foreach($days as $dayKey => $dayName)
+                    <th>{{ $dayName }}</th>
                 @endforeach
             </tr>
         </thead>
@@ -136,19 +136,19 @@
                         {{ \Carbon\Carbon::parse($period->start_time)->format('h:i A') }}<br>
                         {{ \Carbon\Carbon::parse($period->end_time)->format('h:i A') }}
                     </td>
-                    @foreach($days as $day)
+                    @foreach($days as $dayKey => $dayName)
                         <td>
                             @if($period->type === 'break' || $period->type === 'lunch')
                                 {{ ucfirst($period->type) }}
                             @else
                                 @php
-                                    $entry = $timetableData->get($day)?->firstWhere('period_id', $period->id);
+                                    $entry = $timetableData->get($dayKey)?->firstWhere('period_id', $period->id);
                                 @endphp
                                 @if($entry)
                                     <div class="subject-name">{{ $entry->subject->name ?? '-' }}</div>
                                     <div class="class-info">{{ $entry->schoolClass->name ?? '' }} - {{ $entry->section->name ?? '' }}</div>
-                                    @if($entry->room)
-                                        <div class="room-info">Room: {{ $entry->room }}</div>
+                                    @if($entry->room_number)
+                                        <div class="room-info">Room: {{ $entry->room_number }}</div>
                                     @endif
                                 @else
                                     <span class="free-slot">Free</span>

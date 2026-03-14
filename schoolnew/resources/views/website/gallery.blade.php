@@ -6,7 +6,7 @@
 
 @section('content')
 <!-- Page Banner -->
-<section class="page-banner">
+<section class="page-banner" @if($page) style="{{ $page->banner_image ? 'background-image: url(' . asset('storage/' . $page->banner_image) . ');' : '' }}{{ $page->banner_color ? '--banner-color: ' . $page->banner_color . ';' : '' }}" @endif>
     <div class="container">
         <h1>Photo Gallery</h1>
         <nav aria-label="breadcrumb">
@@ -335,14 +335,14 @@ jQuery(document).ready(function() {
     }
 
     // Gallery Modal
-    jQuery('.gallery-item a').on('click', function(e) {
+    jQuery('.gallery-image a').on('click', function(e) {
         e.preventDefault();
         var image = jQuery(this).data('image');
         var title = jQuery(this).data('title');
         var description = jQuery(this).data('description');
 
         jQuery('#modalImage').attr('src', image);
-        jQuery('#modalTitle').text(title);
+        jQuery('#modalTitle').text(title || '');
         jQuery('#modalDescription').text(description || '');
     });
 });

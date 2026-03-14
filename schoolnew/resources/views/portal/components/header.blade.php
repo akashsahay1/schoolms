@@ -31,10 +31,15 @@
 					<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-animation') }}"></use>
 				</svg>
 			</div>
+			@php $__logo = \App\Models\Setting::get('school_logo'); @endphp
 			<div class="logo-wrapper d-lg-none">
 				<a href="{{ route('portal.dashboard') }}">
-					<img class="img-fluid for-light" src="{{ asset('assets/images/logo/logo.png') }}" alt="">
-					<img class="img-fluid for-dark" src="{{ asset('assets/images/logo/logo_dark.png') }}" alt="">
+					@if($__logo)
+						<img class="img-fluid for-light" src="{{ asset('storage/' . $__logo) }}" alt="">
+						<img class="img-fluid for-dark" src="{{ asset('storage/' . $__logo) }}" alt="">
+					@else
+						<span style="font-size: 16px; font-weight: 600; color: #2c323f;">{{ \App\Models\Setting::get('school_name', config('app.name')) }}</span>
+					@endif
 				</a>
 			</div>
 		</div>

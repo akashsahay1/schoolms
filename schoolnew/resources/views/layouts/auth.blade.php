@@ -8,8 +8,9 @@
 	<meta name="author" content="School Management System">
 	<meta name="csrf-token" content="{{ csrf_token() }}">
 
-	<link rel="icon" href="{{ asset('assets/images/favicon.png') }}" type="image/x-icon">
-	<link rel="shortcut icon" href="{{ asset('assets/images/favicon.png') }}" type="image/x-icon">
+	@php $__favicon = \App\Models\Setting::get('school_favicon'); @endphp
+	<link rel="icon" href="{{ $__favicon ? asset('storage/' . $__favicon) : asset('assets/images/favicon.png') }}" type="image/x-icon">
+	<link rel="shortcut icon" href="{{ $__favicon ? asset('storage/' . $__favicon) : asset('assets/images/favicon.png') }}" type="image/x-icon">
 
 	<title>@yield('title', 'Login') - {{ config('app.name') }}</title>
 

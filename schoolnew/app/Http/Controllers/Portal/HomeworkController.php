@@ -215,29 +215,55 @@ class HomeworkController extends Controller
                 ->with('error', 'This homework is not assigned to your class.');
         }
 
-        // Validate request
-        $request->validate([
-            'submission_text' => 'nullable|string|max:5000',
-            'attachment' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png,zip|max:5120',
-        ]);
-
-        // Check if already submitted
+        // Check existing submission
         $existingSubmission = HomeworkSubmission::where('homework_id', $homework->id)
             ->where('student_id', $student->id)
-            ->whereIn('status', ['submitted', 'evaluated'])
             ->first();
 
-        if ($existingSubmission) {
-            return back()->with('error', 'You have already submitted this homework.');
+        // Cannot edit after evaluation
+        if ($existingSubmission && $existingSubmission->status === 'evaluated') {
+            return back()->with('error', 'This homework has already been evaluated and cannot be edited.');
         }
+
+        // Validate request — files required for new submissions, optional when editing (already has files)
+        $attachmentsRule = 'array';
+        if ($existingSubmission && $existingSubmission->attachment) {
+            $attachmentsRule = 'nullable|' . $attachmentsRule;
+        } else {
+            $attachmentsRule = 'required|' . $attachmentsRule;
+        }
+
+        $request->validate([
+            'submission_text' => 'nullable|string|max:5000',
+            'attachments' => $attachmentsRule,
+            'attachments.*' => 'file|mimes:pdf,doc,docx,jpg,jpeg,png,zip|max:5120',
+        ]);
 
         // Determine if late submission
         $isLate = $homework->submission_date < now();
 
-        // Handle file upload
-        $attachmentPath = null;
-        if ($request->hasFile('attachment')) {
-            $attachmentPath = $request->file('attachment')->store('homework-submissions/' . $student->id, 'public');
+        // Handle file uploads (multiple)
+        $attachmentPath = $existingSubmission?->attachment;
+        if ($request->hasFile('attachments')) {
+            // Delete old attachments if exists
+            if ($attachmentPath) {
+                $oldPaths = json_decode($attachmentPath, true);
+                if (is_array($oldPaths)) {
+                    foreach ($oldPaths as $oldPath) {
+                        if (Storage::disk('public')->exists($oldPath)) {
+                            Storage::disk('public')->delete($oldPath);
+                        }
+                    }
+                } elseif (Storage::disk('public')->exists($attachmentPath)) {
+                    Storage::disk('public')->delete($attachmentPath);
+                }
+            }
+
+            $paths = [];
+            foreach ($request->file('attachments') as $file) {
+                $paths[] = $file->store('homework-submissions/' . $student->id, 'public');
+            }
+            $attachmentPath = json_encode($paths);
         }
 
         // Create or update submission

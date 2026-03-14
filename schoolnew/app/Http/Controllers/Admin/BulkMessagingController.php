@@ -54,7 +54,7 @@ class BulkMessagingController extends Controller
             'title' => 'required|string|max:255',
             'message' => 'required|string',
             'message_type' => 'required|in:sms,email,notification,all',
-            'recipient_type' => 'required|in:all_students,all_parents,all_teachers,all_staff,class_wise,custom',
+            'recipient_type' => 'required|in:all_students,all_parents,all_teachers,all_staff,class_wise',
             'class_ids' => 'required_if:recipient_type,class_wise|array',
             'class_ids.*' => 'exists:classes,id',
             'section_ids' => 'nullable|array',
@@ -133,7 +133,7 @@ class BulkMessagingController extends Controller
             'title' => 'required|string|max:255',
             'message' => 'required|string',
             'message_type' => 'required|in:sms,email,notification,all',
-            'recipient_type' => 'required|in:all_students,all_parents,all_teachers,all_staff,class_wise,custom',
+            'recipient_type' => 'required|in:all_students,all_parents,all_teachers,all_staff,class_wise',
             'class_ids' => 'required_if:recipient_type,class_wise|array',
             'class_ids.*' => 'exists:classes,id',
             'section_ids' => 'nullable|array',
@@ -203,50 +203,11 @@ class BulkMessagingController extends Controller
             'total_recipients' => $recipients->count(),
         ]);
 
-        $sentCount = 0;
-        $failedCount = 0;
-
-        foreach ($recipients as $recipient) {
-            $channels = $this->getChannels($bulkMessage->message_type);
-
-            foreach ($channels as $channel) {
-                $log = BulkMessageLog::create([
-                    'bulk_message_id' => $bulkMessage->id,
-                    'user_id' => $recipient->id ?? null,
-                    'recipient_name' => $recipient->name ?? $recipient->first_name . ' ' . ($recipient->last_name ?? ''),
-                    'recipient_phone' => $recipient->phone ?? $recipient->mobile ?? null,
-                    'recipient_email' => $recipient->email ?? null,
-                    'channel' => $channel,
-                    'status' => BulkMessageLog::STATUS_PENDING,
-                ]);
-
-                $success = $this->sendMessage($log, $bulkMessage->message, $channel, $bulkMessage->title);
-
-                if ($success) {
-                    $log->update([
-                        'status' => BulkMessageLog::STATUS_SENT,
-                        'sent_at' => now(),
-                    ]);
-                    $sentCount++;
-                } else {
-                    $log->update([
-                        'status' => BulkMessageLog::STATUS_FAILED,
-                        'error_message' => 'Failed to send message',
-                    ]);
-                    $failedCount++;
-                }
-            }
-        }
-
-        $bulkMessage->update([
-            'status' => BulkMessage::STATUS_COMPLETED,
-            'sent_count' => $sentCount,
-            'failed_count' => $failedCount,
-            'sent_at' => now(),
-        ]);
+        // Dispatch to queue so it processes in background without timeout
+        \App\Jobs\ProcessBulkMessage::dispatch($bulkMessage, $recipients->pluck('id')->toArray());
 
         return redirect()->route('admin.messaging.bulk.show', $bulkMessage)
-            ->with('success', "Message sent to {$sentCount} recipients. {$failedCount} failed.");
+            ->with('success', "Messages are being sent to {$recipients->count()} recipients in the background. Refresh this page to check progress.");
     }
 
     protected function getRecipients(BulkMessage $bulkMessage)

@@ -6,7 +6,7 @@
 
 @section('content')
 <!-- Page Banner -->
-<section class="page-banner">
+<section class="page-banner" @if($page) style="{{ $page->banner_image ? 'background-image: url(' . asset('storage/' . $page->banner_image) . ');' : '' }}{{ $page->banner_color ? '--banner-color: ' . $page->banner_color . ';' : '' }}" @endif>
     <div class="container">
         <h1>School Events</h1>
         <nav aria-label="breadcrumb">

@@ -16,7 +16,9 @@
                 <div class="card-body p-4">
                     <!-- Header -->
                     <div class="text-center mb-4">
-                        <img src="{{ asset('assets/images/logo/logo.png') }}" alt="School Logo" height="60" class="mb-2">
+                        @if(\App\Models\Setting::get('school_logo'))
+                            <img src="{{ asset('storage/' . \App\Models\Setting::get('school_logo')) }}" alt="School Logo" height="60" class="mb-2">
+                        @endif
                         <h4 class="mb-1">{{ config('app.name') }}</h4>
                         <p class="text-muted mb-0">Fee Receipt</p>
                     </div>

@@ -52,10 +52,15 @@
 <div class="sidebar-wrapper" data-sidebar-layout="stroke-svg">
 	<div>
 		<!-- Logo -->
+		@php $__logo = \App\Models\Setting::get('school_logo'); @endphp
 		<div class="logo-wrapper">
 			<a href="{{ route('portal.dashboard') }}">
-				<img class="img-fluid for-light" src="{{ asset('assets/images/logo/logo.png') }}" alt="">
-				<img class="img-fluid for-dark" src="{{ asset('assets/images/logo/logo_dark.png') }}" alt="">
+				@if($__logo)
+					<img class="img-fluid for-light" src="{{ asset('storage/' . $__logo) }}" alt="">
+					<img class="img-fluid for-dark" src="{{ asset('storage/' . $__logo) }}" alt="">
+				@else
+					<span style="font-size: 16px; font-weight: 600; color: #2c323f; white-space: nowrap;">{{ \App\Models\Setting::get('school_name', config('app.name')) }}</span>
+				@endif
 			</a>
 			<div class="back-btn">
 				<i class="fa-solid fa-angle-left"></i>
@@ -66,7 +71,11 @@
 		</div>
 		<div class="logo-icon-wrapper">
 			<a href="{{ route('portal.dashboard') }}">
-				<img class="img-fluid" src="{{ asset('assets/images/logo/logo-icon.png') }}" alt="">
+				@if($__logo)
+					<img class="img-fluid" src="{{ asset('storage/' . $__logo) }}" alt="">
+				@else
+					<span style="font-size: 14px; font-weight: 600;">{{ substr(\App\Models\Setting::get('school_name', config('app.name')), 0, 2) }}</span>
+				@endif
 			</a>
 		</div>
 
@@ -79,7 +88,7 @@
 				<ul class="sidebar-links" id="simple-bar">
 					<li class="back-btn">
 						<a href="{{ route('portal.dashboard') }}">
-							<img class="img-fluid" src="{{ asset('assets/images/logo/logo-icon.png') }}" alt="">
+							@if($__logo)<img class="img-fluid" src="{{ asset('storage/' . $__logo) }}" alt="">@endif
 						</a>
 						<div class="mobile-back text-end">
 							<span>Back</span>

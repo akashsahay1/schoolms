@@ -53,9 +53,23 @@
                                 @if($page->banner_image)
                                     <div class="mb-2">
                                         <img src="{{ asset('storage/' . $page->banner_image) }}" alt="{{ $page->title }}" class="img-thumbnail w-100">
+                                        <label class="text-danger small mt-1 d-block" style="cursor: pointer;">
+                                            <input type="checkbox" name="remove_banner_image" value="1" class="me-1"> Remove banner image
+                                        </label>
                                     </div>
                                 @endif
                                 <input type="file" name="banner_image" class="form-control" accept="image/*">
+                                <small class="text-muted">Recommended: 1920x400px. Shown behind page title.</small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Banner Overlay Color</label>
+                                <div class="d-flex align-items-center gap-2">
+                                    <input type="color" name="banner_color" class="form-control form-control-color" id="bannerColor" value="{{ old('banner_color', $page->banner_color ?? '#6065f2') }}" style="width: 50px; height: 38px;">
+                                    <input type="text" class="form-control" id="bannerColorText" value="{{ old('banner_color', $page->banner_color ?? '#6065f2') }}" maxlength="7" style="max-width: 100px;">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="resetBannerColor">Reset</button>
+                                </div>
+                                <small class="text-muted">Color overlay on the banner area. Default: #6065f2</small>
                             </div>
 
                             <div class="mb-3">
@@ -74,8 +88,9 @@
                                 <label class="form-label">Status</label>
                                 <div class="form-check form-switch mt-2">
                                     <input type="checkbox" name="is_active" class="form-check-input" id="is_active" value="1" {{ old('is_active', $page->is_active) ? 'checked' : '' }}>
-                                    <label class="form-check-label" for="is_active">Active</label>
+                                    <label class="form-check-label" for="is_active">Show on Website</label>
                                 </div>
+                                <small class="text-muted">Toggle off to hide this page from the website navigation</small>
                             </div>
                         </div>
                     </div>
@@ -102,6 +117,20 @@
 <script>
 jQuery(document).ready(function() {
     if (typeof feather !== 'undefined') feather.replace();
+
+    jQuery('#bannerColor').on('input', function() {
+        jQuery('#bannerColorText').val(jQuery(this).val());
+    });
+    jQuery('#bannerColorText').on('input', function() {
+        var val = jQuery(this).val();
+        if (/^#[0-9A-Fa-f]{6}$/.test(val)) {
+            jQuery('#bannerColor').val(val);
+        }
+    });
+    jQuery('#resetBannerColor').on('click', function() {
+        jQuery('#bannerColor').val('#6065f2');
+        jQuery('#bannerColorText').val('#6065f2');
+    });
 });
 </script>
 @endpush
