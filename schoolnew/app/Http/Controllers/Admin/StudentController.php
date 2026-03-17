@@ -15,9 +15,12 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
+use App\Traits\HandlesCustomFields;
 
 class StudentController extends Controller
 {
+    use HandlesCustomFields;
+
     public function index(Request $request)
     {
         $query = Student::with(['schoolClass', 'section', 'academicYear', 'parent']);
@@ -60,8 +63,10 @@ class StudentController extends Controller
     {
         $classes = SchoolClass::with('sections')->active()->ordered()->get();
         $academicYear = AcademicYear::getActive();
+        $customFields = $this->getCustomFields('student');
+        $fieldSettings = $this->getFormFieldSettings('student');
 
-        return view('admin.students.create', compact('classes', 'academicYear'));
+        return view('admin.students.create', compact('classes', 'academicYear', 'customFields', 'fieldSettings'));
     }
 
     public function store(Request $request)
@@ -102,6 +107,11 @@ class StudentController extends Controller
 
             // Photo
             'photo' => ['nullable', 'image', 'max:2048'],
+
+            // Aadhaar Card
+            'aadhaar_number' => ['nullable', 'string', 'size:12', 'regex:/^[0-9]{12}$/'],
+            'aadhaar_front' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048'],
+            'aadhaar_back' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048'],
 
             // Login Passwords (optional - auto-generate if empty)
             'student_password' => ['nullable', 'string', 'min:6', 'max:50'],
@@ -209,8 +219,14 @@ class StudentController extends Controller
                 'admission_date' => Carbon::createFromFormat('d-m-Y', $validated['admission_date'])->format('Y-m-d'),
                 'previous_school' => $validated['previous_school'] ?? null,
                 'photo' => $photoPath,
+                'aadhaar_number' => $validated['aadhaar_number'] ?? null,
+                'aadhaar_front' => $request->hasFile('aadhaar_front') ? $request->file('aadhaar_front')->store('students/aadhaar', 'public') : null,
+                'aadhaar_back' => $request->hasFile('aadhaar_back') ? $request->file('aadhaar_back')->store('students/aadhaar', 'public') : null,
                 'status' => 'active',
             ]);
+
+            // Save custom field values
+            $this->saveCustomFieldValues($request, $student, 'student');
 
             DB::commit();
 
@@ -238,8 +254,12 @@ class StudentController extends Controller
 
     public function show(Student $student)
     {
-        $student->load(['schoolClass', 'section', 'academicYear', 'parent', 'user']);
-        return view('admin.students.show', compact('student'));
+        $student->load(['schoolClass', 'section', 'academicYear', 'parent', 'user', 'customFieldValues.customField']);
+        $customFields = $this->getCustomFields('student');
+        $customFieldValues = $this->getCustomFieldValues($student);
+        $fieldSettings = $this->getFormFieldSettings('student');
+
+        return view('admin.students.show', compact('student', 'customFields', 'customFieldValues', 'fieldSettings'));
     }
 
     public function edit(Student $student)
@@ -247,8 +267,11 @@ class StudentController extends Controller
         $student->load(['parent']);
         $classes = SchoolClass::with('sections')->active()->ordered()->get();
         $academicYear = AcademicYear::getActive();
+        $customFields = $this->getCustomFields('student');
+        $customFieldValues = $this->getCustomFieldValues($student);
+        $fieldSettings = $this->getFormFieldSettings('student');
 
-        return view('admin.students.edit', compact('student', 'classes', 'academicYear'));
+        return view('admin.students.edit', compact('student', 'classes', 'academicYear', 'customFields', 'customFieldValues', 'fieldSettings'));
     }
 
     public function update(Request $request, Student $student)
@@ -288,12 +311,31 @@ class StudentController extends Controller
             // Photo
             'photo' => ['nullable', 'image', 'max:2048'],
 
+            // Aadhaar Card
+            'aadhaar_number' => ['nullable', 'string', 'size:12', 'regex:/^[0-9]{12}$/'],
+            'aadhaar_front' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048'],
+            'aadhaar_back' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048'],
+
             // Status
             'status' => ['required', 'in:active,inactive,graduated,transferred,expelled'],
         ]);
 
         try {
             DB::beginTransaction();
+
+            // Handle Aadhaar file uploads
+            if ($request->hasFile('aadhaar_front')) {
+                if ($student->aadhaar_front) {
+                    Storage::disk('public')->delete($student->aadhaar_front);
+                }
+                $validated['aadhaar_front'] = $request->file('aadhaar_front')->store('students/aadhaar', 'public');
+            }
+            if ($request->hasFile('aadhaar_back')) {
+                if ($student->aadhaar_back) {
+                    Storage::disk('public')->delete($student->aadhaar_back);
+                }
+                $validated['aadhaar_back'] = $request->file('aadhaar_back')->store('students/aadhaar', 'public');
+            }
 
             // Update parent record
             if ($student->parent) {
@@ -338,8 +380,14 @@ class StudentController extends Controller
                 'current_address' => $validated['current_address'] ?? null,
                 'permanent_address' => $validated['permanent_address'] ?? null,
                 'photo' => $validated['photo'] ?? $student->photo,
+                'aadhaar_number' => $validated['aadhaar_number'] ?? $student->aadhaar_number,
+                'aadhaar_front' => $validated['aadhaar_front'] ?? $student->aadhaar_front,
+                'aadhaar_back' => $validated['aadhaar_back'] ?? $student->aadhaar_back,
                 'status' => $validated['status'],
             ]);
+
+            // Save custom field values
+            $this->saveCustomFieldValues($request, $student, 'student');
 
             DB::commit();
 

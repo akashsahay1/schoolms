@@ -325,6 +325,92 @@
 				</div>
 			</div>
 		@endif
+
+		<!-- Aadhaar & PAN Card Details -->
+		@if($staff->aadhaar_number || $staff->aadhaar_front || $staff->aadhaar_back || $staff->pan_number)
+		<div class="card">
+			<div class="card-header">
+				<h5>Aadhaar & PAN Card Details</h5>
+			</div>
+			<div class="card-body">
+				<div class="row">
+					<div class="col-md-6">
+						<table class="table table-borderless">
+							<tr>
+								<td class="text-muted" style="width: 40%;">Aadhaar Number</td>
+								<td><strong>{{ $staff->aadhaar_number ?? 'N/A' }}</strong></td>
+							</tr>
+							<tr>
+								<td class="text-muted">PAN Number</td>
+								<td><strong>{{ $staff->pan_number ?? 'N/A' }}</strong></td>
+							</tr>
+						</table>
+					</div>
+					<div class="col-md-3">
+						@if($staff->aadhaar_front)
+							<p class="text-muted mb-1">Aadhaar Front</p>
+							@if(in_array(pathinfo($staff->aadhaar_front, PATHINFO_EXTENSION), ['jpg', 'jpeg', 'png']))
+								<a href="{{ asset('storage/' . $staff->aadhaar_front) }}" target="_blank">
+									<img src="{{ asset('storage/' . $staff->aadhaar_front) }}" alt="Aadhaar Front" class="img-thumbnail" style="max-height: 120px;">
+								</a>
+							@else
+								<a href="{{ asset('storage/' . $staff->aadhaar_front) }}" target="_blank" class="btn btn-outline-primary btn-sm">
+									<i data-feather="file-text" class="me-1"></i> View PDF
+								</a>
+							@endif
+						@endif
+					</div>
+					<div class="col-md-3">
+						@if($staff->aadhaar_back)
+							<p class="text-muted mb-1">Aadhaar Back</p>
+							@if(in_array(pathinfo($staff->aadhaar_back, PATHINFO_EXTENSION), ['jpg', 'jpeg', 'png']))
+								<a href="{{ asset('storage/' . $staff->aadhaar_back) }}" target="_blank">
+									<img src="{{ asset('storage/' . $staff->aadhaar_back) }}" alt="Aadhaar Back" class="img-thumbnail" style="max-height: 120px;">
+								</a>
+							@else
+								<a href="{{ asset('storage/' . $staff->aadhaar_back) }}" target="_blank" class="btn btn-outline-primary btn-sm">
+									<i data-feather="file-text" class="me-1"></i> View PDF
+								</a>
+							@endif
+						@endif
+					</div>
+				</div>
+			</div>
+		</div>
+		@endif
+
+		<!-- Custom Fields -->
+		@if($customFields->count() > 0 && collect($customFieldValues)->filter()->count() > 0)
+		<div class="card">
+			<div class="card-header">
+				<h5>Additional Information</h5>
+			</div>
+			<div class="card-body">
+				<div class="row">
+					@foreach($customFields as $field)
+						@if(!empty($customFieldValues[$field->id]))
+						<div class="col-md-6 mb-3">
+							<span class="text-muted">{{ $field->name }}</span>
+							<div>
+								@if($field->field_type === 'checkbox')
+									<span class="badge badge-light-{{ $customFieldValues[$field->id] ? 'success' : 'secondary' }}">
+										{{ $customFieldValues[$field->id] ? 'Yes' : 'No' }}
+									</span>
+								@elseif($field->field_type === 'file')
+									<a href="{{ asset('storage/' . $customFieldValues[$field->id]) }}" target="_blank" class="btn btn-outline-primary btn-sm">
+										<i data-feather="file" class="me-1"></i> View File
+									</a>
+								@else
+									<strong>{{ $customFieldValues[$field->id] }}</strong>
+								@endif
+							</div>
+						</div>
+						@endif
+					@endforeach
+				</div>
+			</div>
+		</div>
+		@endif
 	</div>
 </div>
 @endsection

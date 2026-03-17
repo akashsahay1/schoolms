@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\AttendanceController;
 use App\Http\Controllers\Admin\ExamController;
 use App\Http\Controllers\Admin\StaffAttendanceController;
 use App\Http\Controllers\Admin\TimetableController;
+use App\Http\Controllers\Admin\CustomFieldController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\AcademicYearController;
 use App\Http\Controllers\DepartmentController;
@@ -123,6 +124,16 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Super Admin,Ad
         Route::delete('/templates/{template}', [SmsSettingController::class, 'destroyTemplate'])->name('templates.destroy');
         Route::get('/logs', [SmsSettingController::class, 'logs'])->name('logs');
     });
+
+    // Custom Fields
+    Route::get('custom-fields/form-settings', [CustomFieldController::class, 'formSettings'])->name('custom-fields.form-settings');
+    Route::put('custom-fields/form-settings', [CustomFieldController::class, 'updateFormSettings'])->name('custom-fields.update-form-settings');
+    Route::post('custom-fields/bulk-restore', [CustomFieldController::class, 'bulkRestore'])->name('custom-fields.bulk-restore');
+    Route::post('custom-fields/bulk-force-delete', [CustomFieldController::class, 'bulkForceDelete'])->name('custom-fields.bulk-force-delete');
+    Route::resource('custom-fields', CustomFieldController::class)->except('show');
+    Route::get('custom-fields-trash', [CustomFieldController::class, 'trash'])->name('custom-fields.trash');
+    Route::post('custom-fields/{id}/restore', [CustomFieldController::class, 'restore'])->name('custom-fields.restore');
+    Route::delete('custom-fields/{id}/force-delete', [CustomFieldController::class, 'forceDelete'])->name('custom-fields.force-delete');
 
     // Academic Years
     Route::resource('academic-years', AcademicYearController::class)->except('show');

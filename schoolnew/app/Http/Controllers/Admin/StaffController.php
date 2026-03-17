@@ -13,9 +13,11 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
+use App\Traits\HandlesCustomFields;
 
 class StaffController extends Controller
 {
+	use HandlesCustomFields;
 	public function index(Request $request)
 	{
 		$query = Staff::with(['department', 'designation', 'user']);
@@ -52,8 +54,12 @@ class StaffController extends Controller
 	{
 		$departments = Department::active()->orderBy('name')->get();
 		$designations = Designation::active()->orderBy('name')->get();
+		$customFields = $this->getCustomFields('teacher');
+		$fieldSettings = $this->getFormFieldSettings('teacher');
 
-		return view('admin.staff.create', compact('departments', 'designations'));
+		return view('admin.staff.create', compact(
+			'departments', 'designations', 'customFields', 'fieldSettings'
+		));
 	}
 
 	public function store(Request $request)
@@ -89,6 +95,12 @@ class StaffController extends Controller
 
 			// Photo
 			'photo' => ['nullable', 'image', 'max:2048'],
+
+			// Aadhaar & PAN Card
+			'aadhaar_number' => ['nullable', 'string', 'size:12', 'regex:/^[0-9]{12}$/'],
+			'aadhaar_front' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048'],
+			'aadhaar_back' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048'],
+			'pan_number' => ['nullable', 'string', 'max:10', 'regex:/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/i'],
 
 			// Login Password (optional - auto-generate if empty)
 			'password' => ['nullable', 'string', 'min:6', 'max:50'],
@@ -158,8 +170,15 @@ class StaffController extends Controller
 				'qualification' => $validated['qualification'] ?? null,
 				'experience' => $validated['experience'] ?? null,
 				'photo' => $photoPath,
+				'aadhaar_number' => $validated['aadhaar_number'] ?? null,
+				'aadhaar_front' => $request->hasFile('aadhaar_front') ? $request->file('aadhaar_front')->store('staff/aadhaar', 'public') : null,
+				'aadhaar_back' => $request->hasFile('aadhaar_back') ? $request->file('aadhaar_back')->store('staff/aadhaar', 'public') : null,
+				'pan_number' => $validated['pan_number'] ? strtoupper($validated['pan_number']) : null,
 				'status' => 'active',
 			]);
+
+			// Save custom field values
+			$this->saveCustomFieldValues($request, $staff, 'teacher');
 
 			DB::commit();
 
@@ -175,8 +194,11 @@ class StaffController extends Controller
 
 	public function show(Staff $staff)
 	{
-		$staff->load(['department', 'designation', 'user']);
-		return view('admin.staff.show', compact('staff'));
+		$staff->load(['department', 'designation', 'user', 'customFieldValues.customField']);
+		$customFields = $this->getCustomFields('teacher');
+		$customFieldValues = $this->getCustomFieldValues($staff);
+
+		return view('admin.staff.show', compact('staff', 'customFields', 'customFieldValues'));
 	}
 
 	public function idCard(Staff $staff)
@@ -195,8 +217,14 @@ class StaffController extends Controller
 
 		$departments = Department::active()->orderBy('name')->get();
 		$designations = Designation::active()->orderBy('name')->get();
+		$customFields = $this->getCustomFields('teacher');
+		$customFieldValues = $this->getCustomFieldValues($staff);
+		$fieldSettings = $this->getFormFieldSettings('teacher');
 
-		return view('admin.staff.edit', compact('staff', 'departments', 'designations'));
+		return view('admin.staff.edit', compact(
+			'staff', 'departments', 'designations',
+			'customFields', 'customFieldValues', 'fieldSettings'
+		));
 	}
 
 	public function update(Request $request, Staff $staff)
@@ -238,6 +266,12 @@ class StaffController extends Controller
 			// Photo
 			'photo' => ['nullable', 'image', 'max:2048'],
 
+			// Aadhaar & PAN Card
+			'aadhaar_number' => ['nullable', 'string', 'size:12', 'regex:/^[0-9]{12}$/'],
+			'aadhaar_front' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048'],
+			'aadhaar_back' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048'],
+			'pan_number' => ['nullable', 'string', 'max:10', 'regex:/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/i'],
+
 			// Status
 			'status' => ['required', 'in:active,inactive,resigned,terminated'],
 		]);
@@ -247,11 +281,24 @@ class StaffController extends Controller
 
 			// Handle photo upload
 			if ($request->hasFile('photo')) {
-				// Delete old photo
 				if ($staff->photo) {
 					Storage::disk('public')->delete($staff->photo);
 				}
 				$validated['photo'] = $request->file('photo')->store('staff', 'public');
+			}
+
+			// Handle Aadhaar file uploads
+			if ($request->hasFile('aadhaar_front')) {
+				if ($staff->aadhaar_front) {
+					Storage::disk('public')->delete($staff->aadhaar_front);
+				}
+				$validated['aadhaar_front'] = $request->file('aadhaar_front')->store('staff/aadhaar', 'public');
+			}
+			if ($request->hasFile('aadhaar_back')) {
+				if ($staff->aadhaar_back) {
+					Storage::disk('public')->delete($staff->aadhaar_back);
+				}
+				$validated['aadhaar_back'] = $request->file('aadhaar_back')->store('staff/aadhaar', 'public');
 			}
 
 			// Update staff record
@@ -276,8 +323,15 @@ class StaffController extends Controller
 				'qualification' => $validated['qualification'] ?? null,
 				'experience' => $validated['experience'] ?? null,
 				'photo' => $validated['photo'] ?? $staff->photo,
+				'aadhaar_number' => $validated['aadhaar_number'] ?? $staff->aadhaar_number,
+				'aadhaar_front' => $validated['aadhaar_front'] ?? $staff->aadhaar_front,
+				'aadhaar_back' => $validated['aadhaar_back'] ?? $staff->aadhaar_back,
+				'pan_number' => isset($validated['pan_number']) ? strtoupper($validated['pan_number']) : $staff->pan_number,
 				'status' => $validated['status'],
 			]);
+
+			// Save custom field values
+			$this->saveCustomFieldValues($request, $staff, 'teacher');
 
 			DB::commit();
 

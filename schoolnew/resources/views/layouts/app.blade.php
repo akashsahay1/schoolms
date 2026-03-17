@@ -118,17 +118,43 @@
 			color: #3f475a;
 		}
 
-		/* Page title and breadcrumb text fix */
-		.page-title h3 {
-			color: #2c323f !important;
+		/* Balanced vertical spacing for page body content */
+		.page-body {
+			padding-top: 20px !important;
+			padding-bottom: 20px !important;
 		}
-		.page-title .breadcrumb-item,
-		.page-title .breadcrumb-item a,
-		.page-title .breadcrumb-item.active {
-			color: #2c323f !important;
+
+		/* Header page title responsive adjustments */
+		.left-header h6 {
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
 		}
-		.page-title .breadcrumb-item a svg {
-			stroke: #2c323f !important;
+
+		/* Global dropdown fix - restore proper z-index and prevent clipping */
+		.dropdown-menu {
+			z-index: 1050 !important;
+		}
+		.card .card-header {
+			overflow: visible !important;
+		}
+		.card .card-header .card-header-right .card-option {
+			overflow: visible !important;
+		}
+		.card .card-header .card-header-right {
+			z-index: 2 !important;
+		}
+		.header-top {
+			overflow: visible !important;
+		}
+		.card-header-right-icon {
+			overflow: visible !important;
+		}
+		.icon-dropdown .dropdown-toggle {
+			background: transparent;
+			border: none;
+			padding: 4px 8px;
+			line-height: 1;
 		}
 
 		/* Button text color fix */
@@ -205,12 +231,9 @@
 		.bg-light, .bg-light * {
 			color: #000 !important;
 		}
-		.card-header-right-icon .dropdown-toggle {
-			border: none !important;
-		}
-		.card-header-right-icon .dropdown-toggle:hover {
-			background-color: transparent !important;
-			color: #89899B !important;
+		.card-header-right-icon .dropdown-toggle:focus {
+			box-shadow: none;
+			outline: none;
 		}
 		.bg-white svg, .bg-white [data-feather],
 		.bg-light svg, .bg-light [data-feather] {
@@ -460,28 +483,6 @@
 
 			<!-- Page Body -->
 			<div class="page-body">
-				<!-- Page Title / Breadcrumb -->
-				<div class="container-fluid">
-					<div class="page-title">
-						<div class="row">
-							<div class="col-sm-6">
-								<h3>@yield('page-title', 'Dashboard')</h3>
-							</div>
-							<div class="col-sm-6">
-								<ol class="breadcrumb">
-									<li class="breadcrumb-item">
-										<a href="{{ route('admin.dashboard') }}">
-											<svg class="stroke-icon">
-												<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-home') }}"></use>
-											</svg>
-										</a>
-									</li>
-									@yield('breadcrumb')
-								</ol>
-							</div>
-						</div>
-					</div>
-				</div>
 				<!-- Container-fluid starts -->
 				@yield('content')
 				<!-- Container-fluid Ends -->

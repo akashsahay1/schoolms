@@ -36,6 +36,9 @@ class Student extends Model
         // Identification
         'national_id',
         'passport_no',
+        'aadhaar_number',
+        'aadhaar_front',
+        'aadhaar_back',
         // Photo & Documents
         'photo',
         'birth_certificate',
@@ -73,6 +76,11 @@ class Student extends Model
         'height' => 'decimal:2',
         'weight' => 'decimal:2',
     ];
+
+    public function customFieldValues()
+    {
+        return $this->morphMany(CustomFieldValue::class, 'model');
+    }
 
     public function user(): BelongsTo
     {

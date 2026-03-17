@@ -36,6 +36,9 @@ class Staff extends Model
         'national_id',
         'passport_no',
         'driving_license',
+        'aadhaar_number',
+        'aadhaar_front',
+        'aadhaar_back',
         // Photo
         'photo',
         // Employment Information
@@ -74,6 +77,11 @@ class Staff extends Model
         'bank_account_no',
         'pan_number',
     ];
+
+    public function customFieldValues()
+    {
+        return $this->morphMany(CustomFieldValue::class, 'model');
+    }
 
     public function user(): BelongsTo
     {

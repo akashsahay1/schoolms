@@ -11,6 +11,15 @@
 @endsection
 
 @section('content')
+@php
+	$fs = $fieldSettings ?? [];
+	$isVisible = function($field) use ($fs) {
+		return ($fs[$field]['visible'] ?? true);
+	};
+	$isRequired = function($field) use ($fs) {
+		return ($fs[$field]['required'] ?? false) && ($fs[$field]['visible'] ?? true);
+	};
+@endphp
 <form action="{{ route('admin.staff.store') }}" method="POST" enctype="multipart/form-data">
 	@csrf
 
@@ -49,13 +58,15 @@
 								<div class="invalid-feedback">{{ $message }}</div>
 							@enderror
 						</div>
-						<div class="col-md-6">
-							<label for="last_name" class="form-label">Last Name</label>
-							<input type="text" class="form-control @error('last_name') is-invalid @enderror" id="last_name" name="last_name" value="{{ old('last_name') }}">
+						@if($isVisible('last_name'))
+						<div class="col-md-6" data-field-wrapper="last_name">
+							<label for="last_name" class="form-label">Last Name @if($isRequired('last_name'))<span class="text-danger">*</span>@endif</label>
+							<input type="text" class="form-control @error('last_name') is-invalid @enderror" id="last_name" name="last_name" value="{{ old('last_name') }}" {{ $isRequired('last_name') ? 'required' : '' }}>
 							@error('last_name')
 								<div class="invalid-feedback">{{ $message }}</div>
 							@enderror
 						</div>
+						@endif
 						<div class="col-md-4">
 							<label for="gender" class="form-label">Gender <span class="text-danger">*</span></label>
 							<select class="form-select @error('gender') is-invalid @enderror" id="gender" name="gender" required>
@@ -75,9 +86,10 @@
 								<div class="invalid-feedback">{{ $message }}</div>
 							@enderror
 						</div>
-						<div class="col-md-4">
-							<label for="blood_group" class="form-label">Blood Group</label>
-							<select class="form-select @error('blood_group') is-invalid @enderror" id="blood_group" name="blood_group">
+						@if($isVisible('blood_group'))
+						<div class="col-md-4" data-field-wrapper="blood_group">
+							<label for="blood_group" class="form-label">Blood Group @if($isRequired('blood_group'))<span class="text-danger">*</span>@endif</label>
+							<select class="form-select @error('blood_group') is-invalid @enderror" id="blood_group" name="blood_group" {{ $isRequired('blood_group') ? 'required' : '' }}>
 								<option value="">Select</option>
 								@foreach(['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] as $bg)
 									<option value="{{ $bg }}" {{ old('blood_group') == $bg ? 'selected' : '' }}>{{ $bg }}</option>
@@ -87,9 +99,11 @@
 								<div class="invalid-feedback">{{ $message }}</div>
 							@enderror
 						</div>
-						<div class="col-md-4">
-							<label for="religion" class="form-label">Religion</label>
-							<select class="form-select @error('religion') is-invalid @enderror" id="religion" name="religion">
+						@endif
+						@if($isVisible('religion'))
+						<div class="col-md-4" data-field-wrapper="religion">
+							<label for="religion" class="form-label">Religion @if($isRequired('religion'))<span class="text-danger">*</span>@endif</label>
+							<select class="form-select @error('religion') is-invalid @enderror" id="religion" name="religion" {{ $isRequired('religion') ? 'required' : '' }}>
 								<option value="">Select Religion</option>
 								<option value="Hindu" {{ old('religion') == 'Hindu' ? 'selected' : '' }}>Hindu</option>
 								<option value="Muslim" {{ old('religion') == 'Muslim' ? 'selected' : '' }}>Muslim</option>
@@ -103,9 +117,11 @@
 								<div class="invalid-feedback">{{ $message }}</div>
 							@enderror
 						</div>
-						<div class="col-md-4">
-							<label for="marital_status" class="form-label">Marital Status</label>
-							<select class="form-select @error('marital_status') is-invalid @enderror" id="marital_status" name="marital_status">
+						@endif
+						@if($isVisible('marital_status'))
+						<div class="col-md-4" data-field-wrapper="marital_status">
+							<label for="marital_status" class="form-label">Marital Status @if($isRequired('marital_status'))<span class="text-danger">*</span>@endif</label>
+							<select class="form-select @error('marital_status') is-invalid @enderror" id="marital_status" name="marital_status" {{ $isRequired('marital_status') ? 'required' : '' }}>
 								<option value="">Select</option>
 								<option value="single" {{ old('marital_status') == 'single' ? 'selected' : '' }}>Single</option>
 								<option value="married" {{ old('marital_status') == 'married' ? 'selected' : '' }}>Married</option>
@@ -116,13 +132,16 @@
 								<div class="invalid-feedback">{{ $message }}</div>
 							@enderror
 						</div>
-						<div class="col-md-4">
-							<label for="nationality" class="form-label">Nationality</label>
-							<input type="text" class="form-control @error('nationality') is-invalid @enderror" id="nationality" name="nationality" value="{{ old('nationality', 'Indian') }}">
+						@endif
+						@if($isVisible('nationality'))
+						<div class="col-md-4" data-field-wrapper="nationality">
+							<label for="nationality" class="form-label">Nationality @if($isRequired('nationality'))<span class="text-danger">*</span>@endif</label>
+							<input type="text" class="form-control @error('nationality') is-invalid @enderror" id="nationality" name="nationality" value="{{ old('nationality', 'Indian') }}" {{ $isRequired('nationality') ? 'required' : '' }}>
 							@error('nationality')
 								<div class="invalid-feedback">{{ $message }}</div>
 							@enderror
 						</div>
+						@endif
 					</div>
 				</div>
 			</div>
@@ -148,27 +167,33 @@
 								<div class="invalid-feedback">{{ $message }}</div>
 							@enderror
 						</div>
-						<div class="col-md-6">
-							<label for="emergency_contact" class="form-label">Emergency Contact</label>
-							<input type="text" class="form-control @error('emergency_contact') is-invalid @enderror" id="emergency_contact" name="emergency_contact" value="{{ old('emergency_contact') }}">
+						@if($isVisible('emergency_contact'))
+						<div class="col-md-6" data-field-wrapper="emergency_contact">
+							<label for="emergency_contact" class="form-label">Emergency Contact @if($isRequired('emergency_contact'))<span class="text-danger">*</span>@endif</label>
+							<input type="text" class="form-control @error('emergency_contact') is-invalid @enderror" id="emergency_contact" name="emergency_contact" value="{{ old('emergency_contact') }}" {{ $isRequired('emergency_contact') ? 'required' : '' }}>
 							@error('emergency_contact')
 								<div class="invalid-feedback">{{ $message }}</div>
 							@enderror
 						</div>
-						<div class="col-12">
-							<label for="current_address" class="form-label">Current Address</label>
-							<textarea class="form-control @error('current_address') is-invalid @enderror" id="current_address" name="current_address" rows="2">{{ old('current_address') }}</textarea>
+						@endif
+						@if($isVisible('current_address'))
+						<div class="col-12" data-field-wrapper="current_address">
+							<label for="current_address" class="form-label">Current Address @if($isRequired('current_address'))<span class="text-danger">*</span>@endif</label>
+							<textarea class="form-control @error('current_address') is-invalid @enderror" id="current_address" name="current_address" rows="2" {{ $isRequired('current_address') ? 'required' : '' }}>{{ old('current_address') }}</textarea>
 							@error('current_address')
 								<div class="invalid-feedback">{{ $message }}</div>
 							@enderror
 						</div>
-						<div class="col-12">
-							<label for="permanent_address" class="form-label">Permanent Address</label>
-							<textarea class="form-control @error('permanent_address') is-invalid @enderror" id="permanent_address" name="permanent_address" rows="2">{{ old('permanent_address') }}</textarea>
+						@endif
+						@if($isVisible('permanent_address'))
+						<div class="col-12" data-field-wrapper="permanent_address">
+							<label for="permanent_address" class="form-label">Permanent Address @if($isRequired('permanent_address'))<span class="text-danger">*</span>@endif</label>
+							<textarea class="form-control @error('permanent_address') is-invalid @enderror" id="permanent_address" name="permanent_address" rows="2" {{ $isRequired('permanent_address') ? 'required' : '' }}>{{ old('permanent_address') }}</textarea>
 							@error('permanent_address')
 								<div class="invalid-feedback">{{ $message }}</div>
 							@enderror
 						</div>
+						@endif
 					</div>
 				</div>
 			</div>
@@ -226,46 +251,113 @@
 								<div class="invalid-feedback">{{ $message }}</div>
 							@enderror
 						</div>
-						<div class="col-md-4">
-							<label for="basic_salary" class="form-label">Basic Salary</label>
-							<input type="number" class="form-control @error('basic_salary') is-invalid @enderror" id="basic_salary" name="basic_salary" value="{{ old('basic_salary') }}" step="0.01" min="0">
+						@if($isVisible('basic_salary'))
+						<div class="col-md-4" data-field-wrapper="basic_salary">
+							<label for="basic_salary" class="form-label">Basic Salary @if($isRequired('basic_salary'))<span class="text-danger">*</span>@endif</label>
+							<input type="number" class="form-control @error('basic_salary') is-invalid @enderror" id="basic_salary" name="basic_salary" value="{{ old('basic_salary') }}" step="0.01" min="0" {{ $isRequired('basic_salary') ? 'required' : '' }}>
 							@error('basic_salary')
 								<div class="invalid-feedback">{{ $message }}</div>
 							@enderror
 						</div>
+						@endif
 					</div>
 				</div>
 			</div>
 
+			<!-- Aadhaar & PAN Card Details -->
+			@if($isVisible('aadhaar_number') || $isVisible('aadhaar_front') || $isVisible('aadhaar_back') || $isVisible('pan_number'))
+			<div class="card">
+				<div class="card-header">
+					<h5>Aadhaar & PAN Card Details</h5>
+				</div>
+				<div class="card-body">
+					<div class="row g-3">
+						@if($isVisible('aadhaar_number'))
+						<div class="col-md-6" data-field-wrapper="aadhaar_number">
+							<label for="aadhaar_number" class="form-label">Aadhaar Card Number @if($isRequired('aadhaar_number'))<span class="text-danger">*</span>@endif</label>
+							<input type="text" class="form-control @error('aadhaar_number') is-invalid @enderror" id="aadhaar_number" name="aadhaar_number" value="{{ old('aadhaar_number') }}" placeholder="Enter 12-digit Aadhaar number" maxlength="12" {{ $isRequired('aadhaar_number') ? 'required' : '' }}>
+							@error('aadhaar_number')
+								<div class="invalid-feedback">{{ $message }}</div>
+							@enderror
+						</div>
+						@endif
+						@if($isVisible('pan_number'))
+						<div class="col-md-6" data-field-wrapper="pan_number">
+							<label for="pan_number" class="form-label">PAN Card Number @if($isRequired('pan_number'))<span class="text-danger">*</span>@endif</label>
+							<input type="text" class="form-control @error('pan_number') is-invalid @enderror" id="pan_number" name="pan_number" value="{{ old('pan_number') }}" placeholder="Enter PAN number" maxlength="10" style="text-transform: uppercase;" {{ $isRequired('pan_number') ? 'required' : '' }}>
+							@error('pan_number')
+								<div class="invalid-feedback">{{ $message }}</div>
+							@enderror
+						</div>
+						@endif
+						@if($isVisible('aadhaar_front'))
+						<div class="col-md-6" data-field-wrapper="aadhaar_front">
+							<label for="aadhaar_front" class="form-label">Aadhaar Card Front @if($isRequired('aadhaar_front'))<span class="text-danger">*</span>@endif</label>
+							<input type="file" class="form-control @error('aadhaar_front') is-invalid @enderror" id="aadhaar_front" name="aadhaar_front" accept="image/*,.pdf" {{ $isRequired('aadhaar_front') ? 'required' : '' }}>
+							@error('aadhaar_front')
+								<div class="invalid-feedback">{{ $message }}</div>
+							@enderror
+							<small class="text-muted">JPG, PNG or PDF (max 2MB)</small>
+						</div>
+						@endif
+						@if($isVisible('aadhaar_back'))
+						<div class="col-md-6" data-field-wrapper="aadhaar_back">
+							<label for="aadhaar_back" class="form-label">Aadhaar Card Back @if($isRequired('aadhaar_back'))<span class="text-danger">*</span>@endif</label>
+							<input type="file" class="form-control @error('aadhaar_back') is-invalid @enderror" id="aadhaar_back" name="aadhaar_back" accept="image/*,.pdf" {{ $isRequired('aadhaar_back') ? 'required' : '' }}>
+							@error('aadhaar_back')
+								<div class="invalid-feedback">{{ $message }}</div>
+							@enderror
+							<small class="text-muted">JPG, PNG or PDF (max 2MB)</small>
+						</div>
+						@endif
+					</div>
+				</div>
+			</div>
+			@endif
+
 			<!-- Qualifications -->
+			@if($isVisible('qualification') || $isVisible('experience'))
 			<div class="card">
 				<div class="card-header">
 					<h5>Qualifications</h5>
 				</div>
 				<div class="card-body">
 					<div class="row g-3">
-						<div class="col-12">
-							<label for="qualification" class="form-label">Qualifications</label>
-							<textarea class="form-control @error('qualification') is-invalid @enderror" id="qualification" name="qualification" rows="2" placeholder="e.g., B.Ed, M.Sc Mathematics">{{ old('qualification') }}</textarea>
+						@if($isVisible('qualification'))
+						<div class="col-12" data-field-wrapper="qualification">
+							<label for="qualification" class="form-label">Qualifications @if($isRequired('qualification'))<span class="text-danger">*</span>@endif</label>
+							<textarea class="form-control @error('qualification') is-invalid @enderror" id="qualification" name="qualification" rows="2" placeholder="e.g., B.Ed, M.Sc Mathematics" {{ $isRequired('qualification') ? 'required' : '' }}>{{ old('qualification') }}</textarea>
 							@error('qualification')
 								<div class="invalid-feedback">{{ $message }}</div>
 							@enderror
 						</div>
-						<div class="col-12">
-							<label for="experience" class="form-label">Experience</label>
-							<textarea class="form-control @error('experience') is-invalid @enderror" id="experience" name="experience" rows="2" placeholder="Previous work experience">{{ old('experience') }}</textarea>
+						@endif
+						@if($isVisible('experience'))
+						<div class="col-12" data-field-wrapper="experience">
+							<label for="experience" class="form-label">Experience @if($isRequired('experience'))<span class="text-danger">*</span>@endif</label>
+							<textarea class="form-control @error('experience') is-invalid @enderror" id="experience" name="experience" rows="2" placeholder="Previous work experience" {{ $isRequired('experience') ? 'required' : '' }}>{{ old('experience') }}</textarea>
 							@error('experience')
 								<div class="invalid-feedback">{{ $message }}</div>
 							@enderror
 						</div>
+						@endif
 					</div>
 				</div>
 			</div>
+			@endif
+
+			<!-- Custom Fields -->
+			@include('admin.custom-fields._form-fields', [
+				'customFields' => $customFields,
+				'customFieldValues' => [],
+				'formContext' => 'create'
+			])
 		</div>
 
 		<div class="col-12 col-lg-4">
 			<!-- Photo Upload -->
-			<div class="card">
+			@if($isVisible('photo'))
+			<div class="card" data-field-wrapper="photo">
 				<div class="card-header">
 					<h5>Photo</h5>
 				</div>
@@ -273,13 +365,14 @@
 					<div class="mb-3">
 						<img id="photoPreview" src="{{ asset('assets/images/user/user.png') }}" alt="Photo Preview" class="rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
 					</div>
-					<input type="file" class="form-control @error('photo') is-invalid @enderror" id="photo" name="photo" accept="image/*" onchange="previewPhoto(this)">
+					<input type="file" class="form-control @error('photo') is-invalid @enderror" id="photo" name="photo" accept="image/*" onchange="previewPhoto(this)" {{ $isRequired('photo') ? 'required' : '' }}>
 					<small class="text-muted">Max size: 2MB. Formats: JPG, PNG</small>
 					@error('photo')
 						<div class="invalid-feedback">{{ $message }}</div>
 					@enderror
 				</div>
 			</div>
+			@endif
 
 			<!-- Login Credentials -->
 			<div class="card">
@@ -330,5 +423,7 @@
 			reader.readAsDataURL(input.files[0]);
 		}
 	}
+
+	if (typeof feather !== 'undefined') feather.replace();
 </script>
 @endpush

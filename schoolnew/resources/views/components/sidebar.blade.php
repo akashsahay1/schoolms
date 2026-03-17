@@ -486,8 +486,8 @@
 
 					<!-- Settings -->
 					@can('view settings')
-					<li class="sidebar-list {{ request()->routeIs('admin.settings*') ? 'active' : '' }}">
-						<a class="sidebar-link sidebar-title {{ request()->routeIs('admin.settings*') ? 'active' : '' }}" href="#">
+					<li class="sidebar-list {{ request()->routeIs('admin.settings*') || request()->routeIs('admin.custom-fields*') ? 'active' : '' }}">
+						<a class="sidebar-link sidebar-title {{ request()->routeIs('admin.settings*') || request()->routeIs('admin.custom-fields*') ? 'active' : '' }}" href="#">
 							<svg class="stroke-icon">
 								<use href="{{ asset('assets/svg/icon-sprite.svg#setting') }}"></use>
 							</svg>
@@ -496,7 +496,7 @@
 							</svg>
 							<span>Settings</span>
 						</a>
-						<ul class="sidebar-submenu" style="{{ request()->routeIs('admin.settings*') ? 'display: block;' : '' }}">
+						<ul class="sidebar-submenu" style="{{ request()->routeIs('admin.settings*') || request()->routeIs('admin.custom-fields*') ? 'display: block;' : '' }}">
 							<li>
 								<a href="{{ route('admin.settings.index') }}" class="{{ request()->routeIs('admin.settings.index') ? 'active' : '' }}">School Settings</a>
 							</li>
@@ -505,6 +505,9 @@
 							</li>
 							<li>
 								<a href="{{ route('admin.settings.sms.index') }}" class="{{ request()->routeIs('admin.settings.sms*') ? 'active' : '' }}">SMS Settings</a>
+							</li>
+							<li>
+								<a href="{{ route('admin.custom-fields.index') }}" class="{{ request()->routeIs('admin.custom-fields*') ? 'active' : '' }}">Custom Fields</a>
 							</li>
 						</ul>
 					</li>

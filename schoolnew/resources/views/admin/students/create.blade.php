@@ -21,6 +21,17 @@
         <p class="mb-0">Please set up an active academic year before registering students.</p>
     </div>
 @else
+@php
+    $fs = $fieldSettings ?? [];
+    // Helper: check if field is visible (default true)
+    $isVisible = function($field) use ($fs) {
+        return ($fs[$field]['visible'] ?? true);
+    };
+    // Helper: check if field is required by settings
+    $isRequired = function($field) use ($fs) {
+        return ($fs[$field]['required'] ?? false) && ($fs[$field]['visible'] ?? true);
+    };
+@endphp
 <form method="POST" action="{{ route('admin.students.store') }}" enctype="multipart/form-data">
     @csrf
 
@@ -40,13 +51,15 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
+                        @if($isVisible('last_name'))
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Last Name</label>
-                            <input type="text" class="form-control @error('last_name') is-invalid @enderror" name="last_name" value="{{ old('last_name') }}">
+                            <label class="form-label">Last Name @if($isRequired('last_name'))<span class="text-danger">*</span>@endif</label>
+                            <input type="text" class="form-control @error('last_name') is-invalid @enderror" name="last_name" value="{{ old('last_name') }}" {{ $isRequired('last_name') ? 'required' : '' }}>
                             @error('last_name')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
+                        @endif
                     </div>
 
                     <div class="row">
@@ -69,21 +82,24 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
+                        @if($isVisible('blood_group'))
                         <div class="col-md-4 mb-3">
-                            <label class="form-label">Blood Group</label>
-                            <select class="form-select @error('blood_group') is-invalid @enderror" name="blood_group">
+                            <label class="form-label">Blood Group @if($isRequired('blood_group'))<span class="text-danger">*</span>@endif</label>
+                            <select class="form-select @error('blood_group') is-invalid @enderror" name="blood_group" {{ $isRequired('blood_group') ? 'required' : '' }}>
                                 <option value="">Select</option>
                                 @foreach(['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] as $bg)
                                     <option value="{{ $bg }}" {{ old('blood_group') == $bg ? 'selected' : '' }}>{{ $bg }}</option>
                                 @endforeach
                             </select>
                         </div>
+                        @endif
                     </div>
 
                     <div class="row">
+                        @if($isVisible('religion'))
                         <div class="col-md-4 mb-3">
-                            <label class="form-label">Religion</label>
-                            <select class="form-select @error('religion') is-invalid @enderror" name="religion">
+                            <label class="form-label">Religion @if($isRequired('religion'))<span class="text-danger">*</span>@endif</label>
+                            <select class="form-select @error('religion') is-invalid @enderror" name="religion" {{ $isRequired('religion') ? 'required' : '' }}>
                                 <option value="">Select Religion</option>
                                 <option value="Hindu" {{ old('religion') == 'Hindu' ? 'selected' : '' }}>Hindu</option>
                                 <option value="Muslim" {{ old('religion') == 'Muslim' ? 'selected' : '' }}>Muslim</option>
@@ -94,14 +110,19 @@
                                 <option value="Other" {{ old('religion') == 'Other' ? 'selected' : '' }}>Other</option>
                             </select>
                         </div>
+                        @endif
+                        @if($isVisible('nationality'))
                         <div class="col-md-4 mb-3">
-                            <label class="form-label">Nationality</label>
-                            <input type="text" class="form-control @error('nationality') is-invalid @enderror" name="nationality" value="{{ old('nationality', 'Indian') }}">
+                            <label class="form-label">Nationality @if($isRequired('nationality'))<span class="text-danger">*</span>@endif</label>
+                            <input type="text" class="form-control @error('nationality') is-invalid @enderror" name="nationality" value="{{ old('nationality', 'Indian') }}" {{ $isRequired('nationality') ? 'required' : '' }}>
                         </div>
+                        @endif
+                        @if($isVisible('mother_tongue'))
                         <div class="col-md-4 mb-3">
-                            <label class="form-label">Mother Tongue</label>
-                            <input type="text" class="form-control @error('mother_tongue') is-invalid @enderror" name="mother_tongue" value="{{ old('mother_tongue') }}">
+                            <label class="form-label">Mother Tongue @if($isRequired('mother_tongue'))<span class="text-danger">*</span>@endif</label>
+                            <input type="text" class="form-control @error('mother_tongue') is-invalid @enderror" name="mother_tongue" value="{{ old('mother_tongue') }}" {{ $isRequired('mother_tongue') ? 'required' : '' }}>
                         </div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -134,10 +155,12 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
+                        @if($isVisible('roll_no'))
                         <div class="col-md-4 mb-3">
-                            <label class="form-label">Roll No</label>
-                            <input type="text" class="form-control @error('roll_no') is-invalid @enderror" name="roll_no" value="{{ old('roll_no') }}">
+                            <label class="form-label">Roll No @if($isRequired('roll_no'))<span class="text-danger">*</span>@endif</label>
+                            <input type="text" class="form-control @error('roll_no') is-invalid @enderror" name="roll_no" value="{{ old('roll_no') }}" {{ $isRequired('roll_no') ? 'required' : '' }}>
                         </div>
+                        @endif
                     </div>
 
                     <div class="row">
@@ -148,43 +171,97 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
+                        @if($isVisible('previous_school'))
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Previous School</label>
-                            <input type="text" class="form-control @error('previous_school') is-invalid @enderror" name="previous_school" value="{{ old('previous_school') }}">
+                            <label class="form-label">Previous School @if($isRequired('previous_school'))<span class="text-danger">*</span>@endif</label>
+                            <input type="text" class="form-control @error('previous_school') is-invalid @enderror" name="previous_school" value="{{ old('previous_school') }}" {{ $isRequired('previous_school') ? 'required' : '' }}>
                         </div>
+                        @endif
                     </div>
                 </div>
             </div>
 
             <!-- Contact Information -->
+            @if($isVisible('email') || $isVisible('phone') || $isVisible('current_address') || $isVisible('permanent_address'))
             <div class="card">
                 <div class="card-header">
                     <h5>Contact Information</h5>
                 </div>
                 <div class="card-body">
                     <div class="row">
+                        @if($isVisible('email'))
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Email</label>
-                            <input type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}">
+                            <label class="form-label">Email @if($isRequired('email'))<span class="text-danger">*</span>@endif</label>
+                            <input type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}" {{ $isRequired('email') ? 'required' : '' }}>
                         </div>
+                        @endif
+                        @if($isVisible('phone'))
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Phone</label>
-                            <input type="text" class="form-control @error('phone') is-invalid @enderror" name="phone" value="{{ old('phone') }}">
+                            <label class="form-label">Phone @if($isRequired('phone'))<span class="text-danger">*</span>@endif</label>
+                            <input type="text" class="form-control @error('phone') is-invalid @enderror" name="phone" value="{{ old('phone') }}" {{ $isRequired('phone') ? 'required' : '' }}>
                         </div>
+                        @endif
                     </div>
 
                     <div class="row">
+                        @if($isVisible('current_address'))
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Current Address</label>
-                            <textarea class="form-control @error('current_address') is-invalid @enderror" name="current_address" rows="3">{{ old('current_address') }}</textarea>
+                            <label class="form-label">Current Address @if($isRequired('current_address'))<span class="text-danger">*</span>@endif</label>
+                            <textarea class="form-control @error('current_address') is-invalid @enderror" name="current_address" rows="3" {{ $isRequired('current_address') ? 'required' : '' }}>{{ old('current_address') }}</textarea>
                         </div>
+                        @endif
+                        @if($isVisible('permanent_address'))
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Permanent Address</label>
-                            <textarea class="form-control @error('permanent_address') is-invalid @enderror" name="permanent_address" rows="3">{{ old('permanent_address') }}</textarea>
+                            <label class="form-label">Permanent Address @if($isRequired('permanent_address'))<span class="text-danger">*</span>@endif</label>
+                            <textarea class="form-control @error('permanent_address') is-invalid @enderror" name="permanent_address" rows="3" {{ $isRequired('permanent_address') ? 'required' : '' }}>{{ old('permanent_address') }}</textarea>
                         </div>
+                        @endif
                     </div>
                 </div>
             </div>
+            @endif
+
+            <!-- Aadhaar Card Details -->
+            @if($isVisible('aadhaar_number') || $isVisible('aadhaar_front') || $isVisible('aadhaar_back'))
+            <div class="card">
+                <div class="card-header">
+                    <h5>Aadhaar Card Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        @if($isVisible('aadhaar_number'))
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Aadhaar Card Number @if($isRequired('aadhaar_number'))<span class="text-danger">*</span>@endif</label>
+                            <input type="text" class="form-control @error('aadhaar_number') is-invalid @enderror" name="aadhaar_number" value="{{ old('aadhaar_number') }}" placeholder="Enter 12-digit Aadhaar number" maxlength="12" {{ $isRequired('aadhaar_number') ? 'required' : '' }}>
+                            @error('aadhaar_number')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        @endif
+                        @if($isVisible('aadhaar_front'))
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Aadhaar Card Front @if($isRequired('aadhaar_front'))<span class="text-danger">*</span>@endif</label>
+                            <input type="file" class="form-control @error('aadhaar_front') is-invalid @enderror" name="aadhaar_front" accept="image/*,.pdf" {{ $isRequired('aadhaar_front') ? 'required' : '' }}>
+                            @error('aadhaar_front')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                            <small class="text-muted">JPG, PNG or PDF (max 2MB)</small>
+                        </div>
+                        @endif
+                        @if($isVisible('aadhaar_back'))
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Aadhaar Card Back @if($isRequired('aadhaar_back'))<span class="text-danger">*</span>@endif</label>
+                            <input type="file" class="form-control @error('aadhaar_back') is-invalid @enderror" name="aadhaar_back" accept="image/*,.pdf" {{ $isRequired('aadhaar_back') ? 'required' : '' }}>
+                            @error('aadhaar_back')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                            <small class="text-muted">JPG, PNG or PDF (max 2MB)</small>
+                        </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+            @endif
 
             <!-- Parent Information -->
             <div class="card">
@@ -201,51 +278,75 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
+                        @if($isVisible('father_phone'))
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Father's Phone</label>
-                            <input type="text" class="form-control @error('father_phone') is-invalid @enderror" name="father_phone" value="{{ old('father_phone') }}">
+                            <label class="form-label">Father's Phone @if($isRequired('father_phone'))<span class="text-danger">*</span>@endif</label>
+                            <input type="text" class="form-control @error('father_phone') is-invalid @enderror" name="father_phone" value="{{ old('father_phone') }}" {{ $isRequired('father_phone') ? 'required' : '' }}>
                         </div>
+                        @endif
                     </div>
                     <div class="row">
+                        @if($isVisible('father_email'))
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Father's Email</label>
-                            <input type="email" class="form-control @error('father_email') is-invalid @enderror" name="father_email" value="{{ old('father_email') }}">
+                            <label class="form-label">Father's Email @if($isRequired('father_email'))<span class="text-danger">*</span>@endif</label>
+                            <input type="email" class="form-control @error('father_email') is-invalid @enderror" name="father_email" value="{{ old('father_email') }}" {{ $isRequired('father_email') ? 'required' : '' }}>
                         </div>
+                        @endif
+                        @if($isVisible('father_occupation'))
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Father's Occupation</label>
-                            <input type="text" class="form-control @error('father_occupation') is-invalid @enderror" name="father_occupation" value="{{ old('father_occupation') }}">
+                            <label class="form-label">Father's Occupation @if($isRequired('father_occupation'))<span class="text-danger">*</span>@endif</label>
+                            <input type="text" class="form-control @error('father_occupation') is-invalid @enderror" name="father_occupation" value="{{ old('father_occupation') }}" {{ $isRequired('father_occupation') ? 'required' : '' }}>
                         </div>
+                        @endif
                     </div>
 
+                    @if($isVisible('mother_name') || $isVisible('mother_phone') || $isVisible('mother_email') || $isVisible('mother_occupation'))
                     <hr class="my-4">
 
                     <h6 class="mb-3 text-danger">Mother's Details</h6>
                     <div class="row">
+                        @if($isVisible('mother_name'))
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Mother's Name</label>
-                            <input type="text" class="form-control @error('mother_name') is-invalid @enderror" name="mother_name" value="{{ old('mother_name') }}">
+                            <label class="form-label">Mother's Name @if($isRequired('mother_name'))<span class="text-danger">*</span>@endif</label>
+                            <input type="text" class="form-control @error('mother_name') is-invalid @enderror" name="mother_name" value="{{ old('mother_name') }}" {{ $isRequired('mother_name') ? 'required' : '' }}>
                         </div>
+                        @endif
+                        @if($isVisible('mother_phone'))
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Mother's Phone</label>
-                            <input type="text" class="form-control @error('mother_phone') is-invalid @enderror" name="mother_phone" value="{{ old('mother_phone') }}">
+                            <label class="form-label">Mother's Phone @if($isRequired('mother_phone'))<span class="text-danger">*</span>@endif</label>
+                            <input type="text" class="form-control @error('mother_phone') is-invalid @enderror" name="mother_phone" value="{{ old('mother_phone') }}" {{ $isRequired('mother_phone') ? 'required' : '' }}>
                         </div>
+                        @endif
                     </div>
                     <div class="row">
+                        @if($isVisible('mother_email'))
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Mother's Email</label>
-                            <input type="email" class="form-control @error('mother_email') is-invalid @enderror" name="mother_email" value="{{ old('mother_email') }}">
+                            <label class="form-label">Mother's Email @if($isRequired('mother_email'))<span class="text-danger">*</span>@endif</label>
+                            <input type="email" class="form-control @error('mother_email') is-invalid @enderror" name="mother_email" value="{{ old('mother_email') }}" {{ $isRequired('mother_email') ? 'required' : '' }}>
                         </div>
+                        @endif
+                        @if($isVisible('mother_occupation'))
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Mother's Occupation</label>
-                            <input type="text" class="form-control @error('mother_occupation') is-invalid @enderror" name="mother_occupation" value="{{ old('mother_occupation') }}">
+                            <label class="form-label">Mother's Occupation @if($isRequired('mother_occupation'))<span class="text-danger">*</span>@endif</label>
+                            <input type="text" class="form-control @error('mother_occupation') is-invalid @enderror" name="mother_occupation" value="{{ old('mother_occupation') }}" {{ $isRequired('mother_occupation') ? 'required' : '' }}>
                         </div>
+                        @endif
                     </div>
+                    @endif
                 </div>
             </div>
+
+            <!-- Custom Fields -->
+            @include('admin.custom-fields._form-fields', [
+                'customFields' => $customFields,
+                'customFieldValues' => [],
+                'formContext' => 'create'
+            ])
         </div>
 
         <!-- Sidebar -->
         <div class="col-lg-4">
+            @if($isVisible('photo'))
             <div class="card">
                 <div class="card-header">
                     <h5>Student Photo</h5>
@@ -261,6 +362,7 @@
                     <small class="text-muted">Max size: 2MB. Formats: JPG, PNG, GIF</small>
                 </div>
             </div>
+            @endif
 
             <div class="card">
                 <div class="card-header">

@@ -24,7 +24,6 @@
 	border-radius: 5px;
 	background-color: transparent;
 	max-width: 160px;
-	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
@@ -1364,6 +1363,28 @@
 				}
 			});
 		}
+	});
+</script>
+<script>
+	// Global dropdown item click handler for dashboard filter dropdowns
+	jQuery(document).ready(function() {
+		// Handle all card dropdown items (exclude student-filter-class which has its own handler)
+		jQuery(document).on('click', '.card .dropdown-menu .dropdown-item:not(.student-filter-class)', function(e) {
+			e.preventDefault();
+
+			var dropdown = jQuery(this).closest('.dropdown');
+			var toggleBtn = dropdown.find('.dropdown-toggle');
+			var selectedText = jQuery(this).text().trim();
+
+			// Mark selected item as active
+			jQuery(this).closest('.dropdown-menu').find('.dropdown-item').removeClass('active');
+			jQuery(this).addClass('active');
+
+			// Update button text only for text-based toggles (not icon three-dot buttons)
+			if (!dropdown.hasClass('icon-dropdown')) {
+				toggleBtn.html(selectedText + ' <i class="fa fa-angle-down ms-1"></i>');
+			}
+		});
 	});
 </script>
 <script src="{{ asset('assets/js/dashboard/dashboard_7.js') }}"></script>
