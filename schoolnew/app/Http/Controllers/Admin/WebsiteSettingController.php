@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Setting;
 use App\Models\WebsiteContact;
 use App\Models\WebsiteFacility;
 use App\Models\WebsiteGallery;
@@ -459,5 +460,121 @@ class WebsiteSettingController extends Controller
     {
         $contact->delete();
         return redirect()->route('admin.website.contacts')->with('success', 'Message deleted successfully.');
+    }
+
+    // ==================== WEBSITE IMAGES ====================
+
+    public function images()
+    {
+        $pages = WebsitePage::all();
+        return view('admin.website.images', compact('pages'));
+    }
+
+    public function uploadImage(Request $request)
+    {
+        $request->validate([
+            'image' => 'required|image|mimes:jpeg,png,jpg,webp|max:3072',
+            'type' => 'required|string',
+            'id' => 'nullable|integer',
+        ]);
+
+        $path = $request->file('image')->store('website/images', 'public');
+
+        if ($request->type === 'page_banner') {
+            $page = WebsitePage::findOrFail($request->id);
+            if ($page->banner_image) {
+                Storage::disk('public')->delete($page->banner_image);
+            }
+            $page->update(['banner_image' => $path]);
+        } elseif ($request->type === 'setting') {
+            $key = $request->input('key');
+            $old = Setting::get($key);
+            if ($old) {
+                Storage::disk('public')->delete($old);
+            }
+            Setting::set($key, $path);
+        }
+
+        return response()->json(['success' => true, 'path' => asset('storage/' . $path)]);
+    }
+
+    public function deleteImage(Request $request)
+    {
+        $request->validate([
+            'type' => 'required|string',
+            'id' => 'nullable|integer',
+        ]);
+
+        if ($request->type === 'page_banner') {
+            $page = WebsitePage::findOrFail($request->id);
+            if ($page->banner_image) {
+                Storage::disk('public')->delete($page->banner_image);
+            }
+            $page->update(['banner_image' => null]);
+        } elseif ($request->type === 'setting') {
+            $key = $request->input('key');
+            $old = Setting::get($key);
+            if ($old) {
+                Storage::disk('public')->delete($old);
+            }
+            Setting::set($key, null);
+        }
+
+        return response()->json(['success' => true]);
+    }
+
+    // ==================== HOMEPAGE SECTIONS ====================
+
+    public function homepageSections()
+    {
+        return view('admin.website.homepage-sections');
+    }
+
+    public function updateHomepageSections(Request $request)
+    {
+        $fields = [
+            // Why Choose Us section
+            'homepage_why_title', 'homepage_why_subtitle',
+            'homepage_why_1_icon', 'homepage_why_1_title', 'homepage_why_1_desc',
+            'homepage_why_2_icon', 'homepage_why_2_title', 'homepage_why_2_desc',
+            'homepage_why_3_icon', 'homepage_why_3_title', 'homepage_why_3_desc',
+            'homepage_why_4_icon', 'homepage_why_4_title', 'homepage_why_4_desc',
+            // About section
+            'homepage_about_subtitle', 'homepage_about_title', 'homepage_about_description',
+            'homepage_about_check_1', 'homepage_about_check_2', 'homepage_about_check_3',
+            'homepage_about_check_4', 'homepage_about_check_5', 'homepage_about_check_6',
+            // Stats section
+            'total_students', 'total_teachers', 'school_years', 'awards_count',
+            'stat_1_label', 'stat_2_label', 'stat_3_label', 'stat_4_label',
+            // CTA section
+            'cta_heading', 'cta_subtitle', 'cta_button_text', 'cta_button_link',
+        ];
+
+        foreach ($fields as $field) {
+            if ($request->has($field)) {
+                Setting::set($field, $request->input($field));
+            }
+        }
+
+        // Handle about image upload
+        if ($request->hasFile('homepage_about_image')) {
+            $old = Setting::get('homepage_about_image');
+            if ($old) {
+                Storage::disk('public')->delete($old);
+            }
+            Setting::set('homepage_about_image', $request->file('homepage_about_image')->store('website', 'public'));
+        }
+
+        // Handle CTA background image upload
+        if ($request->hasFile('cta_bg_image')) {
+            $old = Setting::get('cta_bg_image');
+            if ($old) {
+                Storage::disk('public')->delete($old);
+            }
+            Setting::set('cta_bg_image', $request->file('cta_bg_image')->store('website', 'public'));
+        }
+
+        return redirect()->route('admin.website.homepage-sections')
+            ->with('success', 'Homepage sections updated successfully.');
     }
 }

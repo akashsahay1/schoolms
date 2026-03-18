@@ -148,9 +148,14 @@ class SubjectController extends Controller
 	public function destroy(Subject $subject)
 	{
 		try {
-			// Check if subject is assigned to any class
-			if ($subject->classes()->count() > 0) {
-				return back()->with('error', 'Cannot delete subject that is assigned to classes. Please remove it from classes first.');
+			// Auto-detach from all classes, then soft-delete
+			$assignedClasses = $subject->classes()->pluck('name');
+			if ($assignedClasses->count() > 0) {
+				$classList = $assignedClasses->implode(', ');
+				$subject->classes()->detach();
+				$subject->delete();
+				return redirect()->route('admin.subjects.index')
+					->with('success', "Subject \"{$subject->name}\" removed from {$classList} and moved to trash.");
 			}
 
 			$subject->delete();

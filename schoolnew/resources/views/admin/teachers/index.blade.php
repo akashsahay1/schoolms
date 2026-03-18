@@ -57,11 +57,11 @@
 							<input type="text" name="search" class="form-control" placeholder="Search name, ID, email..." value="{{ request('search') }}">
 						</div>
 						<div class="col-md-3">
-							<select name="department_id" class="form-select">
-								<option value="">All Departments</option>
-								@foreach($departments as $department)
-									<option value="{{ $department->id }}" {{ request('department_id') == $department->id ? 'selected' : '' }}>
-										{{ $department->name }}
+							<select name="subject_id" class="form-select">
+								<option value="">All Subjects</option>
+								@foreach($subjects as $subject)
+									<option value="{{ $subject->id }}" {{ request('subject_id') == $subject->id ? 'selected' : '' }}>
+										{{ $subject->name }}
 									</option>
 								@endforeach
 							</select>
@@ -80,7 +80,7 @@
 								<i data-feather="search" class="me-1"></i> Filter
 							</button>
 						</div>
-						@if(request()->hasAny(['search', 'department_id', 'status']))
+						@if(request()->hasAny(['search', 'subject_id', 'status']))
 							<div class="col-md-1">
 								<a href="{{ route('admin.teachers.index') }}" class="btn btn-outline-secondary w-100" title="Clear Filters">
 									<i data-feather="x"></i>

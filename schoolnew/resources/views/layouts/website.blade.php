@@ -589,7 +589,8 @@
         .about-content .check-item {
             display: flex;
             align-items: center;
-            padding: 8px 0;
+            padding: 10px 0;
+            gap: 12px;
             transition: all 0.3s ease;
         }
 
@@ -597,9 +598,17 @@
             transform: translateX(5px);
         }
 
-        .about-content .check-item i {
+        .about-content .check-item i,
+        .about-content .check-item svg {
             color: var(--primary-color);
-            margin-right: 12px;
+            flex-shrink: 0;
+            width: 22px;
+            height: 22px;
+        }
+
+        .about-content .check-item span {
+            font-size: 15px;
+            line-height: 1.4;
         }
 
         /* Stats Section */
@@ -1663,8 +1672,11 @@
         .footer-contact li {
             display: flex;
             align-items: flex-start;
+            gap: 14px;
             margin-bottom: 18px;
             color: rgba(255, 255, 255, 0.85);
+            line-height: 1.6;
+            font-size: 14.5px;
         }
 
         .footer-contact a {
@@ -1677,11 +1689,13 @@
             color: #fff;
         }
 
-        .footer-contact li i {
+        .footer-contact li i,
+        .footer-contact li svg {
             color: #fff;
-            margin-right: 15px;
-            margin-top: 5px;
-            min-width: 20px;
+            flex-shrink: 0;
+            width: 20px;
+            height: 20px;
+            margin-top: 3px;
         }
 
         .social-links a {
@@ -1719,7 +1733,7 @@
 
         /* Page Banner */
         .page-banner {
-            background: url('/assets/images/banner/4.jpg') center/cover no-repeat fixed;
+            background: url('{{ \App\Models\Setting::get('default_banner_image') ? asset('storage/' . \App\Models\Setting::get('default_banner_image')) : asset('assets/images/banner/4.jpg') }}') center/cover no-repeat fixed;
             padding: 120px 0 80px;
             color: #fff !important;
             text-align: center;
@@ -2506,12 +2520,12 @@
                 </div>
 
                 <div class="col-lg-3 col-md-6 mb-4">
-                    <h5>Portals</h5>
+                    <h5>Legal</h5>
                     <ul class="footer-links">
-                        <li><a href="{{ route('login') }}">Admin Login</a></li>
-                        <li><a href="{{ route('login') }}">Student Login</a></li>
-                        <li><a href="{{ route('login') }}">Parent Login</a></li>
-                        <li><a href="{{ route('login') }}">Teacher Login</a></li>
+                        <li><a href="{{ route('website.page', 'privacy-policy') }}">Privacy Policy</a></li>
+                        <li><a href="{{ route('website.page', 'cookies-policy') }}">Cookies Policy</a></li>
+                        <li><a href="{{ route('website.page', 'terms-conditions') }}">Terms & Conditions</a></li>
+                        <li><a href="{{ route('website.page', 'refund-policy') }}">Refund Policy</a></li>
                     </ul>
                 </div>
 

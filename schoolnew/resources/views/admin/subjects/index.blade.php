@@ -126,7 +126,7 @@
 											<form action="{{ route('admin.subjects.destroy', $subject) }}" method="POST" class="d-inline delete-form">
 												@csrf
 												@method('DELETE')
-												<button type="button" class="square-white trash-7 border-0 bg-transparent p-0 delete-confirm" title="Delete" data-name="{{ $subject->name }}">
+												<button type="button" class="square-white trash-7 border-0 bg-transparent p-0 subject-delete-btn" title="Delete" data-name="{{ $subject->name }}" data-classes="{{ $subject->classes->pluck('name')->implode(', ') }}">
 													<svg><use href="{{ asset('assets/svg/icon-sprite.svg#trash1') }}"></use></svg>
 												</button>
 											</form>
@@ -157,3 +157,33 @@
 	</div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+jQuery(document).ready(function() {
+	jQuery(document).on('click', '.subject-delete-btn', function(e) {
+		e.preventDefault();
+		var form = jQuery(this).closest('form');
+		var name = jQuery(this).data('name');
+		var classes = jQuery(this).data('classes');
+
+		var message = 'Are you sure you want to delete <strong>' + name + '</strong>?';
+		if (classes) {
+			message = '<strong>' + name + '</strong> is currently assigned to:<br><span class="text-primary">' + classes + '</span><br><br>It will be automatically removed from these classes and moved to trash.';
+		}
+
+		Swal.fire({
+			title: 'Delete Subject?',
+			html: message,
+			icon: classes ? 'warning' : 'question',
+			showCancelButton: true,
+			confirmButtonColor: '#d33',
+			confirmButtonText: classes ? 'Yes, remove & delete' : 'Yes, delete',
+			reverseButtons: true
+		}).then(function(result) {
+			if (result.isConfirmed) form.submit();
+		});
+	});
+});
+</script>
+@endpush

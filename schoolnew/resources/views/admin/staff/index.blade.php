@@ -103,7 +103,7 @@
 								<th>Staff ID</th>
 								<th>Name</th>
 								<th>Department</th>
-								<th>Designation</th>
+								<th>Role</th>
 								<th>Phone</th>
 								<th>Status</th>
 								<th>Actions</th>

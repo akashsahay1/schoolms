@@ -16,6 +16,7 @@ class Staff extends Model
         'user_id',
         'department_id',
         'designation_id',
+        'subject_id',
         // Basic Information
         'staff_id',
         'first_name',
@@ -39,6 +40,7 @@ class Staff extends Model
         'aadhaar_number',
         'aadhaar_front',
         'aadhaar_back',
+        'pan_front',
         // Photo
         'photo',
         // Employment Information
@@ -98,6 +100,11 @@ class Staff extends Model
         return $this->belongsTo(Designation::class);
     }
 
+    public function subject(): BelongsTo
+    {
+        return $this->belongsTo(Subject::class);
+    }
+
     public function leaveBalances()
     {
         return $this->hasMany(StaffLeaveBalance::class);
@@ -121,7 +128,14 @@ class Staff extends Model
     public function scopeTeachers($query)
     {
         return $query->whereHas('designation', function ($q) {
-            $q->where('name', 'like', '%teacher%');
+            $q->whereIn('name', ['Principal', 'Vice Principal', 'Class Teacher', 'Subject Teacher', 'Assistant Teacher']);
+        });
+    }
+
+    public function scopeNonTeaching($query)
+    {
+        return $query->whereHas('designation', function ($q) {
+            $q->whereNotIn('name', ['Principal', 'Vice Principal', 'Class Teacher', 'Subject Teacher', 'Assistant Teacher']);
         });
     }
 

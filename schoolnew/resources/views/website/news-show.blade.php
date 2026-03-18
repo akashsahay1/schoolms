@@ -6,7 +6,8 @@
 
 @section('content')
 <!-- Page Banner -->
-<section class="page-banner">
+@php $__bannerPage = \App\Models\WebsitePage::findBySlug('news'); @endphp
+<section class="page-banner" @if($__bannerPage) style="{{ $__bannerPage->banner_image ? 'background-image: url(' . asset('storage/' . $__bannerPage->banner_image) . ');' : '' }}{{ $__bannerPage->banner_color ? '--banner-color: ' . $__bannerPage->banner_color . ';' : '' }}" @endif>
     <div class="container">
         <h1>{{ $notice->title }}</h1>
         <nav aria-label="breadcrumb">

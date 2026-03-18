@@ -20,7 +20,7 @@ class StaffController extends Controller
 	use HandlesCustomFields;
 	public function index(Request $request)
 	{
-		$query = Staff::with(['department', 'designation', 'user']);
+		$query = Staff::with(['department', 'designation', 'user'])->nonTeaching();
 
 		// Search filter
 		if ($request->filled('search')) {
@@ -45,7 +45,7 @@ class StaffController extends Controller
 
 		$staff = $query->latest()->paginate(15);
 		$departments = Department::active()->orderBy('name')->get();
-		$trashedCount = Staff::onlyTrashed()->count();
+		$trashedCount = Staff::onlyTrashed()->nonTeaching()->count();
 
 		return view('admin.staff.index', compact('staff', 'departments', 'trashedCount'));
 	}
@@ -53,9 +53,11 @@ class StaffController extends Controller
 	public function create()
 	{
 		$departments = Department::active()->orderBy('name')->get();
-		$designations = Designation::active()->orderBy('name')->get();
-		$customFields = $this->getCustomFields('teacher');
-		$fieldSettings = $this->getFormFieldSettings('teacher');
+		$designations = Designation::active()
+			->whereNotIn('name', ['Principal', 'Vice Principal', 'Class Teacher', 'Subject Teacher', 'Assistant Teacher'])
+			->orderBy('name')->get();
+		$customFields = $this->getCustomFields('staff');
+		$fieldSettings = $this->getFormFieldSettings('staff');
 
 		return view('admin.staff.create', compact(
 			'departments', 'designations', 'customFields', 'fieldSettings'
@@ -83,7 +85,7 @@ class StaffController extends Controller
 			'permanent_address' => ['nullable', 'string'],
 
 			// Employment Information
-			'department_id' => ['required', 'exists:departments,id'],
+			'department_id' => ['nullable', 'exists:departments,id'],
 			'designation_id' => ['required', 'exists:designations,id'],
 			'joining_date' => ['required', 'date_format:d-m-Y'],
 			'contract_type' => ['required', 'in:permanent,temporary,contractual'],
@@ -101,6 +103,7 @@ class StaffController extends Controller
 			'aadhaar_front' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048'],
 			'aadhaar_back' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048'],
 			'pan_number' => ['nullable', 'string', 'max:10', 'regex:/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/i'],
+			'pan_front' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048'],
 
 			// Login Password (optional - auto-generate if empty)
 			'password' => ['nullable', 'string', 'min:6', 'max:50'],
@@ -162,7 +165,7 @@ class StaffController extends Controller
 				'emergency_contact' => $validated['emergency_contact'] ?? null,
 				'current_address' => $validated['current_address'] ?? null,
 				'permanent_address' => $validated['permanent_address'] ?? null,
-				'department_id' => $validated['department_id'],
+				'department_id' => $validated['department_id'] ?? null,
 				'designation_id' => $validated['designation_id'],
 				'joining_date' => Carbon::createFromFormat('d-m-Y', $validated['joining_date'])->format('Y-m-d'),
 				'contract_type' => $validated['contract_type'],
@@ -173,12 +176,13 @@ class StaffController extends Controller
 				'aadhaar_number' => $validated['aadhaar_number'] ?? null,
 				'aadhaar_front' => $request->hasFile('aadhaar_front') ? $request->file('aadhaar_front')->store('staff/aadhaar', 'public') : null,
 				'aadhaar_back' => $request->hasFile('aadhaar_back') ? $request->file('aadhaar_back')->store('staff/aadhaar', 'public') : null,
-				'pan_number' => $validated['pan_number'] ? strtoupper($validated['pan_number']) : null,
+				'pan_number' => !empty($validated['pan_number']) ? strtoupper($validated['pan_number']) : null,
+				'pan_front' => $request->hasFile('pan_front') ? $request->file('pan_front')->store('staff/pan', 'public') : null,
 				'status' => 'active',
 			]);
 
 			// Save custom field values
-			$this->saveCustomFieldValues($request, $staff, 'teacher');
+			$this->saveCustomFieldValues($request, $staff, 'staff');
 
 			DB::commit();
 
@@ -195,7 +199,7 @@ class StaffController extends Controller
 	public function show(Staff $staff)
 	{
 		$staff->load(['department', 'designation', 'user', 'customFieldValues.customField']);
-		$customFields = $this->getCustomFields('teacher');
+		$customFields = $this->getCustomFields('staff');
 		$customFieldValues = $this->getCustomFieldValues($staff);
 
 		return view('admin.staff.show', compact('staff', 'customFields', 'customFieldValues'));
@@ -216,10 +220,12 @@ class StaffController extends Controller
 		}
 
 		$departments = Department::active()->orderBy('name')->get();
-		$designations = Designation::active()->orderBy('name')->get();
-		$customFields = $this->getCustomFields('teacher');
+		$designations = Designation::active()
+			->whereNotIn('name', ['Principal', 'Vice Principal', 'Class Teacher', 'Subject Teacher', 'Assistant Teacher'])
+			->orderBy('name')->get();
+		$customFields = $this->getCustomFields('staff');
 		$customFieldValues = $this->getCustomFieldValues($staff);
-		$fieldSettings = $this->getFormFieldSettings('teacher');
+		$fieldSettings = $this->getFormFieldSettings('staff');
 
 		return view('admin.staff.edit', compact(
 			'staff', 'departments', 'designations',
@@ -254,7 +260,7 @@ class StaffController extends Controller
 			'permanent_address' => ['nullable', 'string'],
 
 			// Employment Information
-			'department_id' => ['required', 'exists:departments,id'],
+			'department_id' => ['nullable', 'exists:departments,id'],
 			'designation_id' => ['required', 'exists:designations,id'],
 			'contract_type' => ['required', 'in:permanent,temporary,contractual'],
 			'basic_salary' => ['nullable', 'numeric', 'min:0'],
@@ -271,6 +277,7 @@ class StaffController extends Controller
 			'aadhaar_front' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048'],
 			'aadhaar_back' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048'],
 			'pan_number' => ['nullable', 'string', 'max:10', 'regex:/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/i'],
+			'pan_front' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048'],
 
 			// Status
 			'status' => ['required', 'in:active,inactive,resigned,terminated'],
@@ -300,6 +307,12 @@ class StaffController extends Controller
 				}
 				$validated['aadhaar_back'] = $request->file('aadhaar_back')->store('staff/aadhaar', 'public');
 			}
+			if ($request->hasFile('pan_front')) {
+				if ($staff->pan_front) {
+					Storage::disk('public')->delete($staff->pan_front);
+				}
+				$validated['pan_front'] = $request->file('pan_front')->store('staff/pan', 'public');
+			}
 
 			// Update staff record
 			$staff->update([
@@ -316,7 +329,7 @@ class StaffController extends Controller
 				'emergency_contact' => $validated['emergency_contact'] ?? null,
 				'current_address' => $validated['current_address'] ?? null,
 				'permanent_address' => $validated['permanent_address'] ?? null,
-				'department_id' => $validated['department_id'],
+				'department_id' => $validated['department_id'] ?? null,
 				'designation_id' => $validated['designation_id'],
 				'contract_type' => $validated['contract_type'],
 				'basic_salary' => $validated['basic_salary'] ?? null,
@@ -327,11 +340,12 @@ class StaffController extends Controller
 				'aadhaar_front' => $validated['aadhaar_front'] ?? $staff->aadhaar_front,
 				'aadhaar_back' => $validated['aadhaar_back'] ?? $staff->aadhaar_back,
 				'pan_number' => isset($validated['pan_number']) ? strtoupper($validated['pan_number']) : $staff->pan_number,
+				'pan_front' => $validated['pan_front'] ?? $staff->pan_front,
 				'status' => $validated['status'],
 			]);
 
 			// Save custom field values
-			$this->saveCustomFieldValues($request, $staff, 'teacher');
+			$this->saveCustomFieldValues($request, $staff, 'staff');
 
 			DB::commit();
 
@@ -405,7 +419,7 @@ class StaffController extends Controller
 
 	public function trash(Request $request)
 	{
-		$query = Staff::onlyTrashed()->with(['department', 'designation']);
+		$query = Staff::onlyTrashed()->with(['department', 'designation'])->nonTeaching();
 
 		// Search filter
 		if ($request->filled('search')) {

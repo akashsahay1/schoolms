@@ -373,34 +373,26 @@
 					</li>
 					@endcanany
 
-					<!-- Users & Staff -->
-					@canany(['view users', 'view staff'])
-					<li class="sidebar-list {{ request()->routeIs('admin.users.*') || request()->routeIs('admin.staff.*') ? 'active' : '' }}">
-						<a class="sidebar-link sidebar-title {{ request()->routeIs('admin.users.*') || request()->routeIs('admin.staff.*') ? 'active' : '' }}" href="#">
+					<!-- Staff -->
+					@can('view staff')
+					<li class="sidebar-list {{ request()->routeIs('admin.staff.*') ? 'active' : '' }}">
+						<a class="sidebar-link sidebar-title {{ request()->routeIs('admin.staff.*') ? 'active' : '' }}" href="#">
 							<svg class="stroke-icon">
 								<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-user') }}"></use>
 							</svg>
 							<svg class="fill-icon">
 								<use href="{{ asset('assets/svg/icon-sprite.svg#fill-user') }}"></use>
 							</svg>
-							<span>Users & Staff</span>
+							<span>Staff</span>
 						</a>
-						<ul class="sidebar-submenu" style="{{ request()->routeIs('admin.users.*') || request()->routeIs('admin.staff.*') ? 'display: block;' : '' }}">
-							@can('view users')
-							<li><a class="{{ request()->routeIs('admin.users.index') ? 'active' : '' }}" href="{{ route('admin.users.index') }}">All Users</a></li>
-							@endcan
-							@can('create users')
-							<li><a class="{{ request()->routeIs('admin.users.create') ? 'active' : '' }}" href="{{ route('admin.users.create') }}">Add User</a></li>
-							@endcan
-							@can('view staff')
+						<ul class="sidebar-submenu" style="{{ request()->routeIs('admin.staff.*') ? 'display: block;' : '' }}">
 							<li><a class="{{ request()->routeIs('admin.staff.index') ? 'active' : '' }}" href="{{ route('admin.staff.index') }}">All Staff</a></li>
-							@endcan
 							@can('create staff')
 							<li><a class="{{ request()->routeIs('admin.staff.create') ? 'active' : '' }}" href="{{ route('admin.staff.create') }}">Add Staff</a></li>
 							@endcan
 						</ul>
 					</li>
-					@endcanany
+					@endcan
 
 					<!-- Roles & Permissions (Super Admin only) -->
 					@can('view roles')

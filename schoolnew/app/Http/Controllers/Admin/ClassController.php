@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\SchoolClass;
 use App\Models\AcademicYear;
+use App\Models\Subject;
+use App\Models\Staff;
 use Illuminate\Http\Request;
 
 class ClassController extends Controller
@@ -91,13 +93,60 @@ class ClassController extends Controller
 	public function show(SchoolClass $class)
 	{
 		$class->load(['academicYear', 'sections', 'students', 'subjects']);
-		return view('admin.classes.show', compact('class'));
+		$allSubjects = Subject::active()->orderBy('name')->get();
+		$teachers = Staff::where('status', 'active')->teachers()->orderBy('first_name')->get();
+		return view('admin.classes.show', compact('class', 'allSubjects', 'teachers'));
+	}
+
+	public function addSubject(Request $request, SchoolClass $class)
+	{
+		$request->validate([
+			'subject_id' => ['required', 'exists:subjects,id'],
+		]);
+
+		if ($class->subjects()->where('subject_id', $request->subject_id)->exists()) {
+			return back()->with('error', 'Subject is already assigned to this class.');
+		}
+
+		$class->subjects()->attach($request->subject_id);
+
+		$subject = Subject::find($request->subject_id);
+		return back()->with('success', "Subject \"{$subject->name}\" added to {$class->name}.");
+	}
+
+	public function removeSubject(SchoolClass $class, Subject $subject)
+	{
+		$class->subjects()->detach($subject->id);
+		return back()->with('success', "Subject \"{$subject->name}\" removed from {$class->name}.");
+	}
+
+	public function assignTeacher(Request $request, SchoolClass $class)
+	{
+		$request->validate([
+			'subject_id' => ['required', 'exists:subjects,id'],
+			'teacher_id' => ['nullable', 'exists:staff,id'],
+		]);
+
+		$class->subjects()->updateExistingPivot($request->subject_id, [
+			'teacher_id' => $request->teacher_id ?: null,
+		]);
+
+		$subject = Subject::find($request->subject_id);
+		if ($request->teacher_id) {
+			$teacher = Staff::find($request->teacher_id);
+			return back()->with('success', "{$teacher->full_name} assigned to {$subject->name}.");
+		}
+
+		return back()->with('success', "Teacher removed from {$subject->name}.");
 	}
 
 	public function edit(SchoolClass $class)
 	{
 		$academicYear = AcademicYear::getActive();
-		return view('admin.classes.edit', compact('class', 'academicYear'));
+		$class->load('subjects');
+		$allSubjects = Subject::active()->orderBy('name')->get();
+		$teachers = Staff::where('status', 'active')->teachers()->orderBy('first_name')->get();
+		return view('admin.classes.edit', compact('class', 'academicYear', 'allSubjects', 'teachers'));
 	}
 
 	public function update(Request $request, SchoolClass $class)

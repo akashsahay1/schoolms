@@ -192,4 +192,11 @@ class WebsiteController extends Controller
 
         return back()->with('success', 'Thank you for contacting us. We will get back to you soon.');
     }
+
+    public function page(string $slug)
+    {
+        $page = WebsitePage::where('slug', $slug)->where('is_active', true)->firstOrFail();
+
+        return view('website.page', compact('page'));
+    }
 }

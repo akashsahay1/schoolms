@@ -225,21 +225,17 @@
 			</div>
 		</div>
 
-		<!-- Employment Information -->
+		<!-- Job Details -->
 		<div class="card">
 			<div class="card-header">
-				<h5>Employment Information</h5>
+				<h5>Job Details</h5>
 			</div>
 			<div class="card-body">
 				<div class="row">
 					<div class="col-md-6">
 						<table class="table table-borderless">
 							<tr>
-								<td class="text-muted" style="width: 40%;">Department</td>
-								<td>{{ $staff->department->name ?? 'N/A' }}</td>
-							</tr>
-							<tr>
-								<td class="text-muted">Designation</td>
+								<td class="text-muted" style="width: 40%;">Role</td>
 								<td>{{ $staff->designation->name ?? 'N/A' }}</td>
 							</tr>
 							<tr>
@@ -278,29 +274,6 @@
 			</div>
 		</div>
 
-		<!-- Qualifications -->
-		@if($staff->qualification || $staff->experience)
-			<div class="card">
-				<div class="card-header">
-					<h5>Qualifications & Experience</h5>
-				</div>
-				<div class="card-body">
-					@if($staff->qualification)
-						<div class="mb-3">
-							<h6 class="text-muted">Qualifications</h6>
-							<p>{{ $staff->qualification }}</p>
-						</div>
-					@endif
-					@if($staff->experience)
-						<div>
-							<h6 class="text-muted">Experience</h6>
-							<p class="mb-0">{{ $staff->experience }}</p>
-						</div>
-					@endif
-				</div>
-			</div>
-		@endif
-
 		<!-- Address Information -->
 		@if($staff->current_address || $staff->permanent_address)
 			<div class="card">
@@ -326,11 +299,11 @@
 			</div>
 		@endif
 
-		<!-- Aadhaar & PAN Card Details -->
-		@if($staff->aadhaar_number || $staff->aadhaar_front || $staff->aadhaar_back || $staff->pan_number)
+		<!-- Documents -->
+		@if($staff->aadhaar_number || $staff->aadhaar_front || $staff->aadhaar_back)
 		<div class="card">
 			<div class="card-header">
-				<h5>Aadhaar & PAN Card Details</h5>
+				<h5>Documents</h5>
 			</div>
 			<div class="card-body">
 				<div class="row">
@@ -339,10 +312,6 @@
 							<tr>
 								<td class="text-muted" style="width: 40%;">Aadhaar Number</td>
 								<td><strong>{{ $staff->aadhaar_number ?? 'N/A' }}</strong></td>
-							</tr>
-							<tr>
-								<td class="text-muted">PAN Number</td>
-								<td><strong>{{ $staff->pan_number ?? 'N/A' }}</strong></td>
 							</tr>
 						</table>
 					</div>

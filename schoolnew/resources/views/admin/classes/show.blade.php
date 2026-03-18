@@ -121,6 +121,92 @@
 			</div>
 		</div>
 
+		<!-- Subjects -->
+		<div class="card">
+			<div class="card-header">
+				<div class="d-flex justify-content-between align-items-center">
+					<h5 class="mb-0">Subjects ({{ $class->subjects->count() }})</h5>
+				</div>
+			</div>
+			<div class="card-body">
+				<!-- Add Subject Form -->
+				@php
+					$assignedIds = $class->subjects->pluck('id')->toArray();
+					$availableSubjects = $allSubjects->whereNotIn('id', $assignedIds);
+				@endphp
+				@if($availableSubjects->count() > 0)
+				<form action="{{ route('admin.classes.add-subject', $class) }}" method="POST" class="mb-3">
+					@csrf
+					<div class="input-group">
+						<select class="form-select" name="subject_id" required>
+							<option value="">Select Subject to Add</option>
+							@foreach($availableSubjects as $subject)
+								<option value="{{ $subject->id }}">{{ $subject->name }}</option>
+							@endforeach
+						</select>
+						<button type="submit" class="btn btn-primary">
+							<i class="icon-plus"></i> Add
+						</button>
+					</div>
+				</form>
+				@endif
+
+				<!-- Assigned Subjects with Teacher -->
+				@if($class->subjects->count() > 0)
+					<div class="table-responsive">
+						<table class="table table-striped">
+							<thead>
+								<tr>
+									<th>Subject</th>
+									<th>Assigned Teacher</th>
+									<th style="width: 80px;">Action</th>
+								</tr>
+							</thead>
+							<tbody>
+								@foreach($class->subjects as $subject)
+									@php
+										$assignedTeacher = $subject->pivot->teacher_id ? $teachers->firstWhere('id', $subject->pivot->teacher_id) : null;
+									@endphp
+									<tr>
+										<td>
+											<strong>{{ $subject->name }}</strong>
+											@if($subject->code)<br><small class="text-muted">{{ $subject->code }} | {{ ucfirst($subject->type) }}</small>@endif
+										</td>
+										<td>
+											<form action="{{ route('admin.classes.assign-teacher', $class) }}" method="POST" class="assign-teacher-form">
+												@csrf
+												<input type="hidden" name="subject_id" value="{{ $subject->id }}">
+												<select class="form-select form-select-sm" name="teacher_id" onchange="this.form.submit()">
+													<option value="">-- No Teacher --</option>
+													@foreach($teachers as $teacher)
+														<option value="{{ $teacher->id }}" {{ $subject->pivot->teacher_id == $teacher->id ? 'selected' : '' }}>{{ $teacher->full_name }}</option>
+													@endforeach
+												</select>
+											</form>
+										</td>
+										<td>
+											<form action="{{ route('admin.classes.remove-subject', [$class, $subject]) }}" method="POST" class="d-inline remove-subject-form">
+												@csrf
+												@method('DELETE')
+												<button type="button" class="btn btn-danger btn-sm remove-subject-btn" data-name="{{ $subject->name }}">
+													<i class="icon-trash"></i>
+												</button>
+											</form>
+										</td>
+									</tr>
+								@endforeach
+							</tbody>
+						</table>
+					</div>
+				@else
+					<div class="text-center py-4">
+						<i data-feather="book" style="width: 48px; height: 48px;" class="text-muted"></i>
+						<p class="text-muted mt-2 mb-0">No subjects assigned to this class yet.</p>
+					</div>
+				@endif
+			</div>
+		</div>
+
 		<!-- Recent Students -->
 		<div class="card">
 			<div class="card-header">
@@ -238,3 +324,26 @@
 	</div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+jQuery(document).ready(function() {
+	jQuery(document).on('click', '.remove-subject-btn', function(e) {
+		e.preventDefault();
+		var form = jQuery(this).closest('form');
+		var name = jQuery(this).data('name');
+		Swal.fire({
+			title: 'Remove Subject?',
+			html: 'Remove <strong>' + name + '</strong> from this class?',
+			icon: 'warning',
+			showCancelButton: true,
+			confirmButtonColor: '#d33',
+			confirmButtonText: 'Yes, remove',
+			reverseButtons: true
+		}).then(function(result) {
+			if (result.isConfirmed) form.submit();
+		});
+	});
+});
+</script>
+@endpush

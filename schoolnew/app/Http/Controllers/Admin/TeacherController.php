@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Staff;
-use App\Models\Department;
 use App\Models\Designation;
 use App\Models\Subject;
 use App\Models\User;
@@ -17,9 +16,11 @@ use Carbon\Carbon;
 
 class TeacherController extends Controller
 {
+	use \App\Traits\HandlesCustomFields;
+
 	public function index(Request $request)
 	{
-		$query = Staff::with(['department', 'designation'])->teachers();
+		$query = Staff::with(['subject', 'designation'])->teachers();
 
 		// Search filter
 		if ($request->filled('search')) {
@@ -32,9 +33,9 @@ class TeacherController extends Controller
 			});
 		}
 
-		// Department filter
-		if ($request->filled('department_id')) {
-			$query->where('department_id', $request->department_id);
+		// Subject filter
+		if ($request->filled('subject_id')) {
+			$query->where('subject_id', $request->subject_id);
 		}
 
 		// Status filter
@@ -43,19 +44,20 @@ class TeacherController extends Controller
 		}
 
 		$teachers = $query->latest()->paginate(15);
-		$departments = Department::active()->orderBy('name')->get();
+		$subjects = Subject::active()->orderBy('name')->get();
 		$trashedCount = Staff::onlyTrashed()->teachers()->count();
 
-		return view('admin.teachers.index', compact('teachers', 'departments', 'trashedCount'));
+		return view('admin.teachers.index', compact('teachers', 'subjects', 'trashedCount'));
 	}
 
 	public function create()
 	{
-		$departments = Department::active()->orderBy('name')->get();
-		$designations = Designation::active()->where('name', 'like', '%teacher%')->orderBy('name')->get();
+		$designations = Designation::active()->whereIn('name', ['Principal', 'Vice Principal', 'Class Teacher', 'Subject Teacher', 'Assistant Teacher'])->orderBy('name')->get();
 		$subjects = Subject::active()->orderBy('name')->get();
+		$customFields = $this->getCustomFields('teacher');
+		$fieldSettings = $this->getFormFieldSettings('teacher');
 
-		return view('admin.teachers.create', compact('departments', 'designations', 'subjects'));
+		return view('admin.teachers.create', compact('designations', 'subjects', 'customFields', 'fieldSettings'));
 	}
 
 	public function store(Request $request)
@@ -79,7 +81,7 @@ class TeacherController extends Controller
 			'permanent_address' => ['nullable', 'string'],
 
 			// Employment Information
-			'department_id' => ['required', 'exists:departments,id'],
+			'subject_id' => ['required', 'exists:subjects,id'],
 			'designation_id' => ['required', 'exists:designations,id'],
 			'joining_date' => ['required', 'date_format:d-m-Y'],
 			'contract_type' => ['required', 'in:permanent,temporary,contractual'],
@@ -91,6 +93,13 @@ class TeacherController extends Controller
 
 			// Photo
 			'photo' => ['nullable', 'image', 'max:2048'],
+
+			// Aadhaar & PAN Card
+			'aadhaar_number' => ['nullable', 'string', 'size:12', 'regex:/^[0-9]{12}$/'],
+			'aadhaar_front' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048'],
+			'aadhaar_back' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048'],
+			'pan_number' => ['nullable', 'string', 'max:10', 'regex:/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/i'],
+			'pan_front' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048'],
 
 			// Login Password (optional - auto-generate if empty)
 			'password' => ['nullable', 'string', 'min:6', 'max:50'],
@@ -137,7 +146,7 @@ class TeacherController extends Controller
 				'emergency_contact' => $validated['emergency_contact'] ?? null,
 				'current_address' => $validated['current_address'] ?? null,
 				'permanent_address' => $validated['permanent_address'] ?? null,
-				'department_id' => $validated['department_id'],
+				'subject_id' => $validated['subject_id'],
 				'designation_id' => $validated['designation_id'],
 				'joining_date' => Carbon::createFromFormat('d-m-Y', $validated['joining_date'])->format('Y-m-d'),
 				'contract_type' => $validated['contract_type'],
@@ -145,8 +154,16 @@ class TeacherController extends Controller
 				'qualification' => $validated['qualification'] ?? null,
 				'experience' => $validated['experience'] ?? null,
 				'photo' => $photoPath,
+				'aadhaar_number' => $validated['aadhaar_number'] ?? null,
+				'aadhaar_front' => $request->hasFile('aadhaar_front') ? $request->file('aadhaar_front')->store('staff/aadhaar', 'public') : null,
+				'aadhaar_back' => $request->hasFile('aadhaar_back') ? $request->file('aadhaar_back')->store('staff/aadhaar', 'public') : null,
+				'pan_number' => !empty($validated['pan_number']) ? strtoupper($validated['pan_number']) : null,
+				'pan_front' => $request->hasFile('pan_front') ? $request->file('pan_front')->store('staff/pan', 'public') : null,
 				'status' => 'active',
 			]);
+
+			// Save custom field values
+			$this->saveCustomFieldValues($request, $staff, 'teacher');
 
 			DB::commit();
 
@@ -162,17 +179,19 @@ class TeacherController extends Controller
 
 	public function show(Staff $teacher)
 	{
-		$teacher->load(['department', 'designation', 'user']);
+		$teacher->load(['subject', 'designation', 'user']);
 		return view('admin.teachers.show', compact('teacher'));
 	}
 
 	public function edit(Staff $teacher)
 	{
-		$departments = Department::active()->orderBy('name')->get();
-		$designations = Designation::active()->where('name', 'like', '%teacher%')->orderBy('name')->get();
+		$designations = Designation::active()->whereIn('name', ['Principal', 'Vice Principal', 'Class Teacher', 'Subject Teacher', 'Assistant Teacher'])->orderBy('name')->get();
 		$subjects = Subject::active()->orderBy('name')->get();
+		$customFields = $this->getCustomFields('teacher');
+		$customFieldValues = $this->getCustomFieldValues($teacher);
+		$fieldSettings = $this->getFormFieldSettings('teacher');
 
-		return view('admin.teachers.edit', compact('teacher', 'departments', 'designations', 'subjects'));
+		return view('admin.teachers.edit', compact('teacher', 'designations', 'subjects', 'customFields', 'customFieldValues', 'fieldSettings'));
 	}
 
 	public function update(Request $request, Staff $teacher)
@@ -196,7 +215,7 @@ class TeacherController extends Controller
 			'permanent_address' => ['nullable', 'string'],
 
 			// Employment Information
-			'department_id' => ['required', 'exists:departments,id'],
+			'subject_id' => ['required', 'exists:subjects,id'],
 			'designation_id' => ['required', 'exists:designations,id'],
 			'contract_type' => ['required', 'in:permanent,temporary,contractual'],
 			'basic_salary' => ['nullable', 'numeric', 'min:0'],
@@ -208,6 +227,13 @@ class TeacherController extends Controller
 			// Photo
 			'photo' => ['nullable', 'image', 'max:2048'],
 
+			// Aadhaar & PAN Card
+			'aadhaar_number' => ['nullable', 'string', 'size:12', 'regex:/^[0-9]{12}$/'],
+			'aadhaar_front' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048'],
+			'aadhaar_back' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048'],
+			'pan_number' => ['nullable', 'string', 'max:10', 'regex:/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/i'],
+			'pan_front' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048'],
+
 			// Status
 			'status' => ['required', 'in:active,inactive,resigned,terminated'],
 		]);
@@ -217,11 +243,26 @@ class TeacherController extends Controller
 
 			// Handle photo upload
 			if ($request->hasFile('photo')) {
-				// Delete old photo
 				if ($teacher->photo) {
 					Storage::disk('public')->delete($teacher->photo);
 				}
 				$validated['photo'] = $request->file('photo')->store('teachers', 'public');
+			}
+
+			// Handle Aadhaar/PAN file uploads
+			foreach (['aadhaar_front', 'aadhaar_back'] as $file) {
+				if ($request->hasFile($file)) {
+					if ($teacher->$file) {
+						Storage::disk('public')->delete($teacher->$file);
+					}
+					$validated[$file] = $request->file($file)->store('staff/aadhaar', 'public');
+				}
+			}
+			if ($request->hasFile('pan_front')) {
+				if ($teacher->pan_front) {
+					Storage::disk('public')->delete($teacher->pan_front);
+				}
+				$validated['pan_front'] = $request->file('pan_front')->store('staff/pan', 'public');
 			}
 
 			// Update teacher record
@@ -239,15 +280,23 @@ class TeacherController extends Controller
 				'emergency_contact' => $validated['emergency_contact'] ?? null,
 				'current_address' => $validated['current_address'] ?? null,
 				'permanent_address' => $validated['permanent_address'] ?? null,
-				'department_id' => $validated['department_id'],
+				'subject_id' => $validated['subject_id'],
 				'designation_id' => $validated['designation_id'],
 				'contract_type' => $validated['contract_type'],
 				'basic_salary' => $validated['basic_salary'] ?? null,
 				'qualification' => $validated['qualification'] ?? null,
 				'experience' => $validated['experience'] ?? null,
 				'photo' => $validated['photo'] ?? $teacher->photo,
+				'aadhaar_number' => $validated['aadhaar_number'] ?? $teacher->aadhaar_number,
+				'aadhaar_front' => $validated['aadhaar_front'] ?? $teacher->aadhaar_front,
+				'aadhaar_back' => $validated['aadhaar_back'] ?? $teacher->aadhaar_back,
+				'pan_number' => isset($validated['pan_number']) ? strtoupper($validated['pan_number']) : $teacher->pan_number,
+				'pan_front' => $validated['pan_front'] ?? $teacher->pan_front,
 				'status' => $validated['status'],
 			]);
+
+			// Save custom field values
+			$this->saveCustomFieldValues($request, $teacher, 'teacher');
 
 			DB::commit();
 
@@ -263,10 +312,16 @@ class TeacherController extends Controller
 	public function destroy(Staff $teacher)
 	{
 		try {
+			// Check class-subject assignments
+			$assignments = \DB::table('class_subject')->where('teacher_id', $teacher->id)->count();
 			$teacher->delete();
 
-			return redirect()->route('admin.teachers.index')
-				->with('success', 'Teacher moved to trash successfully.');
+			$msg = "Teacher \"{$teacher->full_name}\" moved to trash.";
+			if ($assignments > 0) {
+				$msg .= " They had {$assignments} class-subject assignment(s) which will be kept. Restore the teacher to reactivate them, or permanently delete to clear them.";
+			}
+
+			return redirect()->route('admin.teachers.index')->with('success', $msg);
 
 		} catch (\Exception $e) {
 			return back()->with('error', 'An error occurred: ' . $e->getMessage());
@@ -299,7 +354,7 @@ class TeacherController extends Controller
 
 	public function trash(Request $request)
 	{
-		$query = Staff::onlyTrashed()->with(['department', 'designation'])->teachers();
+		$query = Staff::onlyTrashed()->with(['subject', 'designation'])->teachers();
 
 		// Search filter
 		if ($request->filled('search')) {

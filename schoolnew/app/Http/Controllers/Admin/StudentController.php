@@ -488,13 +488,29 @@ class StudentController extends Controller
         try {
             $student = Student::onlyTrashed()->findOrFail($id);
 
-            // Delete photo if exists
-            if ($student->photo) {
-                Storage::disk('public')->delete($student->photo);
+            // Delete photo and aadhaar files if exist
+            foreach (['photo', 'aadhaar_front', 'aadhaar_back'] as $file) {
+                if ($student->$file) {
+                    Storage::disk('public')->delete($student->$file);
+                }
             }
 
             $name = $student->full_name;
+            $parentId = $student->parent_id;
+            $userId = $student->user_id;
+
             $student->forceDelete();
+
+            // Delete parent if no other students linked
+            $this->cleanupParent($parentId);
+
+            // Delete student user account if exists
+            if ($userId) {
+                $user = \App\Models\User::find($userId);
+                if ($user) {
+                    $user->forceDelete();
+                }
+            }
 
             return redirect()->route('admin.students.trash')
                 ->with('success', "Student '{$name}' permanently deleted.");
@@ -539,12 +555,30 @@ class StudentController extends Controller
             $students = Student::onlyTrashed()->whereIn('id', $request->student_ids)->get();
             $count = $students->count();
 
+            $parentIds = [];
+            $userIds = [];
+
             foreach ($students as $student) {
-                // Delete photo if exists
-                if ($student->photo) {
-                    Storage::disk('public')->delete($student->photo);
+                foreach (['photo', 'aadhaar_front', 'aadhaar_back'] as $file) {
+                    if ($student->$file) {
+                        Storage::disk('public')->delete($student->$file);
+                    }
+                }
+                if ($student->parent_id) {
+                    $parentIds[] = $student->parent_id;
+                }
+                if ($student->user_id) {
+                    $userIds[] = $student->user_id;
                 }
                 $student->forceDelete();
+            }
+
+            // Cleanup orphaned parents and user accounts
+            foreach (array_unique($parentIds) as $parentId) {
+                $this->cleanupParent($parentId);
+            }
+            if (!empty($userIds)) {
+                \App\Models\User::whereIn('id', $userIds)->forceDelete();
             }
 
             DB::commit();
@@ -571,11 +605,29 @@ class StudentController extends Controller
             $students = Student::onlyTrashed()->get();
             $count = $students->count();
 
+            $parentIds = [];
+            $userIds = [];
+
             foreach ($students as $student) {
-                if ($student->photo) {
-                    Storage::disk('public')->delete($student->photo);
+                foreach (['photo', 'aadhaar_front', 'aadhaar_back'] as $file) {
+                    if ($student->$file) {
+                        Storage::disk('public')->delete($student->$file);
+                    }
+                }
+                if ($student->parent_id) {
+                    $parentIds[] = $student->parent_id;
+                }
+                if ($student->user_id) {
+                    $userIds[] = $student->user_id;
                 }
                 $student->forceDelete();
+            }
+
+            foreach (array_unique($parentIds) as $parentId) {
+                $this->cleanupParent($parentId);
+            }
+            if (!empty($userIds)) {
+                \App\Models\User::whereIn('id', $userIds)->forceDelete();
             }
 
             DB::commit();
@@ -632,5 +684,37 @@ class StudentController extends Controller
         ]);
 
         return back()->with('success', 'Login email updated successfully.');
+    }
+
+    /**
+     * Delete parent and their user account if no other students are linked.
+     */
+    private function cleanupParent(?int $parentId): void
+    {
+        if (!$parentId) {
+            return;
+        }
+
+        $parent = \App\Models\ParentGuardian::withTrashed()->find($parentId);
+        if (!$parent) {
+            return;
+        }
+
+        // Check if any other students (including trashed) still reference this parent
+        $otherStudents = Student::withTrashed()->where('parent_id', $parentId)->count();
+        if ($otherStudents > 0) {
+            return;
+        }
+
+        // Delete parent's user account
+        if ($parent->user_id) {
+            $user = \App\Models\User::find($parent->user_id);
+            if ($user) {
+                $user->forceDelete();
+            }
+        }
+
+        // Delete parent record
+        $parent->forceDelete();
     }
 }

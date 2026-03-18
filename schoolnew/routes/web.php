@@ -71,6 +71,7 @@ Route::name('website.')->group(function () {
     Route::get('/events/{event}', [WebsiteController::class, 'eventShow'])->name('events.show');
     Route::get('/contact', [WebsiteController::class, 'contact'])->name('contact');
     Route::post('/contact', [WebsiteController::class, 'contactStore'])->name('contact.store');
+    Route::get('/page/{slug}', [WebsiteController::class, 'page'])->name('page');
 });
 
 // Authentication Routes
@@ -156,6 +157,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Super Admin,Ad
 
     // Classes
     Route::resource('classes', ClassController::class);
+    Route::post('classes/{class}/add-subject', [ClassController::class, 'addSubject'])->name('classes.add-subject');
+    Route::delete('classes/{class}/remove-subject/{subject}', [ClassController::class, 'removeSubject'])->name('classes.remove-subject');
+    Route::post('classes/{class}/assign-teacher', [ClassController::class, 'assignTeacher'])->name('classes.assign-teacher');
 
     // Sections
     Route::resource('sections', SectionController::class);
@@ -744,6 +748,15 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Super Admin,Ad
         Route::get('/contacts/{contact}', [App\Http\Controllers\Admin\WebsiteSettingController::class, 'showContact'])->name('contacts.show');
         Route::post('/contacts/{contact}/reply', [App\Http\Controllers\Admin\WebsiteSettingController::class, 'replyContact'])->name('contacts.reply');
         Route::delete('/contacts/{contact}', [App\Http\Controllers\Admin\WebsiteSettingController::class, 'destroyContact'])->name('contacts.destroy');
+
+        // Website Images
+        Route::get('/images', [App\Http\Controllers\Admin\WebsiteSettingController::class, 'images'])->name('images');
+        Route::post('/images/upload', [App\Http\Controllers\Admin\WebsiteSettingController::class, 'uploadImage'])->name('images.upload');
+        Route::post('/images/delete', [App\Http\Controllers\Admin\WebsiteSettingController::class, 'deleteImage'])->name('images.delete');
+
+        // Homepage Sections
+        Route::get('/homepage-sections', [App\Http\Controllers\Admin\WebsiteSettingController::class, 'homepageSections'])->name('homepage-sections');
+        Route::put('/homepage-sections', [App\Http\Controllers\Admin\WebsiteSettingController::class, 'updateHomepageSections'])->name('update-homepage-sections');
     });
 });
 

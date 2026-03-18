@@ -32,6 +32,18 @@
         return ($fs[$field]['required'] ?? false) && ($fs[$field]['visible'] ?? true);
     };
 @endphp
+
+@if(auth()->user()->hasRole('Super Admin'))
+<div class="d-flex justify-content-end gap-2 mb-3">
+    <a href="{{ route('admin.custom-fields.form-settings') }}" class="btn btn-outline-info btn-sm">
+        <i class="icon-settings"></i> Form Fields Settings
+    </a>
+    <a href="{{ route('admin.custom-fields.create') }}" class="btn btn-outline-primary btn-sm">
+        <i class="icon-plus"></i> Add Custom Field
+    </a>
+</div>
+@endif
+
 <form method="POST" action="{{ route('admin.students.store') }}" enctype="multipart/form-data">
     @csrf
 
@@ -44,13 +56,15 @@
                 </div>
                 <div class="card-body">
                     <div class="row">
+                        @if($isVisible('first_name'))
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">First Name <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('first_name') is-invalid @enderror" name="first_name" value="{{ old('first_name') }}" required>
+                            <label class="form-label">First Name @if($isRequired('first_name'))<span class="text-danger">*</span>@endif</label>
+                            <input type="text" class="form-control @error('first_name') is-invalid @enderror" name="first_name" value="{{ old('first_name') }}" {{ $isRequired('first_name') ? 'required' : '' }}>
                             @error('first_name')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
+                        @endif
                         @if($isVisible('last_name'))
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Last Name @if($isRequired('last_name'))<span class="text-danger">*</span>@endif</label>
@@ -63,9 +77,10 @@
                     </div>
 
                     <div class="row">
+                        @if($isVisible('gender'))
                         <div class="col-md-4 mb-3">
-                            <label class="form-label">Gender <span class="text-danger">*</span></label>
-                            <select class="form-select @error('gender') is-invalid @enderror" name="gender" required>
+                            <label class="form-label">Gender @if($isRequired('gender'))<span class="text-danger">*</span>@endif</label>
+                            <select class="form-select @error('gender') is-invalid @enderror" name="gender" {{ $isRequired('gender') ? 'required' : '' }}>
                                 <option value="">Select Gender</option>
                                 <option value="male" {{ old('gender') == 'male' ? 'selected' : '' }}>Male</option>
                                 <option value="female" {{ old('gender') == 'female' ? 'selected' : '' }}>Female</option>
@@ -75,13 +90,16 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
+                        @endif
+                        @if($isVisible('date_of_birth'))
                         <div class="col-md-4 mb-3">
-                            <label class="form-label">Date of Birth <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control flatpickr-input @error('date_of_birth') is-invalid @enderror" id="date_of_birth" name="date_of_birth" value="{{ old('date_of_birth') }}" placeholder="Select Date" required>
+                            <label class="form-label">Date of Birth @if($isRequired('date_of_birth'))<span class="text-danger">*</span>@endif</label>
+                            <input type="text" class="form-control flatpickr-input @error('date_of_birth') is-invalid @enderror" id="date_of_birth" name="date_of_birth" value="{{ old('date_of_birth') }}" placeholder="Select Date" {{ $isRequired('date_of_birth') ? 'required' : '' }}>
                             @error('date_of_birth')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
+                        @endif
                         @if($isVisible('blood_group'))
                         <div class="col-md-4 mb-3">
                             <label class="form-label">Blood Group @if($isRequired('blood_group'))<span class="text-danger">*</span>@endif</label>
@@ -134,9 +152,10 @@
                 </div>
                 <div class="card-body">
                     <div class="row">
+                        @if($isVisible('class_id'))
                         <div class="col-md-4 mb-3">
-                            <label class="form-label">Class <span class="text-danger">*</span></label>
-                            <select class="form-select @error('class_id') is-invalid @enderror" name="class_id" id="classSelect" required>
+                            <label class="form-label">Class @if($isRequired('class_id'))<span class="text-danger">*</span>@endif</label>
+                            <select class="form-select @error('class_id') is-invalid @enderror" name="class_id" id="classSelect" {{ $isRequired('class_id') ? 'required' : '' }}>
                                 <option value="">Select Class</option>
                                 @foreach($classes as $class)
                                     <option value="{{ $class->id }}" {{ old('class_id') == $class->id ? 'selected' : '' }}>{{ $class->name }}</option>
@@ -146,15 +165,18 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
+                        @endif
+                        @if($isVisible('section_id'))
                         <div class="col-md-4 mb-3">
-                            <label class="form-label">Section <span class="text-danger">*</span></label>
-                            <select class="form-select @error('section_id') is-invalid @enderror" name="section_id" id="sectionSelect" required>
+                            <label class="form-label">Section @if($isRequired('section_id'))<span class="text-danger">*</span>@endif</label>
+                            <select class="form-select @error('section_id') is-invalid @enderror" name="section_id" id="sectionSelect" {{ $isRequired('section_id') ? 'required' : '' }}>
                                 <option value="">Select Section</option>
                             </select>
                             @error('section_id')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
+                        @endif
                         @if($isVisible('roll_no'))
                         <div class="col-md-4 mb-3">
                             <label class="form-label">Roll No @if($isRequired('roll_no'))<span class="text-danger">*</span>@endif</label>
@@ -164,13 +186,15 @@
                     </div>
 
                     <div class="row">
+                        @if($isVisible('admission_date'))
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Admission Date <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control flatpickr-input @error('admission_date') is-invalid @enderror" id="admission_date" name="admission_date" value="{{ old('admission_date', date('d-m-Y')) }}" placeholder="Select Date" required>
+                            <label class="form-label">Admission Date @if($isRequired('admission_date'))<span class="text-danger">*</span>@endif</label>
+                            <input type="text" class="form-control flatpickr-input @error('admission_date') is-invalid @enderror" id="admission_date" name="admission_date" value="{{ old('admission_date', date('d-m-Y')) }}" placeholder="Select Date" {{ $isRequired('admission_date') ? 'required' : '' }}>
                             @error('admission_date')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
+                        @endif
                         @if($isVisible('previous_school'))
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Previous School @if($isRequired('previous_school'))<span class="text-danger">*</span>@endif</label>
@@ -271,13 +295,15 @@
                 <div class="card-body">
                     <h6 class="mb-3 text-primary">Father's Details</h6>
                     <div class="row">
+                        @if($isVisible('father_name'))
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Father's Name <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('father_name') is-invalid @enderror" name="father_name" value="{{ old('father_name') }}" required>
+                            <label class="form-label">Father's Name @if($isRequired('father_name'))<span class="text-danger">*</span>@endif</label>
+                            <input type="text" class="form-control @error('father_name') is-invalid @enderror" name="father_name" value="{{ old('father_name') }}" {{ $isRequired('father_name') ? 'required' : '' }}>
                             @error('father_name')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
+                        @endif
                         @if($isVisible('father_phone'))
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Father's Phone @if($isRequired('father_phone'))<span class="text-danger">*</span>@endif</label>

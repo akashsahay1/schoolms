@@ -23,6 +23,44 @@
             </div>
             <div class="card-body">
                 <div class="row g-4">
+                    <!-- Website Images -->
+                    <div class="col-xl-4 col-md-6">
+                        <div class="card border shadow-sm h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h6 class="text-muted mb-2">Website Images</h6>
+                                        <h3 class="mb-0">{{ $stats['pages'] }}</h3>
+                                    </div>
+                                    <div class="bg-light-primary p-3 rounded">
+                                        <i data-feather="camera" style="width: 24px; height: 24px;"></i>
+                                    </div>
+                                </div>
+                                <a href="{{ route('admin.website.images') }}" class="btn btn-light btn-sm mt-3">
+                                    Manage Images <i data-feather="arrow-right" style="width: 14px;"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Homepage Sections -->
+                    <div class="col-xl-4 col-md-6">
+                        <div class="card border shadow-sm h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h6 class="text-muted mb-2">Homepage Sections</h6>
+                                        <h3 class="mb-0">3</h3>
+                                    </div>
+                                    <div class="bg-light-info p-3 rounded">
+                                        <i data-feather="layout" style="width: 24px; height: 24px;"></i>
+                                    </div>
+                                </div>
+                                <a href="{{ route('admin.website.homepage-sections') }}" class="btn btn-light btn-sm mt-3">
+                                    Edit Sections <i data-feather="arrow-right" style="width: 14px;"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                     <!-- Sliders -->
                     <div class="col-xl-4 col-md-6">
                         <div class="card border shadow-sm h-100">
@@ -123,25 +161,6 @@
                         </div>
                     </div>
 
-                    <!-- Contact Messages -->
-                    <div class="col-xl-4 col-md-6">
-                        <div class="card border shadow-sm h-100">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between">
-                                    <div>
-                                        <h6 class="text-muted mb-2">New Messages</h6>
-                                        <h3 class="mb-0">{{ $stats['contacts'] }}</h3>
-                                    </div>
-                                    <div class="bg-light-danger p-3 rounded">
-                                        <i data-feather="mail" class="text-danger"></i>
-                                    </div>
-                                </div>
-                                <a href="{{ route('admin.website.contacts') }}" class="btn btn-light btn-sm mt-3">
-                                    View Messages <i data-feather="arrow-right" style="width: 14px;"></i>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>

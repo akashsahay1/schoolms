@@ -54,7 +54,7 @@
 					</li>
 					<li class="mb-2">
 						<i data-feather="briefcase" class="me-2 text-muted"></i>
-						{{ $teacher->department->name ?? 'N/A' }}
+						{{ $teacher->subject->name ?? 'N/A' }}
 					</li>
 					<li class="mb-2">
 						<i data-feather="calendar" class="me-2 text-muted"></i>
@@ -230,8 +230,8 @@
 			<div class="card-body">
 				<div class="row g-3">
 					<div class="col-md-6">
-						<label class="text-muted small">Department</label>
-						<p class="mb-0">{{ $teacher->department->name ?? 'N/A' }}</p>
+						<label class="text-muted small">Subject</label>
+						<p class="mb-0">{{ $teacher->subject->name ?? 'N/A' }}</p>
 					</div>
 					<div class="col-md-6">
 						<label class="text-muted small">Designation</label>
