@@ -58,7 +58,7 @@ class RouteAssignmentController extends Controller
         $routes = TransportRoute::with('vehicle')->active()->orderBy('route_name')->get();
         $classes = SchoolClass::where('is_active', true)->orderBy('order')->get();
         $academicYears = AcademicYear::orderBy('start_date', 'desc')->get();
-        $currentAcademicYear = AcademicYear::where('is_current', true)->first();
+        $currentAcademicYear = AcademicYear::where('is_active', true)->first();
 
         return view('admin.transport.assignments.create', compact('routes', 'classes', 'academicYears', 'currentAcademicYear'));
     }

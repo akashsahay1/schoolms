@@ -21,7 +21,7 @@ class TransportFeeController extends Controller
     public function index(Request $request)
     {
         $academicYears = AcademicYear::orderBy('name', 'desc')->get();
-        $currentYear = AcademicYear::where('is_current', true)->first();
+        $currentYear = AcademicYear::where('is_active', true)->first();
         $selectedYear = $request->academic_year_id ?? $currentYear?->id;
 
         $fees = TransportFee::with(['route', 'academicYear'])
@@ -38,7 +38,7 @@ class TransportFeeController extends Controller
     public function create()
     {
         $academicYears = AcademicYear::orderBy('name', 'desc')->get();
-        $currentYear = AcademicYear::where('is_current', true)->first();
+        $currentYear = AcademicYear::where('is_active', true)->first();
         $routes = TransportRoute::active()->get();
 
         return view('admin.transport.fees.create', compact('academicYears', 'currentYear', 'routes'));
@@ -130,7 +130,7 @@ class TransportFeeController extends Controller
     public function collections(Request $request)
     {
         $academicYears = AcademicYear::orderBy('name', 'desc')->get();
-        $currentYear = AcademicYear::where('is_current', true)->first();
+        $currentYear = AcademicYear::where('is_active', true)->first();
         $selectedYear = $request->academic_year_id ?? $currentYear?->id;
 
         $routes = TransportRoute::active()->get();
@@ -185,7 +185,7 @@ class TransportFeeController extends Controller
      */
     public function collectForm(Student $student)
     {
-        $currentYear = AcademicYear::where('is_current', true)->first();
+        $currentYear = AcademicYear::where('is_active', true)->first();
 
         // Get student's route assignment
         $assignment = RouteAssignment::where('student_id', $student->id)
@@ -358,7 +358,7 @@ class TransportFeeController extends Controller
     public function reports(Request $request)
     {
         $academicYears = AcademicYear::orderBy('name', 'desc')->get();
-        $currentYear = AcademicYear::where('is_current', true)->first();
+        $currentYear = AcademicYear::where('is_active', true)->first();
         $selectedYear = $request->academic_year_id ?? $currentYear?->id;
 
         // Route-wise collection summary
@@ -397,7 +397,7 @@ class TransportFeeController extends Controller
      */
     public function exportCollections(Request $request)
     {
-        $academicYearId = $request->academic_year_id ?? AcademicYear::where('is_current', true)->first()?->id;
+        $academicYearId = $request->academic_year_id ?? AcademicYear::where('is_active', true)->first()?->id;
 
         $collections = TransportFeeCollection::with(['student', 'transportFee.route'])
             ->whereHas('transportFee', fn($q) => $q->where('academic_year_id', $academicYearId))

@@ -94,7 +94,7 @@ class StaffLeaveController extends Controller
             ->get();
         $leaveTypes = LeaveType::active()->forStaff()->orderBy('name')->get();
         $academicYears = AcademicYear::orderBy('start_date', 'desc')->get();
-        $currentAcademicYear = AcademicYear::where('is_current', true)->first();
+        $currentAcademicYear = AcademicYear::where('is_active', true)->first();
 
         return view('admin.staff-leaves.create', compact('staff', 'leaveTypes', 'academicYears', 'currentAcademicYear'));
     }
@@ -357,7 +357,7 @@ class StaffLeaveController extends Controller
      */
     public function balances(Request $request)
     {
-        $currentAcademicYear = AcademicYear::where('is_current', true)->first();
+        $currentAcademicYear = AcademicYear::where('is_active', true)->first();
         $academicYears = AcademicYear::orderBy('start_date', 'desc')->get();
         $departments = Department::where('is_active', true)->orderBy('name')->get();
 
@@ -397,7 +397,7 @@ class StaffLeaveController extends Controller
             ->get();
         $leaveTypes = LeaveType::active()->forStaff()->orderBy('name')->get();
         $academicYears = AcademicYear::orderBy('start_date', 'desc')->get();
-        $currentAcademicYear = AcademicYear::where('is_current', true)->first();
+        $currentAcademicYear = AcademicYear::where('is_active', true)->first();
 
         return view('admin.staff-leaves.allocate', compact('staff', 'leaveTypes', 'academicYears', 'currentAcademicYear'));
     }
@@ -448,7 +448,7 @@ class StaffLeaveController extends Controller
      */
     public function reports(Request $request)
     {
-        $currentAcademicYear = AcademicYear::where('is_current', true)->first();
+        $currentAcademicYear = AcademicYear::where('is_active', true)->first();
         $academicYears = AcademicYear::orderBy('start_date', 'desc')->get();
         $departments = Department::where('is_active', true)->orderBy('name')->get();
         $leaveTypes = LeaveType::active()->forStaff()->orderBy('name')->get();

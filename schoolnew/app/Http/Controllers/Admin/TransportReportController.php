@@ -18,7 +18,7 @@ class TransportReportController extends Controller
      */
     public function index()
     {
-        $currentAcademicYear = AcademicYear::where('is_current', true)->first();
+        $currentAcademicYear = AcademicYear::where('is_active', true)->first();
 
         // Statistics
         $totalVehicles = Vehicle::count();
@@ -87,7 +87,7 @@ class TransportReportController extends Controller
     {
         $routes = TransportRoute::with('vehicle')->where('is_active', true)->orderBy('route_name')->get();
         $academicYears = AcademicYear::orderBy('start_date', 'desc')->get();
-        $currentAcademicYear = AcademicYear::where('is_current', true)->first();
+        $currentAcademicYear = AcademicYear::where('is_active', true)->first();
 
         $selectedRoute = $request->route_id;
         $selectedYear = $request->academic_year_id ?? $currentAcademicYear?->id;
@@ -126,7 +126,7 @@ class TransportReportController extends Controller
     {
         $classes = SchoolClass::where('is_active', true)->orderBy('order')->get();
         $academicYears = AcademicYear::orderBy('start_date', 'desc')->get();
-        $currentAcademicYear = AcademicYear::where('is_current', true)->first();
+        $currentAcademicYear = AcademicYear::where('is_active', true)->first();
 
         $selectedClass = $request->class_id;
         $selectedYear = $request->academic_year_id ?? $currentAcademicYear?->id;
@@ -178,7 +178,7 @@ class TransportReportController extends Controller
     {
         $vehicles = Vehicle::where('status', 'active')->orderBy('vehicle_no')->get();
         $academicYears = AcademicYear::orderBy('start_date', 'desc')->get();
-        $currentAcademicYear = AcademicYear::where('is_current', true)->first();
+        $currentAcademicYear = AcademicYear::where('is_active', true)->first();
 
         $selectedVehicle = $request->vehicle_id;
         $selectedYear = $request->academic_year_id ?? $currentAcademicYear?->id;

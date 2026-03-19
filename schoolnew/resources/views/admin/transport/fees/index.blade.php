@@ -53,7 +53,7 @@
                             <select name="academic_year_id" class="form-select" onchange="this.form.submit()">
                                 @foreach($academicYears as $year)
                                     <option value="{{ $year->id }}" {{ $selectedYear == $year->id ? 'selected' : '' }}>
-                                        {{ $year->name }} {{ $year->is_current ? '(Current)' : '' }}
+                                        {{ $year->name }} {{ $year->is_active ? '(Current)' : '' }}
                                     </option>
                                 @endforeach
                             </select>

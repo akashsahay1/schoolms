@@ -55,7 +55,7 @@
                                 <option value="">Select Academic Year</option>
                                 @foreach($academicYears as $year)
                                     <option value="{{ $year->id }}" {{ (old('academic_year_id', $assignment->academic_year_id) == $year->id) ? 'selected' : '' }}>
-                                        {{ $year->name }} {{ $year->is_current ? '(Current)' : '' }}
+                                        {{ $year->name }} {{ $year->is_active ? '(Current)' : '' }}
                                     </option>
                                 @endforeach
                             </select>

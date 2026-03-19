@@ -79,7 +79,7 @@ class CacheService
     public static function getCurrentAcademicYear()
     {
         return Cache::remember('academic_year.current', self::TTL, function () {
-            return AcademicYear::where('is_current', true)->first();
+            return AcademicYear::where('is_active', true)->first();
         });
     }
 

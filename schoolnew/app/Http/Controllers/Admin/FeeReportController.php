@@ -603,8 +603,8 @@ class FeeReportController extends Controller
                     $query->whereHas('feeStructure', fn($q) => $q->where('fee_type_id', $request->fee_type_id));
                 }
 
-                if ($request->filled('payment_mode')) {
-                    $query->where('payment_mode', $request->payment_mode);
+                if ($request->filled('student_id')) {
+                    $query->where('student_id', $request->student_id);
                 }
 
                 $collections = $query->orderBy('payment_date', 'desc')->get();
@@ -616,7 +616,35 @@ class FeeReportController extends Controller
                     'total_transactions' => $collections->count(),
                 ];
 
-                $pdf = Pdf::loadView('admin.fees.reports.pdf.collection', compact('collections', 'summary', 'fromDate', 'toDate'));
+                $selectedStudent = null;
+                $studentStats = null;
+
+                if ($request->filled('student_id')) {
+                    $selectedStudent = Student::with('schoolClass')->find($request->student_id);
+                    if ($selectedStudent) {
+                        $activeYear = AcademicYear::getActive();
+                        $feeStructures = FeeStructure::where('class_id', $selectedStudent->class_id)
+                            ->where('is_active', true)
+                            ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
+                            ->get();
+
+                        $totalFees = $feeStructures->sum('amount');
+                        $totalPaid = FeeCollection::where('student_id', $selectedStudent->id)
+                            ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
+                            ->sum('paid_amount');
+                        $totalDiscount = FeeCollection::where('student_id', $selectedStudent->id)
+                            ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
+                            ->sum('discount_amount');
+
+                        $studentStats = [
+                            'total_fees' => $totalFees,
+                            'total_paid' => $totalPaid,
+                            'total_due' => max(0, $totalFees - $totalPaid - $totalDiscount),
+                        ];
+                    }
+                }
+
+                $pdf = Pdf::loadView('admin.fees.reports.pdf.collection', compact('collections', 'summary', 'fromDate', 'toDate', 'selectedStudent', 'studentStats'));
                 $pdf->setPaper('a4', 'landscape');
                 return $pdf->download("fee_collection_{$fromDate}_to_{$toDate}.pdf");
 
