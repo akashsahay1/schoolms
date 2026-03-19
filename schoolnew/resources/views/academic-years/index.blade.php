@@ -56,9 +56,9 @@
                                         <td>{{ $year->end_date->format('M d, Y') }}</td>
                                         <td>
                                             @if($year->is_active)
-                                                <span class="badge badge-success">Active</span>
+                                                <span class="badge badge-light-success px-3 py-2"><i class="icon-check me-1"></i> Active</span>
                                             @else
-                                                <span class="badge badge-secondary">Inactive</span>
+                                                <span class="badge badge-light-secondary px-3 py-2">Inactive</span>
                                             @endif
                                         </td>
                                         <td>{{ $year->description ?? '-' }}</td>

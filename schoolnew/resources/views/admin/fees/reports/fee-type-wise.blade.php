@@ -9,7 +9,7 @@
     <li class="breadcrumb-item active">Fee Type Wise</li>
 @endsection
 
-@push('css')
+@push('styles')
 <style>
     .chart-container {
         position: relative;
@@ -142,7 +142,7 @@
 </div>
 @endsection
 
-@push('js')
+@push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
 jQuery(document).ready(function() {

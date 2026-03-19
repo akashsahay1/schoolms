@@ -7,6 +7,7 @@ use App\Http\Controllers\Portal\Traits\PortalStudentTrait;
 use App\Models\Student;
 use App\Models\Attendance;
 use App\Models\FeeCollection;
+use App\Models\FeeStructure;
 use App\Models\Notice;
 use App\Models\Event;
 use App\Models\LeaveApplication;
@@ -117,6 +118,9 @@ class DashboardController extends Controller
             ->take(3)
             ->get();
 
+        // Notification badge counts per module
+        $badgeCounts = $this->getPortalBadgeCounts(Auth::user());
+
         return view('portal.dashboard', compact(
             'student',
             'currentAcademicYear',
@@ -125,8 +129,36 @@ class DashboardController extends Controller
             'todaysTimetable',
             'notices',
             'upcomingEvents',
-            'pendingLeaves'
+            'pendingLeaves',
+            'badgeCounts'
         ));
+    }
+
+    /**
+     * Get unread notification counts grouped by module.
+     */
+    private function getPortalBadgeCounts($user): array
+    {
+        $unread = $user->unreadNotifications()
+            ->where('type', 'App\\Notifications\\PortalUpdate')
+            ->get();
+
+        $counts = [
+            'homework' => 0,
+            'exams' => 0,
+            'fees' => 0,
+            'library' => 0,
+            'notices' => 0,
+        ];
+
+        foreach ($unread as $notification) {
+            $module = $notification->data['module'] ?? '';
+            if (isset($counts[$module])) {
+                $counts[$module]++;
+            }
+        }
+
+        return $counts;
     }
 
     /**
@@ -163,13 +195,16 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
+        $badgeCounts = $this->getPortalBadgeCounts(Auth::user());
+
         return view('portal.parent-dashboard', compact(
             'parent',
             'children',
             'childrenStats',
             'currentAcademicYear',
             'notices',
-            'upcomingEvents'
+            'upcomingEvents',
+            'badgeCounts'
         ));
     }
 
@@ -205,21 +240,46 @@ class DashboardController extends Controller
     }
 
     /**
-     * Get fee stats for a student.
+     * Get fee stats for a student — same logic as Fee Overview page.
      */
     private function getFeeStats($studentId)
     {
-        $collections = FeeCollection::where('student_id', $studentId)->get();
+        $student = Student::find($studentId);
+        if (!$student) {
+            return ['total_fees' => 0, 'total_paid' => 0, 'total_due' => 0, 'total_discount' => 0];
+        }
 
-        $totalPaid = $collections->sum('amount_paid');
-        $totalDue = $collections->sum('amount_due');
-        $totalDiscount = $collections->sum('discount');
+        // Get fee structures for student's class
+        $feeStructures = FeeStructure::where('class_id', $student->class_id)
+            ->where('is_active', true)
+            ->get();
+
+        $feeStructureIds = $feeStructures->pluck('id')->toArray();
+
+        // Get fee collections for these structures
+        $feeCollections = FeeCollection::where('student_id', $studentId)
+            ->whereIn('fee_structure_id', $feeStructureIds)
+            ->get();
+
+        // Calculate totals per structure (same as Fee Overview)
+        $totalFees = 0;
+        $totalPaid = 0;
+        $totalDiscount = 0;
+
+        foreach ($feeStructures as $structure) {
+            $totalFees += $structure->amount;
+            $payments = $feeCollections->where('fee_structure_id', $structure->id);
+            $totalPaid += $payments->sum('paid_amount');
+            $totalDiscount += $payments->sum('discount_amount');
+        }
+
+        $totalDue = $totalFees - $totalPaid - $totalDiscount;
 
         return [
+            'total_fees' => $totalFees,
             'total_paid' => $totalPaid,
-            'total_due' => $totalDue,
+            'total_due' => max(0, $totalDue),
             'total_discount' => $totalDiscount,
-            'pending_count' => $collections->where('status', 'partial')->count() + $collections->where('status', 'pending')->count(),
         ];
     }
 }

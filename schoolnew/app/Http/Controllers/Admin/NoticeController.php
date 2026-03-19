@@ -19,6 +19,8 @@ use Illuminate\Support\Facades\DB;
 
 class NoticeController extends Controller
 {
+    use \App\Traits\SendsPortalNotifications;
+
     /**
      * Display a listing of notices.
      */
@@ -103,6 +105,8 @@ class NoticeController extends Controller
         // Send notifications if published
         if ($notice->is_published) {
             $this->sendNoticeNotifications($notice, $notice->send_email);
+            // Portal badge notification
+            $this->notifyAllStudents('notices', 'New Notice: ' . $notice->title);
         }
 
         return redirect()->route('admin.notices.index')

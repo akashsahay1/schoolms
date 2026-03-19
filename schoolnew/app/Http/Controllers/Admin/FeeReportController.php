@@ -36,7 +36,7 @@ class FeeReportController extends Controller
             'total_fine' => FeeCollection::when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))->sum('fine_amount'),
             'this_month' => FeeCollection::whereMonth('payment_date', $currentMonth)->whereYear('payment_date', $currentYear)->sum('paid_amount'),
             'today' => FeeCollection::whereDate('payment_date', today())->sum('paid_amount'),
-            'total_students' => Student::where('status', 'active')->count(),
+            'total_students' => Student::where('status', 'active')->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))->count(),
         ];
 
         // Calculate outstanding
@@ -110,8 +110,10 @@ class FeeReportController extends Controller
     {
         $fromDate = $request->get('from_date', now()->startOfMonth()->format('Y-m-d'));
         $toDate = $request->get('to_date', now()->format('Y-m-d'));
+        $selectedStudent = null;
+        $studentStats = null;
 
-        $query = FeeCollection::with(['student.schoolClass', 'feeStructure.feeType', 'collectedBy'])
+        $query = FeeCollection::with(['student.schoolClass', 'feeStructure.feeType'])
             ->whereBetween('payment_date', [$fromDate, $toDate]);
 
         // Filters
@@ -123,16 +125,38 @@ class FeeReportController extends Controller
             $query->whereHas('feeStructure', fn($q) => $q->where('fee_type_id', $request->fee_type_id));
         }
 
-        if ($request->filled('payment_mode')) {
-            $query->where('payment_mode', $request->payment_mode);
+        // Student filter
+        if ($request->filled('student_id')) {
+            $query->where('student_id', $request->student_id);
+            $selectedStudent = Student::with('schoolClass')->find($request->student_id);
+
+            // Calculate student-specific fee stats
+            if ($selectedStudent) {
+                $structures = FeeStructure::where('class_id', $selectedStudent->class_id)->where('is_active', true)->get();
+                $structureIds = $structures->pluck('id')->toArray();
+                $studentCollections = FeeCollection::where('student_id', $selectedStudent->id)->whereIn('fee_structure_id', $structureIds)->get();
+
+                $totalFees = $structures->sum('amount');
+                $totalPaid = $studentCollections->sum('paid_amount');
+                $totalDiscount = $studentCollections->sum('discount_amount');
+
+                $studentStats = [
+                    'total_fees' => $totalFees,
+                    'total_paid' => $totalPaid,
+                    'total_due' => max(0, $totalFees - $totalPaid - $totalDiscount),
+                ];
+            }
         }
 
         $collections = $query->orderBy('payment_date', 'desc')->paginate(20);
 
-        // Summary
+        // Summary (overall)
         $summaryQuery = FeeCollection::whereBetween('payment_date', [$fromDate, $toDate]);
         if ($request->filled('class_id')) {
             $summaryQuery->whereHas('student', fn($q) => $q->where('class_id', $request->class_id));
+        }
+        if ($request->filled('student_id')) {
+            $summaryQuery->where('student_id', $request->student_id);
         }
 
         $summary = [
@@ -142,22 +166,26 @@ class FeeReportController extends Controller
             'total_transactions' => (clone $summaryQuery)->count(),
         ];
 
-        // Daily breakdown for the period
-        $dailyData = FeeCollection::select(
+        // Daily breakdown
+        $dailyQuery = FeeCollection::select(
                 DB::raw('DATE(payment_date) as date'),
                 DB::raw('SUM(paid_amount) as total'),
                 DB::raw('COUNT(*) as count')
-            )
-            ->whereBetween('payment_date', [$fromDate, $toDate])
-            ->groupBy(DB::raw('DATE(payment_date)'))
-            ->orderBy('date')
-            ->get();
+            )->whereBetween('payment_date', [$fromDate, $toDate]);
+
+        if ($request->filled('student_id')) {
+            $dailyQuery->where('student_id', $request->student_id);
+        }
+
+        $dailyData = $dailyQuery->groupBy(DB::raw('DATE(payment_date)'))->orderBy('date')->get();
 
         $classes = SchoolClass::active()->ordered()->get();
         $feeTypes = FeeType::active()->get();
+        $students = Student::where('status', 'active')->orderBy('first_name')->get();
 
         return view('admin.fees.reports.collection', compact(
-            'collections', 'summary', 'dailyData', 'classes', 'feeTypes', 'fromDate', 'toDate'
+            'collections', 'summary', 'dailyData', 'classes', 'feeTypes',
+            'fromDate', 'toDate', 'students', 'selectedStudent', 'studentStats'
         ));
     }
 

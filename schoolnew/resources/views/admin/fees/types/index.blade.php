@@ -146,49 +146,45 @@
 @push('scripts')
 <script>
 jQuery(document).ready(function() {
-	const selectAllCheckbox = jQuery('#selectAll');
-	const feeTypeCheckboxes = jQuery('.fee-type-checkbox');
-	const bulkDeleteBtn = jQuery('#bulkDeleteBtn');
-	const selectedCountSpan = jQuery('#selectedCount');
-
-	// Update selected count and toggle bulk delete button
+	// Use dynamic selectors — not cached — so they work after DOM changes
 	function updateBulkDeleteState() {
-		const checkedCount = jQuery('.fee-type-checkbox:checked').length;
-		selectedCountSpan.text(checkedCount);
+		var checkedCount = jQuery('.fee-type-checkbox:checked').length;
+		var totalCount = jQuery('.fee-type-checkbox').length;
+		jQuery('#selectedCount').text(checkedCount);
 
 		if (checkedCount > 0) {
-			bulkDeleteBtn.removeClass('d-none');
+			jQuery('#bulkDeleteBtn').removeClass('d-none');
 		} else {
-			bulkDeleteBtn.addClass('d-none');
+			jQuery('#bulkDeleteBtn').addClass('d-none');
 		}
 
-		// Update select all checkbox state
-		const totalCheckboxes = feeTypeCheckboxes.length;
-		if (totalCheckboxes > 0 && checkedCount === totalCheckboxes) {
-			selectAllCheckbox.prop('checked', true);
-			selectAllCheckbox.prop('indeterminate', false);
+		if (totalCount > 0 && checkedCount === totalCount) {
+			jQuery('#selectAll').prop('checked', true).prop('indeterminate', false);
 		} else if (checkedCount > 0) {
-			selectAllCheckbox.prop('checked', false);
-			selectAllCheckbox.prop('indeterminate', true);
+			jQuery('#selectAll').prop('checked', false).prop('indeterminate', true);
 		} else {
-			selectAllCheckbox.prop('checked', false);
-			selectAllCheckbox.prop('indeterminate', false);
+			jQuery('#selectAll').prop('checked', false).prop('indeterminate', false);
 		}
 	}
 
-	// Select All checkbox handler
-	selectAllCheckbox.on('change', function() {
-		feeTypeCheckboxes.prop('checked', jQuery(this).is(':checked'));
+	// Select All — delegated
+	jQuery(document).on('change', '#selectAll', function() {
+		jQuery('.fee-type-checkbox').prop('checked', jQuery(this).is(':checked'));
 		updateBulkDeleteState();
 	});
 
-	// Individual checkbox handler
-	feeTypeCheckboxes.on('change', function() {
+	// Individual checkbox — delegated
+	jQuery(document).on('change', '.fee-type-checkbox', function() {
 		updateBulkDeleteState();
 	});
+
+	// Reset all on page load
+	jQuery('#selectAll').prop('checked', false).prop('indeterminate', false);
+	jQuery('.fee-type-checkbox').prop('checked', false);
+	jQuery('#bulkDeleteBtn').addClass('d-none');
 
 	// Bulk Delete button handler
-	bulkDeleteBtn.on('click', function() {
+	jQuery(document).on('click', '#bulkDeleteBtn', function() {
 		const selectedIds = [];
 		const selectedNames = [];
 
@@ -226,7 +222,7 @@ jQuery(document).ready(function() {
 					type: 'POST',
 					data: {
 						_token: '{{ csrf_token() }}',
-						fee_type_ids: selectedIds
+						ids: selectedIds
 					},
 					beforeSend: function() {
 						Swal.fire({

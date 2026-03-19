@@ -47,6 +47,12 @@ class PaymentController extends Controller
      */
     public function checkout(Request $request)
     {
+        // Block payments if no active academic session
+        $activeYear = \App\Models\AcademicYear::getActive();
+        if (!$activeYear) {
+            return redirect()->route('portal.fees.overview')->with('error', 'The current academic session is inactive. Online payments are temporarily unavailable.');
+        }
+
         $student = $this->getCurrentStudent();
 
         if (!$student) {
@@ -117,6 +123,12 @@ class PaymentController extends Controller
      */
     public function createOrder(Request $request)
     {
+        // Block if no active session
+        $activeYear = \App\Models\AcademicYear::getActive();
+        if (!$activeYear) {
+            return response()->json(['error' => 'Academic session is inactive. Payments are not allowed.'], 403);
+        }
+
         $request->validate([
             'amount' => 'required|numeric|min:1',
             'fee_structure_ids' => 'required|array',

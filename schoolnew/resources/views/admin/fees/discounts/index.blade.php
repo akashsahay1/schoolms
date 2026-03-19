@@ -16,14 +16,14 @@
 		@if(session('success'))
 			<div class="alert alert-success alert-dismissible fade show" role="alert">
 				{{ session('success') }}
-				<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+				<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
 			</div>
 		@endif
 
 		@if(session('error'))
 			<div class="alert alert-danger alert-dismissible fade show" role="alert">
 				{{ session('error') }}
-				<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+				<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
 			</div>
 		@endif
 
@@ -31,9 +31,14 @@
 			<div class="card-header">
 				<div class="d-flex justify-content-between align-items-center">
 					<h5>All Fee Discounts</h5>
-					<a href="{{ route('admin.fees.discounts.create') }}" class="btn btn-primary">
-						<i data-feather="plus" class="me-1"></i> Add New
-					</a>
+					<div class="d-flex gap-2">
+						<button type="button" class="btn btn-danger d-none" id="bulkDeleteBtn">
+							<i data-feather="trash-2" class="me-1"></i> Delete Selected (<span id="selectedCount">0</span>)
+						</button>
+						<a href="{{ route('admin.fees.discounts.create') }}" class="btn btn-primary">
+							<i data-feather="plus" class="me-1"></i> Add New
+						</a>
+					</div>
 				</div>
 			</div>
 			<div class="card-body">
@@ -72,12 +77,14 @@
 					<table class="table table-striped table-hover">
 						<thead>
 							<tr>
+								<th style="width: 40px;">
+									<input type="checkbox" class="form-check-input" id="selectAll">
+								</th>
 								<th>#</th>
 								<th>Code</th>
 								<th>Name</th>
 								<th>Type</th>
 								<th>Amount</th>
-								<th>Description</th>
 								<th>Status</th>
 								<th>Actions</th>
 							</tr>
@@ -85,6 +92,9 @@
 						<tbody>
 							@forelse($discounts as $discount)
 								<tr>
+									<td>
+										<input type="checkbox" class="form-check-input item-checkbox" value="{{ $discount->id }}" data-name="{{ $discount->name }}">
+									</td>
 									<td>{{ $discounts->firstItem() + $loop->index }}</td>
 									<td><span class="badge badge-light-primary">{{ $discount->code }}</span></td>
 									<td><strong>{{ $discount->name }}</strong></td>
@@ -100,7 +110,6 @@
 											<strong>₹{{ number_format($discount->amount, 2) }}</strong>
 										@endif
 									</td>
-									<td>{{ Str::limit($discount->description, 40) ?? '-' }}</td>
 									<td>
 										<span class="badge badge-light-{{ $discount->is_active ? 'success' : 'danger' }}">
 											{{ $discount->is_active ? 'Active' : 'Inactive' }}
@@ -146,3 +155,76 @@
 	</div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+jQuery(document).ready(function() {
+	function updateBulkState() {
+		var checkedCount = jQuery('.item-checkbox:checked').length;
+		var totalCount = jQuery('.item-checkbox').length;
+		jQuery('#selectedCount').text(checkedCount);
+
+		if (checkedCount > 0) {
+			jQuery('#bulkDeleteBtn').removeClass('d-none');
+		} else {
+			jQuery('#bulkDeleteBtn').addClass('d-none');
+		}
+
+		if (totalCount > 0 && checkedCount === totalCount) {
+			jQuery('#selectAll').prop('checked', true).prop('indeterminate', false);
+		} else if (checkedCount > 0) {
+			jQuery('#selectAll').prop('checked', false).prop('indeterminate', true);
+		} else {
+			jQuery('#selectAll').prop('checked', false).prop('indeterminate', false);
+		}
+	}
+
+	jQuery(document).on('change', '#selectAll', function() {
+		jQuery('.item-checkbox').prop('checked', jQuery(this).is(':checked'));
+		updateBulkState();
+	});
+
+	jQuery(document).on('change', '.item-checkbox', function() {
+		updateBulkState();
+	});
+
+	// Reset on load
+	jQuery('#selectAll').prop('checked', false);
+	jQuery('.item-checkbox').prop('checked', false);
+
+	// Bulk delete
+	jQuery(document).on('click', '#bulkDeleteBtn', function() {
+		var ids = [];
+		jQuery('.item-checkbox:checked').each(function() { ids.push(jQuery(this).val()); });
+
+		if (ids.length === 0) return;
+
+		Swal.fire({
+			title: 'Delete Selected?',
+			html: 'Delete <strong>' + ids.length + '</strong> discount(s)? This cannot be undone.',
+			icon: 'warning',
+			showCancelButton: true,
+			confirmButtonColor: '#d33',
+			confirmButtonText: 'Yes, delete',
+			reverseButtons: true
+		}).then(function(result) {
+			if (result.isConfirmed) {
+				jQuery.ajax({
+					url: '{{ route("admin.fees.discounts.bulk-delete") }}',
+					type: 'POST',
+					data: { _token: '{{ csrf_token() }}', ids: ids },
+					success: function(response) {
+						Swal.fire('Deleted!', response.message, 'success').then(function() { window.location.reload(); });
+					},
+					error: function(xhr) {
+						Swal.fire('Error!', xhr.responseJSON?.message || 'An error occurred.', 'error');
+					}
+				});
+			}
+		});
+	});
+
+	if (typeof feather !== 'undefined') feather.replace();
+});
+</script>
+@endpush

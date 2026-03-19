@@ -8,7 +8,7 @@
     <li class="breadcrumb-item active">Fee Reports</li>
 @endsection
 
-@push('css')
+@push('styles')
 <style>
     .stat-card {
         border-radius: 10px;
@@ -62,6 +62,13 @@
         transform: translateY(-3px);
         box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }
+    /* Bootstrap subtle color fallbacks */
+    .bg-success-subtle { background-color: rgba(101, 193, 92, 0.15) !important; }
+    .bg-danger-subtle { background-color: rgba(252, 86, 74, 0.15) !important; }
+    .bg-primary-subtle { background-color: rgba(115, 102, 255, 0.15) !important; }
+    .bg-info-subtle { background-color: rgba(64, 184, 245, 0.15) !important; }
+    .bg-warning-subtle { background-color: rgba(255, 184, 41, 0.15) !important; }
+    .bg-secondary-subtle { background-color: rgba(131, 131, 131, 0.15) !important; }
 </style>
 @endpush
 
@@ -190,11 +197,11 @@
     <!-- Charts Row -->
     <div class="row mb-4">
         <!-- Monthly Collection Chart -->
-        <div class="col-xl-8 mb-4">
+        <div class="col-12 mb-4">
             <div class="card shadow-sm h-100">
-                <div class="card-header bg-transparent pb-0">
+                <div class="card-header bg-transparent">
                     <div class="d-flex justify-content-between align-items-center">
-                        <h6 class="mb-0">Monthly Fee Collection (Last 12 Months)</h6>
+                        <h6 class="mb-0 py-1">Monthly Fee Collection (Last 12 Months)</h6>
                         <div class="btn-group btn-group-sm">
                             <button type="button" class="btn btn-outline-primary chart-type-btn active" data-type="bar">Bar</button>
                             <button type="button" class="btn btn-outline-primary chart-type-btn" data-type="line">Line</button>
@@ -209,32 +216,26 @@
             </div>
         </div>
 
-        <!-- Payment Mode Distribution -->
-        <div class="col-xl-4 mb-4">
-            <div class="card shadow-sm h-100">
-                <div class="card-header bg-transparent pb-0">
-                    <h6 class="mb-0">Payment Mode Distribution</h6>
-                </div>
-                <div class="card-body">
-                    <div class="chart-container">
-                        <canvas id="paymentModeChart"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 
     <div class="row mb-4">
         <!-- Fee Type Distribution -->
         <div class="col-xl-6 mb-4">
             <div class="card shadow-sm h-100">
-                <div class="card-header bg-transparent pb-0">
-                    <h6 class="mb-0">Collection by Fee Type</h6>
+                <div class="card-header bg-transparent">
+                    <h6 class="mb-0 py-1">Collection by Fee Type</h6>
                 </div>
                 <div class="card-body">
-                    <div class="chart-container">
-                        <canvas id="feeTypeChart"></canvas>
-                    </div>
+                    @if($feeTypeData->count() > 0)
+                        <div class="chart-container">
+                            <canvas id="feeTypeChart"></canvas>
+                        </div>
+                    @else
+                        <div class="text-center py-5">
+                            <i data-feather="pie-chart" style="width: 48px; height: 48px;" class="text-muted mb-3"></i>
+                            <p class="text-muted mb-0">No fee collection data available yet.</p>
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>
@@ -242,13 +243,20 @@
         <!-- Class-wise Collection -->
         <div class="col-xl-6 mb-4">
             <div class="card shadow-sm h-100">
-                <div class="card-header bg-transparent pb-0">
-                    <h6 class="mb-0">Class-wise Collection</h6>
+                <div class="card-header bg-transparent">
+                    <h6 class="mb-0 py-1">Class-wise Collection</h6>
                 </div>
                 <div class="card-body">
-                    <div class="chart-container">
-                        <canvas id="classWiseChart"></canvas>
-                    </div>
+                    @if($classWiseData->count() > 0)
+                        <div class="chart-container">
+                            <canvas id="classWiseChart"></canvas>
+                        </div>
+                    @else
+                        <div class="text-center py-5">
+                            <i data-feather="bar-chart-2" style="width: 48px; height: 48px;" class="text-muted mb-3"></i>
+                            <p class="text-muted mb-0">No class-wise collection data available yet.</p>
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>
@@ -345,7 +353,6 @@
                                     <th>Student</th>
                                     <th>Fee Type</th>
                                     <th>Amount</th>
-                                    <th>Mode</th>
                                     <th>Date</th>
                                 </tr>
                             </thead>
@@ -360,11 +367,6 @@
                                         <td>{{ $collection->student->full_name ?? 'N/A' }}</td>
                                         <td>{{ $collection->feeStructure->feeType->name ?? 'N/A' }}</td>
                                         <td class="fw-bold">{{ number_format($collection->paid_amount, 2) }}</td>
-                                        <td>
-                                            <span class="badge bg-{{ $collection->payment_mode == 'cash' ? 'success' : ($collection->payment_mode == 'online' ? 'primary' : 'secondary') }}">
-                                                {{ ucfirst(str_replace('_', ' ', $collection->payment_mode)) }}
-                                            </span>
-                                        </td>
                                         <td>{{ $collection->payment_date->format('d M Y') }}</td>
                                     </tr>
                                 @empty
@@ -416,7 +418,7 @@
 </div>
 @endsection
 
-@push('js')
+@push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
 jQuery(document).ready(function() {
@@ -474,50 +476,8 @@ jQuery(document).ready(function() {
         monthlyChart.update();
     });
 
-    // Payment Mode Chart
-    const paymentModeCtx = document.getElementById('paymentModeChart').getContext('2d');
-    const paymentModeData = {!! json_encode($paymentModeData) !!};
-    new Chart(paymentModeCtx, {
-        type: 'doughnut',
-        data: {
-            labels: paymentModeData.map(item => item.payment_mode.charAt(0).toUpperCase() + item.payment_mode.slice(1).replace('_', ' ')),
-            datasets: [{
-                data: paymentModeData.map(item => parseFloat(item.total)),
-                backgroundColor: [
-                    'rgba(40, 167, 69, 0.8)',
-                    'rgba(0, 123, 255, 0.8)',
-                    'rgba(255, 193, 7, 0.8)',
-                    'rgba(220, 53, 69, 0.8)',
-                    'rgba(108, 117, 125, 0.8)'
-                ],
-                borderWidth: 0
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        padding: 15,
-                        usePointStyle: true
-                    }
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                            const percentage = ((context.raw / total) * 100).toFixed(1);
-                            return context.label + ': ' + parseFloat(context.raw).toLocaleString('en-US', {minimumFractionDigits: 2}) + ' (' + percentage + '%)';
-                        }
-                    }
-                }
-            }
-        }
-    });
-
     // Fee Type Chart
+    if (document.getElementById('feeTypeChart')) {
     const feeTypeCtx = document.getElementById('feeTypeChart').getContext('2d');
     const feeTypeData = {!! json_encode($feeTypeData) !!};
     new Chart(feeTypeCtx, {
@@ -563,8 +523,10 @@ jQuery(document).ready(function() {
             }
         }
     });
+    } // end feeTypeChart if
 
     // Class-wise Chart
+    if (document.getElementById('classWiseChart')) {
     const classWiseCtx = document.getElementById('classWiseChart').getContext('2d');
     const classWiseData = {!! json_encode($classWiseData) !!};
     new Chart(classWiseCtx, {
@@ -600,6 +562,7 @@ jQuery(document).ready(function() {
             }
         }
     });
+    } // end classWiseChart if
 });
 </script>
 @endpush

@@ -23,6 +23,23 @@
 	<li class="breadcrumb-item active">Dashboard</li>
 @endsection
 
+@push('scripts')
+<script>
+jQuery(document).ready(function() {
+	// Mark module notifications as read when clicking Quick Action cards
+	jQuery('.quick-action-card[data-module]').on('click', function(e) {
+		var module = jQuery(this).data('module');
+		var href = jQuery(this).attr('href');
+
+		// Fire and forget — don't block navigation
+		jQuery.post('{{ route("portal.notifications.mark-read") }}', {
+			_token: '{{ csrf_token() }}',
+			module: module
+		});
+	});
+});
+</script>
+@endpush
 @section('content')
 <style>
 	.welcome-card .card-body,
@@ -168,12 +185,12 @@
 					<div class="d-flex justify-content-between align-items-center">
 						<div>
 							<p class="text-muted mb-1">Fee Status</p>
-							@if($feeStats['total_due'] > 0)
-								<h3 class="mb-0 text-warning">Rs. {{ number_format($feeStats['total_due'], 0) }}</h3>
-								<small class="text-muted">Due Amount</small>
+							@if(($feeStats['total_due'] ?? 0) > 0)
+								<h3 class="mb-0 text-warning">₹{{ number_format($feeStats['total_due'], 0) }}</h3>
+								<small class="text-muted">Due — Paid ₹{{ number_format($feeStats['total_paid'] ?? 0, 0) }}</small>
 							@else
-								<h3 class="mb-0 text-success">All Clear</h3>
-								<small class="text-muted">No pending fees</small>
+								<h3 class="mb-0 text-success">All Paid</h3>
+								<small class="text-muted">₹{{ number_format($feeStats['total_paid'] ?? 0, 0) }} paid</small>
 							@endif
 						</div>
 						<div class="quick-action-icon {{ $feeStats['total_due'] > 0 ? 'bg-warning' : 'bg-success' }} bg-opacity-10 d-flex align-items-center justify-content-center">
@@ -246,8 +263,12 @@
 				<span class="text-dark small">Attendance</span>
 			</a>
 		</div>
+		@php $badges = $badgeCounts ?? []; @endphp
 		<div class="col-6 col-md-4 col-lg-2 mb-3">
-			<a href="{{ route('portal.homework.index') }}" class="card quick-action-card h-100 text-center p-3 text-decoration-none mb-0">
+			<a href="{{ route('portal.homework.index') }}" class="card quick-action-card h-100 text-center p-3 text-decoration-none mb-0 position-relative" data-module="homework">
+				@if(($badges['homework'] ?? 0) > 0)
+					<span class="position-absolute top-0 end-0 translate-middle badge rounded-pill bg-danger" style="font-size: 10px; z-index: 1;">{{ $badges['homework'] }}</span>
+				@endif
 				<div class="quick-action-icon bg-warning bg-opacity-10 mx-auto d-flex align-items-center justify-content-center">
 					<i data-feather="edit-3" class="text-warning"></i>
 				</div>
@@ -255,7 +276,10 @@
 			</a>
 		</div>
 		<div class="col-6 col-md-4 col-lg-2 mb-3">
-			<a href="{{ route('portal.exams.index') }}" class="card quick-action-card h-100 text-center p-3 text-decoration-none mb-0">
+			<a href="{{ route('portal.exams.index') }}" class="card quick-action-card h-100 text-center p-3 text-decoration-none mb-0 position-relative" data-module="exams">
+				@if(($badges['exams'] ?? 0) > 0)
+					<span class="position-absolute top-0 end-0 translate-middle badge rounded-pill bg-danger" style="font-size: 10px; z-index: 1;">{{ $badges['exams'] }}</span>
+				@endif
 				<div class="quick-action-icon bg-danger bg-opacity-10 mx-auto d-flex align-items-center justify-content-center">
 					<i data-feather="award" class="text-danger"></i>
 				</div>
@@ -263,7 +287,12 @@
 			</a>
 		</div>
 		<div class="col-6 col-md-4 col-lg-2 mb-3">
-			<a href="{{ route('portal.fees.overview') }}" class="card quick-action-card h-100 text-center p-3 text-decoration-none mb-0">
+			<a href="{{ route('portal.fees.overview') }}" class="card quick-action-card h-100 text-center p-3 text-decoration-none mb-0 position-relative" data-module="fees">
+				@if(($feeStats['total_due'] ?? 0) > 0)
+					<span class="position-absolute top-0 end-0 translate-middle badge rounded-pill bg-warning text-dark" style="font-size: 9px; z-index: 1;">Due</span>
+				@elseif(($badges['fees'] ?? 0) > 0)
+					<span class="position-absolute top-0 end-0 translate-middle badge rounded-pill bg-danger" style="font-size: 10px; z-index: 1;">{{ $badges['fees'] }}</span>
+				@endif
 				<div class="quick-action-icon bg-info bg-opacity-10 mx-auto d-flex align-items-center justify-content-center">
 					<span class="text-info" style="font-size: 20px; font-weight: bold;">₹</span>
 				</div>
@@ -271,7 +300,10 @@
 			</a>
 		</div>
 		<div class="col-6 col-md-4 col-lg-2 mb-3">
-			<a href="{{ route('portal.library.index') }}" class="card quick-action-card h-100 text-center p-3 text-decoration-none mb-0">
+			<a href="{{ route('portal.library.index') }}" class="card quick-action-card h-100 text-center p-3 text-decoration-none mb-0 position-relative" data-module="library">
+				@if(($badges['library'] ?? 0) > 0)
+					<span class="position-absolute top-0 end-0 translate-middle badge rounded-pill bg-danger" style="font-size: 10px; z-index: 1;">{{ $badges['library'] }}</span>
+				@endif
 				<div class="quick-action-icon bg-secondary bg-opacity-10 mx-auto d-flex align-items-center justify-content-center">
 					<i data-feather="book" class="text-secondary"></i>
 				</div>

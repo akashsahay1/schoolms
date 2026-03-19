@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
-@section('title', 'Fee Collection')
+@section('title', 'Payments')
 
-@section('page-title', 'Fee Collection')
+@section('page-title', 'Payments')
 
 @section('breadcrumb')
 	<li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
@@ -41,7 +41,7 @@
 		<div class="card">
 			<div class="card-header">
 				<div class="d-flex justify-content-between align-items-center">
-					<h5>Fee Collection Records</h5>
+					<h5>Payment Records</h5>
 					<div>
 						<a href="{{ route('admin.fees.outstanding') }}" class="btn btn-outline-warning me-2">
 							<i data-feather="alert-circle" class="me-1"></i> Outstanding Fees
@@ -90,20 +90,9 @@
 							@endforeach
 						</select>
 					</div>
-					<div class="col-md-2">
-						<label class="form-label">Payment Mode</label>
-						<select name="payment_mode" class="form-select">
-							<option value="">All Payments</option>
-							<option value="cash" {{ request('payment_mode') === 'cash' ? 'selected' : '' }}>Cash</option>
-							<option value="cheque" {{ request('payment_mode') === 'cheque' ? 'selected' : '' }}>Cheque</option>
-							<option value="card" {{ request('payment_mode') === 'card' ? 'selected' : '' }}>Card</option>
-							<option value="online" {{ request('payment_mode') === 'online' ? 'selected' : '' }}>Online</option>
-							<option value="bank_transfer" {{ request('payment_mode') === 'bank_transfer' ? 'selected' : '' }}>Bank Transfer</option>
-						</select>
-					</div>
-					<div class="col-md-3">
-						<label class="form-label">Search Student</label>
-						<input type="text" name="search" class="form-control" placeholder="Name or Admission No..." value="{{ request('search') }}">
+						<div class="col-md-3">
+						<label class="form-label">Search</label>
+						<input type="text" name="search" class="form-control" placeholder="Student, Admission No, or Transaction ID..." value="{{ request('search') }}">
 					</div>
 					<div class="col-md-3">
 						<label class="form-label">&nbsp;</label>
@@ -124,9 +113,9 @@
 								<th>Date</th>
 								<th>Student</th>
 								<th>Fee Type</th>
-								<th>Amount</th>
 								<th>Paid</th>
-								<th>Payment Mode</th>
+								<th>Transaction ID</th>
+								<th>Status</th>
 								<th>Actions</th>
 							</tr>
 						</thead>
@@ -139,13 +128,17 @@
 										<strong>{{ $collection->student->full_name }}</strong><br>
 										<small class="text-muted">{{ $collection->student->admission_no }}</small>
 									</td>
-									<td>{{ $collection->feeStructure->feeType->name }}</td>
-									<td>₹{{ number_format($collection->amount, 2) }}</td>
+									<td>{{ $collection->feeStructure->feeType->name ?? 'N/A' }}</td>
 									<td><strong>₹{{ number_format($collection->paid_amount, 2) }}</strong></td>
 									<td>
-										<span class="badge badge-light-info">
-											{{ str_replace('_', ' ', ucfirst($collection->payment_mode)) }}
-										</span>
+										@if($collection->transaction_id)
+											<code class="small">{{ $collection->transaction_id }}</code>
+										@else
+											<span class="text-muted">-</span>
+										@endif
+									</td>
+									<td>
+										<span class="badge badge-light-success px-3 py-1">Paid</span>
 									</td>
 									<td>
 										<div class="common-align gap-2 justify-content-start">

@@ -103,6 +103,42 @@
 							@enderror
 						</div>
 						@endif
+						<div class="col-md-4">
+							<label for="blood_group" class="form-label">Blood Group</label>
+							<select class="form-select @error('blood_group') is-invalid @enderror" id="blood_group" name="blood_group">
+								<option value="">Select</option>
+								@foreach(['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] as $bg)
+									<option value="{{ $bg }}" {{ old('blood_group') == $bg ? 'selected' : '' }}>{{ $bg }}</option>
+								@endforeach
+							</select>
+						</div>
+						<div class="col-md-4">
+							<label for="religion" class="form-label">Religion</label>
+							<select class="form-select @error('religion') is-invalid @enderror" id="religion" name="religion">
+								<option value="">Select</option>
+								<option value="Hindu" {{ old('religion') == 'Hindu' ? 'selected' : '' }}>Hindu</option>
+								<option value="Muslim" {{ old('religion') == 'Muslim' ? 'selected' : '' }}>Muslim</option>
+								<option value="Christian" {{ old('religion') == 'Christian' ? 'selected' : '' }}>Christian</option>
+								<option value="Sikh" {{ old('religion') == 'Sikh' ? 'selected' : '' }}>Sikh</option>
+								<option value="Buddhist" {{ old('religion') == 'Buddhist' ? 'selected' : '' }}>Buddhist</option>
+								<option value="Jain" {{ old('religion') == 'Jain' ? 'selected' : '' }}>Jain</option>
+								<option value="Other" {{ old('religion') == 'Other' ? 'selected' : '' }}>Other</option>
+							</select>
+						</div>
+						<div class="col-md-4">
+							<label for="marital_status" class="form-label">Marital Status</label>
+							<select class="form-select @error('marital_status') is-invalid @enderror" id="marital_status" name="marital_status">
+								<option value="">Select</option>
+								<option value="single" {{ old('marital_status') == 'single' ? 'selected' : '' }}>Single</option>
+								<option value="married" {{ old('marital_status') == 'married' ? 'selected' : '' }}>Married</option>
+								<option value="divorced" {{ old('marital_status') == 'divorced' ? 'selected' : '' }}>Divorced</option>
+								<option value="widowed" {{ old('marital_status') == 'widowed' ? 'selected' : '' }}>Widowed</option>
+							</select>
+						</div>
+						<div class="col-md-6">
+							<label for="nationality" class="form-label">Nationality</label>
+							<input type="text" class="form-control @error('nationality') is-invalid @enderror" id="nationality" name="nationality" value="{{ old('nationality', 'Indian') }}">
+						</div>
 					</div>
 				</div>
 			</div>
@@ -133,14 +169,21 @@
 						</div>
 						@endif
 						@if($isVisible('current_address'))
-						<div class="col-12">
-							<label for="current_address" class="form-label">Address @if($isRequired('current_address'))<span class="text-danger">*</span>@endif</label>
-							<textarea class="form-control @error('current_address') is-invalid @enderror" id="current_address" name="current_address" rows="2" placeholder="Enter full address" {{ $isRequired('current_address') ? 'required' : '' }}>{{ old('current_address') }}</textarea>
+						<div class="col-md-6">
+							<label for="current_address" class="form-label">Current Address @if($isRequired('current_address'))<span class="text-danger">*</span>@endif</label>
+							<textarea class="form-control @error('current_address') is-invalid @enderror" id="current_address" name="current_address" rows="2" placeholder="Enter current address" {{ $isRequired('current_address') ? 'required' : '' }}>{{ old('current_address') }}</textarea>
 							@error('current_address')
 								<div class="invalid-feedback">{{ $message }}</div>
 							@enderror
 						</div>
 						@endif
+						<div class="col-md-6">
+							<label for="permanent_address" class="form-label">Permanent Address</label>
+							<textarea class="form-control @error('permanent_address') is-invalid @enderror" id="permanent_address" name="permanent_address" rows="2" placeholder="Enter permanent address">{{ old('permanent_address') }}</textarea>
+							@error('permanent_address')
+								<div class="invalid-feedback">{{ $message }}</div>
+							@enderror
+						</div>
 						@if($isVisible('emergency_contact'))
 						<div class="col-md-6">
 							<label for="emergency_contact" class="form-label">Emergency Contact @if($isRequired('emergency_contact'))<span class="text-danger">*</span>@endif</label>

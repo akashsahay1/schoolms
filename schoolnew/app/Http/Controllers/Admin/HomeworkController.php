@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Storage;
 
 class HomeworkController extends Controller
 {
+	use \App\Traits\SendsPortalNotifications;
 	public function index(Request $request)
 	{
 		$query = Homework::with(['schoolClass', 'section', 'subject', 'teacher']);
@@ -128,6 +129,9 @@ class HomeworkController extends Controller
 					'status' => HomeworkSubmission::STATUS_PENDING,
 				]);
 			}
+
+			// Notify students
+			$this->notifyClassStudents($validated['class_id'], 'homework', 'New Homework: ' . $validated['title']);
 
 			return redirect()->route('admin.homework.index')
 				->with('success', 'Homework assigned successfully.');

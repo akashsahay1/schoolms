@@ -54,8 +54,22 @@
 				</div>
 			</div>
 			<div class="card-body">
+				<!-- Session Selector -->
+				<div class="d-flex align-items-center gap-2 mb-3">
+					<label class="form-label mb-0 fw-bold text-muted">Academic Session:</label>
+					<select class="form-select" style="max-width: 220px;" onchange="window.location.href='{{ route('admin.parents.index') }}?academic_year_id=' + this.value">
+						@foreach($academicYears as $year)
+							<option value="{{ $year->id }}" {{ $selectedYearId == $year->id ? 'selected' : '' }}>
+								{{ $year->name }} {{ $year->is_active ? '(Active)' : '' }}
+							</option>
+						@endforeach
+						<option value="all" {{ $selectedYearId == 'all' ? 'selected' : '' }}>All Sessions</option>
+					</select>
+				</div>
+
 				<!-- Filters -->
 				<form method="GET" action="{{ route('admin.parents.index') }}" class="mb-4">
+					<input type="hidden" name="academic_year_id" value="{{ $selectedYearId }}">
 					<div class="row g-3">
 						<div class="col-md-4">
 							<input type="text" name="search" class="form-control" placeholder="Search by name, email, phone..." value="{{ request('search') }}">

@@ -82,10 +82,13 @@
 					</li>
 					@endcan
 
-					<!-- Academics (Classes, Sections, Subjects, Teachers, Parents) -->
+					<!-- Academics -->
+					@php
+						$academicsOpen = request()->routeIs('admin.academic-years.*') || request()->routeIs('admin.classes.*') || request()->routeIs('admin.sections.*') || request()->routeIs('admin.subjects.*') || request()->routeIs('admin.teachers.*') || request()->routeIs('admin.parents.*');
+					@endphp
 					@canany(['view classes', 'view sections', 'view subjects', 'view parents'])
-					<li class="sidebar-list {{ request()->routeIs('admin.academic-years.*') || request()->routeIs('admin.classes.*') || request()->routeIs('admin.sections.*') || request()->routeIs('admin.subjects.*') || request()->routeIs('admin.teachers.*') || request()->routeIs('admin.parents.*') ? 'active' : '' }}">
-						<a class="sidebar-link sidebar-title {{ request()->routeIs('admin.academic-years.*') || request()->routeIs('admin.classes.*') || request()->routeIs('admin.sections.*') || request()->routeIs('admin.subjects.*') || request()->routeIs('admin.teachers.*') || request()->routeIs('admin.parents.*') ? 'active' : '' }}" href="#">
+					<li class="sidebar-list {{ $academicsOpen ? 'active' : '' }}">
+						<a class="sidebar-link sidebar-title" href="#">
 							<svg class="stroke-icon">
 								<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-board') }}"></use>
 							</svg>
@@ -94,7 +97,7 @@
 							</svg>
 							<span>Academics</span>
 						</a>
-						<ul class="sidebar-submenu" style="{{ request()->routeIs('admin.academic-years.*') || request()->routeIs('admin.classes.*') || request()->routeIs('admin.sections.*') || request()->routeIs('admin.subjects.*') || request()->routeIs('admin.teachers.*') || request()->routeIs('admin.parents.*') ? 'display: block;' : '' }}">
+						<ul class="sidebar-submenu" style="{{ $academicsOpen ? 'display: block;' : '' }}">
 							@can('academic_year_read')
 							<li><a class="{{ request()->routeIs('admin.academic-years.*') ? 'active' : '' }}" href="{{ route('admin.academic-years.index') }}">Academic Years</a></li>
 							@endcan
@@ -116,9 +119,10 @@
 					@endcanany
 
 					<!-- Timetable -->
+					@php $timetableOpen = request()->routeIs('admin.timetable.*'); @endphp
 					@canany(['view classes', 'view subjects'])
-					<li class="sidebar-list {{ request()->routeIs('admin.timetable.*') ? 'active' : '' }}">
-						<a class="sidebar-link sidebar-title {{ request()->routeIs('admin.timetable.*') ? 'active' : '' }}" href="#">
+					<li class="sidebar-list {{ $timetableOpen ? 'active' : '' }}">
+						<a class="sidebar-link sidebar-title" href="#">
 							<svg class="stroke-icon">
 								<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-calendar') }}"></use>
 							</svg>
@@ -127,7 +131,7 @@
 							</svg>
 							<span>Timetable</span>
 						</a>
-						<ul class="sidebar-submenu" style="{{ request()->routeIs('admin.timetable.*') ? 'display: block;' : '' }}">
+						<ul class="sidebar-submenu" style="{{ $timetableOpen ? 'display: block;' : '' }}">
 							<li><a class="{{ request()->routeIs('admin.timetable.index') ? 'active' : '' }}" href="{{ route('admin.timetable.index') }}">View Timetable</a></li>
 							<li><a class="{{ request()->routeIs('admin.timetable.create') ? 'active' : '' }}" href="{{ route('admin.timetable.create') }}">Create Timetable</a></li>
 							<li><a class="{{ request()->routeIs('admin.timetable.teacher') ? 'active' : '' }}" href="{{ route('admin.timetable.teacher') }}">Teacher Timetable</a></li>
@@ -138,9 +142,12 @@
 					@endcanany
 
 					<!-- Attendance -->
+					@php
+						$attendanceOpen = request()->routeIs('admin.attendance.*') || request()->routeIs('admin.staff-attendance.*') || request()->routeIs('admin.leaves.*') || request()->routeIs('admin.staff-leaves.index') || request()->routeIs('admin.staff-leaves.show') || request()->routeIs('admin.staff-leaves.create');
+					@endphp
 					@can('view attendance')
-					<li class="sidebar-list {{ request()->routeIs('admin.attendance.*') || request()->routeIs('admin.staff-attendance.*') || request()->routeIs('admin.leaves.*') || request()->routeIs('admin.staff-leaves.index') || request()->routeIs('admin.staff-leaves.show') || request()->routeIs('admin.staff-leaves.create') ? 'active' : '' }}">
-						<a class="sidebar-link sidebar-title {{ request()->routeIs('admin.attendance.*') || request()->routeIs('admin.staff-attendance.*') || request()->routeIs('admin.leaves.*') || request()->routeIs('admin.staff-leaves.index') || request()->routeIs('admin.staff-leaves.show') || request()->routeIs('admin.staff-leaves.create') ? 'active' : '' }}" href="#">
+					<li class="sidebar-list {{ $attendanceOpen ? 'active' : '' }}">
+						<a class="sidebar-link sidebar-title" href="#">
 							<svg class="stroke-icon">
 								<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-calendar') }}"></use>
 							</svg>
@@ -149,7 +156,7 @@
 							</svg>
 							<span>Attendance</span>
 						</a>
-						<ul class="sidebar-submenu" style="{{ request()->routeIs('admin.attendance.*') || request()->routeIs('admin.staff-attendance.*') || request()->routeIs('admin.leaves.*') || request()->routeIs('admin.staff-leaves.*') ? 'display: block;' : '' }}">
+						<ul class="sidebar-submenu" style="{{ $attendanceOpen ? 'display: block;' : '' }}">
 							<li><a class="{{ request()->routeIs('admin.attendance.mark') ? 'active' : '' }}" href="{{ route('admin.attendance.mark') }}">Student Attendance</a></li>
 							<li><a class="{{ request()->routeIs('admin.attendance.reports') ? 'active' : '' }}" href="{{ route('admin.attendance.reports') }}">Student Reports</a></li>
 							<li><a class="{{ request()->routeIs('admin.attendance.calendar') ? 'active' : '' }}" href="{{ route('admin.attendance.calendar') }}">Attendance Calendar</a></li>
@@ -162,9 +169,10 @@
 					@endcan
 
 					<!-- Examinations -->
+					@php $examsOpen = request()->routeIs('admin.exams.*'); @endphp
 					@can('view exams')
-					<li class="sidebar-list {{ request()->routeIs('admin.exams.*') ? 'active' : '' }}">
-						<a class="sidebar-link sidebar-title {{ request()->routeIs('admin.exams.*') ? 'active' : '' }}" href="#">
+					<li class="sidebar-list {{ $examsOpen ? 'active' : '' }}">
+						<a class="sidebar-link sidebar-title" href="#">
 							<svg class="stroke-icon">
 								<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-file') }}"></use>
 							</svg>
@@ -173,7 +181,7 @@
 							</svg>
 							<span>Examinations</span>
 						</a>
-						<ul class="sidebar-submenu" style="{{ request()->routeIs('admin.exams.*') ? 'display: block;' : '' }}">
+						<ul class="sidebar-submenu" style="{{ $examsOpen ? 'display: block;' : '' }}">
 							<li><a class="{{ request()->routeIs('admin.exams.index') ? 'active' : '' }}" href="{{ route('admin.exams.index') }}">Exam Schedule</a></li>
 							<li><a class="{{ request()->routeIs('admin.exams.marks') ? 'active' : '' }}" href="{{ route('admin.exams.marks') }}">Marks Entry</a></li>
 							<li><a class="{{ request()->routeIs('admin.exams.results') ? 'active' : '' }}" href="{{ route('admin.exams.results') }}">Results</a></li>
@@ -197,9 +205,10 @@
 					@endcan
 
 					<!-- Student Promotion -->
+					@php $promotionOpen = request()->routeIs('admin.promotions.*'); @endphp
 					@canany(['edit students', 'delete students'])
-					<li class="sidebar-list {{ request()->routeIs('admin.promotions.*') ? 'active' : '' }}">
-						<a class="sidebar-link sidebar-title {{ request()->routeIs('admin.promotions.*') ? 'active' : '' }}" href="#">
+					<li class="sidebar-list {{ $promotionOpen ? 'active' : '' }}">
+						<a class="sidebar-link sidebar-title" href="#">
 							<svg class="stroke-icon">
 								<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-task') }}"></use>
 							</svg>
@@ -208,7 +217,7 @@
 							</svg>
 							<span>Promotion</span>
 						</a>
-						<ul class="sidebar-submenu" style="{{ request()->routeIs('admin.promotions.*') ? 'display: block;' : '' }}">
+						<ul class="sidebar-submenu" style="{{ $promotionOpen ? 'display: block;' : '' }}">
 							<li><a class="{{ request()->routeIs('admin.promotions.index') ? 'active' : '' }}" href="{{ route('admin.promotions.index') }}">Dashboard</a></li>
 							<li><a class="{{ request()->routeIs('admin.promotions.create') ? 'active' : '' }}" href="{{ route('admin.promotions.create') }}">Promote Students</a></li>
 							<li><a class="{{ request()->routeIs('admin.promotions.rules') ? 'active' : '' }}" href="{{ route('admin.promotions.rules') }}">Promotion Rules</a></li>
@@ -224,8 +233,9 @@
 					</li>
 
 					<!-- Fees -->
-					<li class="sidebar-list {{ request()->routeIs('admin.fees.*') ? 'active' : '' }}">
-						<a class="sidebar-link sidebar-title {{ request()->routeIs('admin.fees.*') ? 'active' : '' }}" href="#">
+					@php $feesOpen = request()->routeIs('admin.fees.*'); @endphp
+					<li class="sidebar-list {{ $feesOpen ? 'active' : '' }}">
+						<a class="sidebar-link sidebar-title" href="#">
 							<svg class="stroke-icon">
 								<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-ecommerce') }}"></use>
 							</svg>
@@ -234,22 +244,21 @@
 							</svg>
 							<span>Fees</span>
 						</a>
-						<ul class="sidebar-submenu" style="{{ request()->routeIs('admin.fees.*') ? 'display: block;' : '' }}">
+						<ul class="sidebar-submenu" style="{{ $feesOpen ? 'display: block;' : '' }}">
 							@can('manage fee structure')
 							<li><a class="{{ request()->routeIs('admin.fees.types.*') ? 'active' : '' }}" href="{{ route('admin.fees.types.index') }}">Fee Types</a></li>
 							<li><a class="{{ request()->routeIs('admin.fees.groups.*') ? 'active' : '' }}" href="{{ route('admin.fees.groups.index') }}">Fee Groups</a></li>
 							<li><a class="{{ request()->routeIs('admin.fees.structure*') && !request()->routeIs('admin.fees.structure.*') ? 'active' : '' }}" href="{{ route('admin.fees.structure') }}">Fee Structure</a></li>
 							@endcan
 							@can('collect fees')
-							<li><a class="{{ request()->routeIs('admin.fees.collection*') || request()->routeIs('admin.fees.collect') ? 'active' : '' }}" href="{{ route('admin.fees.collection') }}">Collect Fees</a></li>
+							<li><a class="{{ request()->routeIs('admin.fees.collection*') || request()->routeIs('admin.fees.collect') ? 'active' : '' }}" href="{{ route('admin.fees.collection') }}">Payments</a></li>
 							@endcan
 							<li><a class="{{ request()->routeIs('admin.fees.outstanding') ? 'active' : '' }}" href="{{ route('admin.fees.outstanding') }}">Outstanding</a></li>
 							@can('manage fee structure')
 							<li><a class="{{ request()->routeIs('admin.fees.discounts.*') ? 'active' : '' }}" href="{{ route('admin.fees.discounts.index') }}">Discounts</a></li>
 							@endcan
 							@can('view fee reports')
-							<li><a class="{{ request()->routeIs('admin.fees.reports.*') ? 'active' : '' }}" href="{{ route('admin.fees.reports.index') }}">Reports & Analytics</a></li>
-							<li><a class="{{ request()->routeIs('admin.fees.reconciliation.*') ? 'active' : '' }}" href="{{ route('admin.fees.reconciliation.index') }}">Reconciliation</a></li>
+							<li><a class="{{ request()->routeIs('admin.fees.reports.*') ? 'active' : '' }}" href="{{ route('admin.fees.reports.index') }}">Reports</a></li>
 							@endcan
 						</ul>
 					</li>
@@ -263,9 +272,10 @@
 					@endcanany
 
 					<!-- Notices & Events -->
+					@php $noticesOpen = request()->routeIs('admin.notices.*') || request()->routeIs('admin.events.*'); @endphp
 					@canany(['view notices', 'view events'])
-					<li class="sidebar-list {{ request()->routeIs('admin.notices.*') || request()->routeIs('admin.events.*') ? 'active' : '' }}">
-						<a class="sidebar-link sidebar-title {{ request()->routeIs('admin.notices.*') || request()->routeIs('admin.events.*') ? 'active' : '' }}" href="#">
+					<li class="sidebar-list {{ $noticesOpen ? 'active' : '' }}">
+						<a class="sidebar-link sidebar-title" href="#">
 							<svg class="stroke-icon">
 								<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-form') }}"></use>
 							</svg>
@@ -274,7 +284,7 @@
 							</svg>
 							<span>Notices & Events</span>
 						</a>
-						<ul class="sidebar-submenu" style="{{ request()->routeIs('admin.notices.*') || request()->routeIs('admin.events.*') ? 'display: block;' : '' }}">
+						<ul class="sidebar-submenu" style="{{ $noticesOpen ? 'display: block;' : '' }}">
 							@can('view notices')
 							<li><a class="{{ request()->routeIs('admin.notices.*') ? 'active' : '' }}" href="{{ route('admin.notices.index') }}">Notices</a></li>
 							@endcan
@@ -286,9 +296,10 @@
 					@endcanany
 
 					<!-- Messaging -->
+					@php $messagingOpen = request()->routeIs('admin.messaging.*'); @endphp
 					@can('send messages')
-					<li class="sidebar-list {{ request()->routeIs('admin.messaging.*') || request()->routeIs('admin.messaging.contact-messages.*') ? 'active' : '' }}">
-						<a class="sidebar-link sidebar-title {{ request()->routeIs('admin.messaging.*') || request()->routeIs('admin.messaging.contact-messages.*') ? 'active' : '' }}" href="#">
+					<li class="sidebar-list {{ $messagingOpen ? 'active' : '' }}">
+						<a class="sidebar-link sidebar-title" href="#">
 							<svg class="stroke-icon">
 								<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-email') }}"></use>
 							</svg>
@@ -297,7 +308,7 @@
 							</svg>
 							<span>Messaging</span>
 						</a>
-						<ul class="sidebar-submenu" style="{{ request()->routeIs('admin.messaging.*') || request()->routeIs('admin.messaging.contact-messages.*') ? 'display: block;' : '' }}">
+						<ul class="sidebar-submenu" style="{{ $messagingOpen ? 'display: block;' : '' }}">
 							<li><a class="{{ request()->routeIs('admin.messaging.inbox.*') ? 'active' : '' }}" href="{{ route('admin.messaging.inbox.index') }}">Inbox</a></li>
 							<li>
 								<a class="{{ request()->routeIs('admin.messaging.contact-messages.*') ? 'active' : '' }}" href="{{ route('admin.messaging.contact-messages.index') }}">
@@ -321,9 +332,10 @@
 					@endcanany
 
 					<!-- Library -->
+					@php $libraryOpen = request()->routeIs('admin.library.*'); @endphp
 					@can('view library')
-					<li class="sidebar-list {{ request()->routeIs('admin.library.*') ? 'active' : '' }}">
-						<a class="sidebar-link sidebar-title {{ request()->routeIs('admin.library.*') ? 'active' : '' }}" href="#">
+					<li class="sidebar-list {{ $libraryOpen ? 'active' : '' }}">
+						<a class="sidebar-link sidebar-title" href="#">
 							<svg class="stroke-icon">
 								<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-bookmark') }}"></use>
 							</svg>
@@ -332,7 +344,7 @@
 							</svg>
 							<span>Library</span>
 						</a>
-						<ul class="sidebar-submenu" style="{{ request()->routeIs('admin.library.*') ? 'display: block;' : '' }}">
+						<ul class="sidebar-submenu" style="{{ $libraryOpen ? 'display: block;' : '' }}">
 							<li><a class="{{ request()->routeIs('admin.library.categories.*') ? 'active' : '' }}" href="{{ route('admin.library.categories.index') }}">Categories</a></li>
 							<li><a class="{{ request()->routeIs('admin.library.books.*') ? 'active' : '' }}" href="{{ route('admin.library.books.index') }}">Books</a></li>
 							@can('issue books')
@@ -344,9 +356,10 @@
 					@endcan
 
 					<!-- Transport -->
+					@php $transportOpen = request()->routeIs('admin.transport.*') || request()->routeIs('admin.drivers.*'); @endphp
 					@can('view transport')
-					<li class="sidebar-list {{ request()->routeIs('admin.transport.*') || request()->routeIs('admin.drivers.*') ? 'active' : '' }}">
-						<a class="sidebar-link sidebar-title {{ request()->routeIs('admin.transport.*') || request()->routeIs('admin.drivers.*') ? 'active' : '' }}" href="#">
+					<li class="sidebar-list {{ $transportOpen ? 'active' : '' }}">
+						<a class="sidebar-link sidebar-title" href="#">
 							<svg class="stroke-icon">
 								<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-maps') }}"></use>
 							</svg>
@@ -355,7 +368,7 @@
 							</svg>
 							<span>Transport</span>
 						</a>
-						<ul class="sidebar-submenu" style="{{ request()->routeIs('admin.transport.*') || request()->routeIs('admin.drivers.*') ? 'display: block;' : '' }}">
+						<ul class="sidebar-submenu" style="{{ $transportOpen ? 'display: block;' : '' }}">
 							<li><a class="{{ request()->routeIs('admin.transport.vehicles.*') ? 'active' : '' }}" href="{{ route('admin.transport.vehicles.index') }}">Vehicles</a></li>
 							<li><a class="{{ request()->routeIs('admin.drivers.*') ? 'active' : '' }}" href="{{ route('admin.drivers.index') }}">Drivers</a></li>
 							<li><a class="{{ request()->routeIs('admin.transport.routes.*') ? 'active' : '' }}" href="{{ route('admin.transport.routes.index') }}">Routes</a></li>
@@ -375,8 +388,8 @@
 
 					<!-- Staff -->
 					@can('view staff')
-					<li class="sidebar-list {{ request()->routeIs('admin.staff.*') ? 'active' : '' }}">
-						<a class="sidebar-link sidebar-title {{ request()->routeIs('admin.staff.*') ? 'active' : '' }}" href="#">
+					<li class="sidebar-list">
+						<a class="sidebar-link sidebar-title link-nav {{ request()->routeIs('admin.staff.*') ? 'active' : '' }}" href="{{ route('admin.staff.index') }}">
 							<svg class="stroke-icon">
 								<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-user') }}"></use>
 							</svg>
@@ -385,16 +398,10 @@
 							</svg>
 							<span>Staff</span>
 						</a>
-						<ul class="sidebar-submenu" style="{{ request()->routeIs('admin.staff.*') ? 'display: block;' : '' }}">
-							<li><a class="{{ request()->routeIs('admin.staff.index') ? 'active' : '' }}" href="{{ route('admin.staff.index') }}">All Staff</a></li>
-							@can('create staff')
-							<li><a class="{{ request()->routeIs('admin.staff.create') ? 'active' : '' }}" href="{{ route('admin.staff.create') }}">Add Staff</a></li>
-							@endcan
-						</ul>
 					</li>
 					@endcan
 
-					<!-- Roles & Permissions (Super Admin only) -->
+					<!-- Roles & Permissions -->
 					@can('view roles')
 					<li class="sidebar-list">
 						<a class="sidebar-link sidebar-title link-nav {{ request()->routeIs('admin.roles.*') ? 'active' : '' }}" href="{{ route('admin.roles.index') }}">
@@ -409,10 +416,11 @@
 					</li>
 					@endcan
 
-					<!-- Departments & Designations -->
+					<!-- HR Setup -->
+					@php $hrOpen = request()->routeIs('admin.departments.*') || request()->routeIs('admin.designations.*') || request()->routeIs('admin.staff-leaves.types.*') || request()->routeIs('admin.staff-leaves.balances*'); @endphp
 					@can('view staff')
-					<li class="sidebar-list {{ request()->routeIs('admin.departments.*') || request()->routeIs('admin.designations.*') || request()->routeIs('admin.staff-leaves.types.*') || request()->routeIs('admin.staff-leaves.balances*') ? 'active' : '' }}">
-						<a class="sidebar-link sidebar-title {{ request()->routeIs('admin.departments.*') || request()->routeIs('admin.designations.*') || request()->routeIs('admin.staff-leaves.types.*') || request()->routeIs('admin.staff-leaves.balances*') ? 'active' : '' }}" href="#">
+					<li class="sidebar-list {{ $hrOpen ? 'active' : '' }}">
+						<a class="sidebar-link sidebar-title" href="#">
 							<svg class="stroke-icon">
 								<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-sitemap') }}"></use>
 							</svg>
@@ -421,7 +429,7 @@
 							</svg>
 							<span>HR Setup</span>
 						</a>
-						<ul class="sidebar-submenu" style="{{ request()->routeIs('admin.departments.*') || request()->routeIs('admin.designations.*') || request()->routeIs('admin.staff-leaves.types.*') || request()->routeIs('admin.staff-leaves.balances*') ? 'display: block;' : '' }}">
+						<ul class="sidebar-submenu" style="{{ $hrOpen ? 'display: block;' : '' }}">
 							<li><a class="{{ request()->routeIs('admin.departments.*') ? 'active' : '' }}" href="{{ route('admin.departments.index') }}">Departments</a></li>
 							<li><a class="{{ request()->routeIs('admin.designations.*') ? 'active' : '' }}" href="{{ route('admin.designations.index') }}">Designations</a></li>
 							<li><a class="{{ request()->routeIs('admin.staff-leaves.types.*') ? 'active' : '' }}" href="{{ route('admin.staff-leaves.types.index') }}">Leave Types</a></li>
@@ -430,10 +438,11 @@
 					</li>
 					@endcan
 
-					<!-- Website Management -->
+					<!-- Website -->
+					@php $websiteOpen = request()->routeIs('admin.website.*'); @endphp
 					@can('manage settings')
-					<li class="sidebar-list {{ request()->routeIs('admin.website.*') ? 'active' : '' }}">
-						<a class="sidebar-link sidebar-title {{ request()->routeIs('admin.website.*') ? 'active' : '' }}" href="#">
+					<li class="sidebar-list {{ $websiteOpen ? 'active' : '' }}">
+						<a class="sidebar-link sidebar-title" href="#">
 							<svg class="stroke-icon">
 								<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-blog') }}"></use>
 							</svg>
@@ -442,7 +451,7 @@
 							</svg>
 							<span>Website</span>
 						</a>
-						<ul class="sidebar-submenu" style="{{ request()->routeIs('admin.website.*') ? 'display: block;' : '' }}">
+						<ul class="sidebar-submenu" style="{{ $websiteOpen ? 'display: block;' : '' }}">
 							<li><a class="{{ request()->routeIs('admin.website.index') ? 'active' : '' }}" href="{{ route('admin.website.index') }}">Dashboard</a></li>
 							<li><a class="{{ request()->routeIs('admin.website.sliders*') ? 'active' : '' }}" href="{{ route('admin.website.sliders') }}">Sliders</a></li>
 							<li><a class="{{ request()->routeIs('admin.website.facilities*') ? 'active' : '' }}" href="{{ route('admin.website.facilities') }}">Facilities</a></li>
@@ -455,9 +464,10 @@
 					@endcan
 
 					<!-- Reports -->
+					@php $reportsOpen = request()->routeIs('admin.reports.*'); @endphp
 					@can('view reports')
-					<li class="sidebar-list {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
-						<a class="sidebar-link sidebar-title {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}" href="#">
+					<li class="sidebar-list {{ $reportsOpen ? 'active' : '' }}">
+						<a class="sidebar-link sidebar-title" href="#">
 							<svg class="stroke-icon">
 								<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-board') }}"></use>
 							</svg>
@@ -466,7 +476,7 @@
 							</svg>
 							<span>Reports</span>
 						</a>
-						<ul class="sidebar-submenu" style="{{ request()->routeIs('admin.reports.*') ? 'display: block;' : '' }}">
+						<ul class="sidebar-submenu" style="{{ $reportsOpen ? 'display: block;' : '' }}">
 							<li><a class="{{ request()->routeIs('admin.reports.builder.*') ? 'active' : '' }}" href="{{ route('admin.reports.builder.index') }}">Report Builder</a></li>
 							<li><a class="{{ request()->routeIs('admin.reports.students') ? 'active' : '' }}" href="{{ route('admin.reports.students') }}">Student Reports</a></li>
 							<li><a class="{{ request()->routeIs('admin.reports.attendance') ? 'active' : '' }}" href="{{ route('admin.reports.attendance') }}">Attendance Reports</a></li>
@@ -477,9 +487,10 @@
 					@endcan
 
 					<!-- Settings -->
+					@php $settingsOpen = request()->routeIs('admin.settings*') || request()->routeIs('admin.custom-fields*'); @endphp
 					@can('view settings')
-					<li class="sidebar-list {{ request()->routeIs('admin.settings*') || request()->routeIs('admin.custom-fields*') ? 'active' : '' }}">
-						<a class="sidebar-link sidebar-title {{ request()->routeIs('admin.settings*') || request()->routeIs('admin.custom-fields*') ? 'active' : '' }}" href="#">
+					<li class="sidebar-list {{ $settingsOpen ? 'active' : '' }}">
+						<a class="sidebar-link sidebar-title" href="#">
 							<svg class="stroke-icon">
 								<use href="{{ asset('assets/svg/icon-sprite.svg#setting') }}"></use>
 							</svg>
@@ -488,19 +499,11 @@
 							</svg>
 							<span>Settings</span>
 						</a>
-						<ul class="sidebar-submenu" style="{{ request()->routeIs('admin.settings*') || request()->routeIs('admin.custom-fields*') ? 'display: block;' : '' }}">
-							<li>
-								<a href="{{ route('admin.settings.index') }}" class="{{ request()->routeIs('admin.settings.index') ? 'active' : '' }}">School Settings</a>
-							</li>
-							<li>
-								<a href="{{ route('admin.settings.library') }}" class="{{ request()->routeIs('admin.settings.library*') ? 'active' : '' }}">Library Settings</a>
-							</li>
-							<li>
-								<a href="{{ route('admin.settings.sms.index') }}" class="{{ request()->routeIs('admin.settings.sms*') ? 'active' : '' }}">SMS Settings</a>
-							</li>
-							<li>
-								<a href="{{ route('admin.custom-fields.index') }}" class="{{ request()->routeIs('admin.custom-fields*') ? 'active' : '' }}">Custom Fields</a>
-							</li>
+						<ul class="sidebar-submenu" style="{{ $settingsOpen ? 'display: block;' : '' }}">
+							<li><a class="{{ request()->routeIs('admin.settings.index') ? 'active' : '' }}" href="{{ route('admin.settings.index') }}">School Settings</a></li>
+							<li><a class="{{ request()->routeIs('admin.settings.library*') ? 'active' : '' }}" href="{{ route('admin.settings.library') }}">Library Settings</a></li>
+							<li><a class="{{ request()->routeIs('admin.settings.sms*') ? 'active' : '' }}" href="{{ route('admin.settings.sms.index') }}">SMS Settings</a></li>
+							<li><a class="{{ request()->routeIs('admin.custom-fields*') ? 'active' : '' }}" href="{{ route('admin.custom-fields.index') }}">Custom Fields</a></li>
 						</ul>
 					</li>
 					@endcan

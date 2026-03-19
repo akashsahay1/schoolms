@@ -126,4 +126,13 @@ class FeeDiscountController extends Controller
 			return back()->with('error', 'An error occurred: ' . $e->getMessage());
 		}
 	}
+
+	public function bulkDelete(\Illuminate\Http\Request $request)
+	{
+		$request->validate(['ids' => ['required', 'array']]);
+
+		$count = FeeDiscount::whereIn('id', $request->ids)->delete();
+
+		return response()->json(['success' => true, 'message' => "{$count} discount(s) deleted successfully."]);
+	}
 }

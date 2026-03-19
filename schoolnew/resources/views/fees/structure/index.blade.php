@@ -107,8 +107,8 @@
                                         </span>
                                     </td>
                                     <td>{{ $structure->schoolClass->name }}</td>
-                                    <td>{{ $structure->feeType->name }}</td>
-                                    <td>{{ $structure->feeGroup->name }}</td>
+                                    <td>{{ $structure->feeType->name ?? 'N/A' }}</td>
+                                    <td>{{ $structure->feeGroup->name ?? '-' }}</td>
                                     <td><strong>₹{{ number_format($structure->amount, 2) }}</strong></td>
                                     <td>{{ $structure->due_date ? $structure->due_date->format('d M Y') : '-' }}</td>
                                     <td>

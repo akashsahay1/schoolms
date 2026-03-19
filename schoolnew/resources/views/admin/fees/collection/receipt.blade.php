@@ -31,10 +31,10 @@
 						<div class="col-6">
 							<p class="mb-1"><strong>Receipt No:</strong> {{ $feeCollection->receipt_no }}</p>
 							<p class="mb-1"><strong>Date:</strong> {{ $feeCollection->payment_date->format('d M Y') }}</p>
-							<p class="mb-1"><strong>Payment Mode:</strong> {{ str_replace('_', ' ', ucfirst($feeCollection->payment_mode)) }}</p>
 							@if($feeCollection->transaction_id)
-								<p class="mb-1"><strong>Transaction ID:</strong> {{ $feeCollection->transaction_id }}</p>
+								<p class="mb-1"><strong>Transaction ID:</strong> <code>{{ $feeCollection->transaction_id }}</code></p>
 							@endif
+							<p class="mb-1"><strong>Payment:</strong> Online</p>
 						</div>
 						<div class="col-6 text-end">
 							<p class="mb-1"><strong>Academic Year:</strong> {{ $feeCollection->academicYear->name }}</p>
@@ -71,7 +71,7 @@
 							</thead>
 							<tbody>
 								<tr>
-									<td>{{ $feeCollection->feeStructure->feeType->name }} ({{ $feeCollection->feeStructure->feeGroup->name }})</td>
+									<td>{{ $feeCollection->feeStructure->feeType->name ?? 'N/A' }}{{ $feeCollection->feeStructure->feeGroup ? ' (' . $feeCollection->feeStructure->feeGroup->name . ')' : '' }}</td>
 									<td class="text-end">₹{{ number_format($feeCollection->amount, 2) }}</td>
 								</tr>
 								@if($feeCollection->discount_amount > 0)

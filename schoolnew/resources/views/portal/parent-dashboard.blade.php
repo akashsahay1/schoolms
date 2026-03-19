@@ -245,13 +245,13 @@
 													</div>
 													<div class="col-4">
 														<div class="child-stat-box bg-primary bg-opacity-10">
-															<h6 class="text-primary">Rs. {{ number_format($childrenStats[$child->id]['fees']['total_paid'], 0) }}</h6>
+															<h6 class="text-primary">₹{{ number_format($childrenStats[$child->id]['fees']['total_paid'], 0) }}</h6>
 															<small class="text-muted d-block">Paid</small>
 														</div>
 													</div>
 													<div class="col-4">
 														<div class="child-stat-box bg-{{ $childrenStats[$child->id]['fees']['total_due'] > 0 ? 'danger' : 'success' }} bg-opacity-10">
-															<h6 class="text-{{ $childrenStats[$child->id]['fees']['total_due'] > 0 ? 'danger' : 'success' }}">Rs. {{ number_format($childrenStats[$child->id]['fees']['total_due'], 0) }}</h6>
+															<h6 class="text-{{ $childrenStats[$child->id]['fees']['total_due'] > 0 ? 'danger' : 'success' }}">₹{{ number_format($childrenStats[$child->id]['fees']['total_due'], 0) }}</h6>
 															<small class="text-muted d-block">Due</small>
 														</div>
 													</div>

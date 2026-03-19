@@ -38,19 +38,18 @@ class FeeCollectionController extends Controller
 			});
 		}
 
-		// Student search
+		// Search by student name, admission no, transaction ID, or receipt no
 		if ($request->filled('search')) {
 			$search = $request->search;
-			$query->whereHas('student', function ($q) use ($search) {
-				$q->where('admission_no', 'like', "%{$search}%")
-					->orWhere('first_name', 'like', "%{$search}%")
-					->orWhere('last_name', 'like', "%{$search}%");
+			$query->where(function ($q) use ($search) {
+				$q->where('transaction_id', 'like', "%{$search}%")
+					->orWhere('receipt_no', 'like', "%{$search}%")
+					->orWhereHas('student', function ($sq) use ($search) {
+						$sq->where('admission_no', 'like', "%{$search}%")
+							->orWhere('first_name', 'like', "%{$search}%")
+							->orWhere('last_name', 'like', "%{$search}%");
+					});
 			});
-		}
-
-		// Payment mode filter
-		if ($request->filled('payment_mode')) {
-			$query->where('payment_mode', $request->payment_mode);
 		}
 
 		// Date range filter
@@ -106,6 +105,12 @@ class FeeCollectionController extends Controller
 
 	public function store(Request $request)
 	{
+		// Block if no active academic session
+		$activeYear = AcademicYear::getActive();
+		if (!$activeYear) {
+			return back()->with('error', 'This session is inactive. Fee collection is not allowed.');
+		}
+
 		$validated = $request->validate([
 			'student_id' => ['required', 'exists:students,id'],
 			'fee_structure_id' => ['required', 'exists:fee_structures,id'],
@@ -206,7 +211,8 @@ class FeeCollectionController extends Controller
 				->with('error', 'No active academic year found.');
 		}
 
-		$query = Student::with(['schoolClass', 'section']);
+		$query = Student::with(['schoolClass', 'section'])
+			->where('academic_year_id', $currentYear->id);
 
 		// Class filter
 		if ($request->filled('class')) {

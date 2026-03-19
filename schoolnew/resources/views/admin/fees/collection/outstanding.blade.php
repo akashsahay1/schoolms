@@ -81,8 +81,8 @@
 									</td>
 									<td>
 										@if($data['outstanding'] > 0)
-											<a href="{{ route('admin.fees.collect', $data['student']) }}" class="btn btn-sm btn-primary">
-												Collect Fee
+											<a href="{{ route('admin.fees.collect', $data['student']) }}" class="btn btn-sm btn-outline-primary">
+												View Details
 											</a>
 										@else
 											<span class="text-muted">-</span>

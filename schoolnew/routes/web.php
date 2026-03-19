@@ -324,6 +324,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Super Admin,Ad
         Route::get('/discounts/{discount}/edit', [FeeDiscountController::class, 'edit'])->name('discounts.edit');
         Route::put('/discounts/{discount}', [FeeDiscountController::class, 'update'])->name('discounts.update');
         Route::delete('/discounts/{discount}', [FeeDiscountController::class, 'destroy'])->name('discounts.destroy');
+        Route::post('/discounts/bulk-delete', [FeeDiscountController::class, 'bulkDelete'])->name('discounts.bulk-delete');
 
         // Fee Reports & Analytics
         Route::prefix('reports')->name('reports.')->group(function () {
@@ -803,6 +804,17 @@ Route::prefix('portal')->name('portal.')->middleware(['auth', 'role:Student,Pare
     Route::get('/events', [App\Http\Controllers\Portal\EventController::class, 'index'])->name('events');
     Route::get('/events/calendar-data', [App\Http\Controllers\Portal\EventController::class, 'calendarEvents'])->name('events.calendar');
     Route::get('/events/{event}', [App\Http\Controllers\Portal\EventController::class, 'show'])->name('events.show');
+
+    // Portal Notifications
+    Route::post('/notifications/mark-read', function (\Illuminate\Http\Request $request) {
+        $module = $request->input('module');
+        auth()->user()->unreadNotifications()
+            ->where('type', 'App\\Notifications\\PortalUpdate')
+            ->get()
+            ->filter(fn($n) => ($n->data['module'] ?? '') === $module)
+            ->each(fn($n) => $n->markAsRead());
+        return response()->json(['success' => true]);
+    })->name('notifications.mark-read');
 
     // Leave Applications
     Route::prefix('leaves')->name('leaves.')->group(function () {

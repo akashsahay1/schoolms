@@ -25,6 +25,22 @@ class StudentController extends Controller
     {
         $query = Student::with(['schoolClass', 'section', 'academicYear', 'parent']);
 
+        // Academic session filter — default to active session
+        $academicYears = AcademicYear::orderBy('start_date', 'desc')->get();
+        $activeYear = AcademicYear::getActive();
+
+        if ($request->filled('academic_year_id')) {
+            $selectedYearId = $request->academic_year_id;
+            if ($selectedYearId !== 'all') {
+                $query->where('academic_year_id', $selectedYearId);
+            }
+        } elseif ($activeYear) {
+            $selectedYearId = $activeYear->id;
+            $query->where('academic_year_id', $activeYear->id);
+        } else {
+            $selectedYearId = 'all';
+        }
+
         // Search filter
         if ($request->filled('search')) {
             $search = $request->search;
@@ -53,10 +69,9 @@ class StudentController extends Controller
 
         $students = $query->latest()->paginate(15);
         $classes = SchoolClass::with('sections')->active()->ordered()->get();
-        $academicYear = AcademicYear::getActive();
         $trashedCount = Student::onlyTrashed()->count();
 
-        return view('admin.students.index', compact('students', 'classes', 'academicYear', 'trashedCount'));
+        return view('admin.students.index', compact('students', 'classes', 'academicYears', 'activeYear', 'selectedYearId', 'trashedCount'));
     }
 
     public function create()

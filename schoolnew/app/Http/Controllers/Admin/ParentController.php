@@ -15,6 +15,24 @@ class ParentController extends Controller
 	{
 		$query = ParentGuardian::with('students');
 
+		// Academic session filter — show only parents whose children belong to selected session
+		$academicYears = \App\Models\AcademicYear::orderBy('start_date', 'desc')->get();
+		$activeYear = \App\Models\AcademicYear::getActive();
+
+		if ($request->filled('academic_year_id') && $request->academic_year_id !== 'all') {
+			$selectedYearId = $request->academic_year_id;
+			$query->whereHas('students', function ($q) use ($selectedYearId) {
+				$q->where('academic_year_id', $selectedYearId);
+			});
+		} elseif ($activeYear) {
+			$selectedYearId = $activeYear->id;
+			$query->whereHas('students', function ($q) use ($activeYear) {
+				$q->where('academic_year_id', $activeYear->id);
+			});
+		} else {
+			$selectedYearId = 'all';
+		}
+
 		// Search filter
 		if ($request->filled('search')) {
 			$search = $request->search;
@@ -32,7 +50,7 @@ class ParentController extends Controller
 		$parents = $query->latest()->paginate(15);
 		$trashedCount = ParentGuardian::onlyTrashed()->count();
 
-		return view('admin.parents.index', compact('parents', 'trashedCount'));
+		return view('admin.parents.index', compact('parents', 'trashedCount', 'academicYears', 'activeYear', 'selectedYearId'));
 	}
 
 	public function show(ParentGuardian $parent)

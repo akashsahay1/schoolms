@@ -9,7 +9,7 @@
     <li class="breadcrumb-item active">Outstanding Report</li>
 @endsection
 
-@push('css')
+@push('styles')
 <style>
     .progress-bar-animated {
         animation: progress-animation 1.5s ease-in-out;

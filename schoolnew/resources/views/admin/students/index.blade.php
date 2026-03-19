@@ -30,7 +30,7 @@
 		<div class="card">
 			<div class="card-header">
 				<div class="d-flex justify-content-between align-items-center">
-					<h5>All Students {{ $academicYear ? '(' . $academicYear->name . ')' : '' }}</h5>
+					<h5>All Students {{ $activeYear ? '(' . $activeYear->name . ')' : '' }}</h5>
 					<div class="d-flex gap-2">
 						<button type="button" class="btn btn-danger d-none" id="bulkDeleteBtn">
 							<i data-feather="trash-2" class="me-1"></i> Delete Selected (<span id="selectedCount">0</span>)
@@ -49,7 +49,21 @@
 			</div>
 			<div class="card-body">
 				<!-- Filters -->
+				<!-- Session Selector -->
+				<div class="d-flex align-items-center gap-2 mb-3">
+					<label class="form-label mb-0 fw-bold text-muted">Academic Session:</label>
+					<select class="form-select" style="max-width: 220px;" onchange="window.location.href='{{ route('admin.students.index') }}?academic_year_id=' + this.value">
+						@foreach($academicYears as $year)
+							<option value="{{ $year->id }}" {{ $selectedYearId == $year->id ? 'selected' : '' }}>
+								{{ $year->name }} {{ $year->is_active ? '(Active)' : '' }}
+							</option>
+						@endforeach
+						<option value="all" {{ $selectedYearId == 'all' ? 'selected' : '' }}>All Sessions</option>
+					</select>
+				</div>
+
 				<form method="GET" action="{{ route('admin.students.index') }}" class="mb-4">
+					<input type="hidden" name="academic_year_id" value="{{ $selectedYearId }}">
 					<div class="row g-3">
 						<div class="col-md-3">
 							<input type="text" name="search" class="form-control" placeholder="Search name, admission no..." value="{{ request('search') }}">

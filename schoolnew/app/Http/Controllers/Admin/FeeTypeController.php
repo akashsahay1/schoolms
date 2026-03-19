@@ -131,7 +131,6 @@ class FeeTypeController extends Controller
 			$skippedCount = 0;
 
 			foreach ($feeTypes as $feeType) {
-				// Check if fee type is used in any fee structure
 				if ($feeType->feeStructures()->count() > 0) {
 					$skippedCount++;
 					continue;
@@ -143,15 +142,16 @@ class FeeTypeController extends Controller
 
 			DB::commit();
 
+			$message = "{$deletedCount} fee type(s) moved to trash.";
 			if ($skippedCount > 0) {
-				return back()->with('warning', "{$deletedCount} fee type(s) moved to trash. {$skippedCount} fee type(s) skipped because they are used in fee structures.");
+				$message .= " {$skippedCount} skipped (used in fee structures).";
 			}
 
-			return back()->with('success', "{$deletedCount} fee type(s) moved to trash successfully.");
+			return response()->json(['success' => true, 'message' => $message]);
 
 		} catch (\Exception $e) {
 			DB::rollBack();
-			return back()->with('error', 'An error occurred: ' . $e->getMessage());
+			return response()->json(['success' => false, 'message' => 'An error occurred: ' . $e->getMessage()], 500);
 		}
 	}
 
@@ -169,8 +169,9 @@ class FeeTypeController extends Controller
 		}
 
 		$feeTypes = $query->orderBy('deleted_at', 'desc')->paginate(15);
+		$trashedCount = FeeType::onlyTrashed()->count();
 
-		return view('admin.fees.types.trash', compact('feeTypes'));
+		return view('admin.fees.types.trash', compact('feeTypes', 'trashedCount'));
 	}
 
 	public function restore($id)

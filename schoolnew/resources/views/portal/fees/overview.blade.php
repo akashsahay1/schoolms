@@ -50,9 +50,16 @@
     @if($stats['total_due'] > 0)
     <div class="row mb-3">
         <div class="col-12 text-end">
-            <a href="{{ route('portal.payment.checkout') }}" class="btn btn-primary btn-lg">
-                <i class="fa fa-credit-card me-2"></i> Pay Fees Online
-            </a>
+            @php $__portalActiveYear = \App\Models\AcademicYear::getActive(); @endphp
+            @if($__portalActiveYear)
+                <a href="{{ route('portal.payment.checkout') }}" class="btn btn-primary btn-lg">
+                    <i class="fa fa-credit-card me-2"></i> Pay Now — ₹{{ number_format($stats['total_due'], 2) }}
+                </a>
+            @else
+                <div class="alert alert-warning d-inline-block mb-0">
+                    <i class="fa fa-info-circle me-1"></i> Online payments are currently unavailable. The academic session is inactive.
+                </div>
+            @endif
         </div>
     </div>
     @endif

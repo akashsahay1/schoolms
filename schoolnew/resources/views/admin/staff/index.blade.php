@@ -57,16 +57,6 @@
 							<input type="text" name="search" class="form-control" placeholder="Search name, ID, email..." value="{{ request('search') }}">
 						</div>
 						<div class="col-md-3">
-							<select name="department_id" class="form-select">
-								<option value="">All Departments</option>
-								@foreach($departments as $department)
-									<option value="{{ $department->id }}" {{ request('department_id') == $department->id ? 'selected' : '' }}>
-										{{ $department->name }}
-									</option>
-								@endforeach
-							</select>
-						</div>
-						<div class="col-md-2">
 							<select name="status" class="form-select">
 								<option value="">All Status</option>
 								<option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
@@ -80,7 +70,7 @@
 								<i data-feather="search" class="me-1"></i> Filter
 							</button>
 						</div>
-						@if(request()->hasAny(['search', 'department_id', 'status']))
+						@if(request()->hasAny(['search', 'status']))
 							<div class="col-md-1">
 								<a href="{{ route('admin.staff.index') }}" class="btn btn-outline-secondary w-100" title="Clear Filters">
 									<i data-feather="x"></i>
@@ -102,7 +92,6 @@
 								<th>Photo</th>
 								<th>Staff ID</th>
 								<th>Name</th>
-								<th>Department</th>
 								<th>Role</th>
 								<th>Phone</th>
 								<th>Status</th>
@@ -129,7 +118,6 @@
 									</td>
 									<td><strong>{{ $member->staff_id }}</strong></td>
 									<td>{{ $member->full_name }}</td>
-									<td>{{ $member->department->name ?? 'N/A' }}</td>
 									<td>{{ $member->designation->name ?? 'N/A' }}</td>
 									<td>{{ $member->phone }}</td>
 									<td>

@@ -38,8 +38,12 @@
 
 		<!-- Left Header -->
 		<div class="left-header col-xxl-5 col-xl-6 col-lg-5 col-md-4 col-sm-3 p-0">
-			<div class="d-flex align-items-center h-100">
+			<div class="d-flex align-items-center h-100 gap-3">
 				<h6 class="mb-0 f-w-600" style="color: #2c323f !important; font-size: 16px;">@yield('page-title', 'Dashboard')</h6>
+				@php $__headerYear = \App\Models\AcademicYear::getActive(); @endphp
+				@if($__headerYear)
+					<span class="badge badge-light-success" style="font-size: 11px; padding: 5px 10px;">{{ $__headerYear->name }}</span>
+				@endif
 			</div>
 		</div>
 

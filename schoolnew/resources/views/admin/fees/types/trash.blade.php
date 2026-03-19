@@ -235,7 +235,7 @@ jQuery(document).ready(function() {
 					type: 'POST',
 					data: {
 						_token: '{{ csrf_token() }}',
-						fee_type_ids: ids
+						ids: ids
 					},
 					beforeSend: function() {
 						Swal.fire({
@@ -297,7 +297,7 @@ jQuery(document).ready(function() {
 					type: 'POST',
 					data: {
 						_token: '{{ csrf_token() }}',
-						fee_type_ids: ids
+						ids: ids
 					},
 					beforeSend: function() {
 						Swal.fire({
@@ -350,7 +350,7 @@ jQuery(document).ready(function() {
 		}).then((result) => {
 			if (result.isConfirmed) {
 				jQuery.ajax({
-					url: '{{ route("admin.fees.types.force-delete", "") }}/' + id,
+					url: '{{ route("admin.fees.types.force-delete", ":id") }}'.replace(':id', id),
 					type: 'DELETE',
 					data: {
 						_token: '{{ csrf_token() }}'

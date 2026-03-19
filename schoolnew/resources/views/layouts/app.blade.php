@@ -483,6 +483,17 @@
 
 			<!-- Page Body -->
 			<div class="page-body">
+				<!-- Active Session Check -->
+				@php $__activeYear = \App\Models\AcademicYear::getActive(); @endphp
+				@if(!$__activeYear)
+					<div class="alert alert-danger d-flex align-items-center mx-3 mt-3 mb-0" role="alert">
+						<i class="icon-alert me-2" style="font-size: 20px;"></i>
+						<div>
+							<strong>No Active Academic Session!</strong> Please set an active academic session to enable all system operations.
+							<a href="{{ route('admin.academic-years.index') }}" class="alert-link ms-1">Manage Sessions</a>
+						</div>
+					</div>
+				@endif
 				<!-- Container-fluid starts -->
 				@yield('content')
 				<!-- Container-fluid Ends -->

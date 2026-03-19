@@ -9,7 +9,7 @@
     <li class="breadcrumb-item active">Match</li>
 @endsection
 
-@push('css')
+@push('styles')
 <style>
     .match-card {
         cursor: pointer;
@@ -254,7 +254,7 @@
 </div>
 @endsection
 
-@push('js')
+@push('scripts')
 <script>
 jQuery(document).ready(function() {
     let selectedBank = null;

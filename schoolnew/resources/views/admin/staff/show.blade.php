@@ -27,12 +27,12 @@
 				<div class="border-top pt-3">
 					<div class="row text-center">
 						<div class="col-4">
-							<h5 class="text-primary mb-0">{{ $staff->experience_years }}</h5>
-							<small class="text-muted">Years</small>
+							<h5 class="text-primary mb-0">{{ $staff->staff_id }}</h5>
+							<small class="text-muted">Staff ID</small>
 						</div>
 						<div class="col-4">
-							<h5 class="text-info mb-0">{{ $staff->department->name ?? 'N/A' }}</h5>
-							<small class="text-muted">Dept.</small>
+							<h5 class="text-info mb-0">{{ $staff->experience_years }}</h5>
+							<small class="text-muted">Years</small>
 						</div>
 						<div class="col-4">
 							<h5 class="text-success mb-0">{{ ucfirst($staff->contract_type) }}</h5>
@@ -180,12 +180,8 @@
 					<div class="col-md-6">
 						<table class="table table-borderless">
 							<tr>
-								<td class="text-muted" style="width: 40%;">Staff ID</td>
-								<td><strong>{{ $staff->staff_id }}</strong></td>
-							</tr>
-							<tr>
-								<td class="text-muted">Full Name</td>
-								<td>{{ $staff->full_name }}</td>
+								<td class="text-muted" style="width: 40%;">Full Name</td>
+								<td><strong>{{ $staff->full_name }}</strong></td>
 							</tr>
 							<tr>
 								<td class="text-muted">Gender</td>
@@ -195,30 +191,34 @@
 								<td class="text-muted">Date of Birth</td>
 								<td>{{ $staff->date_of_birth?->format('d M Y') }} ({{ $staff->age }} years)</td>
 							</tr>
+							@if($staff->blood_group)
 							<tr>
 								<td class="text-muted">Blood Group</td>
-								<td>{{ $staff->blood_group ?? 'N/A' }}</td>
+								<td>{{ $staff->blood_group }}</td>
 							</tr>
+							@endif
 						</table>
 					</div>
 					<div class="col-md-6">
 						<table class="table table-borderless">
+							@if($staff->religion)
 							<tr>
 								<td class="text-muted" style="width: 40%;">Religion</td>
-								<td>{{ $staff->religion ?? 'N/A' }}</td>
+								<td>{{ $staff->religion }}</td>
 							</tr>
+							@endif
+							@if($staff->marital_status)
 							<tr>
 								<td class="text-muted">Marital Status</td>
-								<td>{{ ucfirst($staff->marital_status ?? 'N/A') }}</td>
+								<td>{{ ucfirst($staff->marital_status) }}</td>
 							</tr>
+							@endif
+							@if($staff->nationality)
 							<tr>
 								<td class="text-muted">Nationality</td>
-								<td>{{ $staff->nationality ?? 'N/A' }}</td>
+								<td>{{ $staff->nationality }}</td>
 							</tr>
-							<tr>
-								<td class="text-muted">National ID</td>
-								<td>{{ $staff->national_id ?? 'N/A' }}</td>
-							</tr>
+							@endif
 						</table>
 					</div>
 				</div>
@@ -274,25 +274,25 @@
 			</div>
 		</div>
 
-		<!-- Address Information -->
+		<!-- Address -->
 		@if($staff->current_address || $staff->permanent_address)
 			<div class="card">
 				<div class="card-header">
-					<h5>Address Information</h5>
+					<h5>Address</h5>
 				</div>
 				<div class="card-body">
 					<div class="row">
 						@if($staff->current_address)
-							<div class="col-md-6">
-								<h6 class="text-muted">Current Address</h6>
-								<p>{{ $staff->current_address }}</p>
-							</div>
+						<div class="col-md-6">
+							<h6 class="text-muted">Current Address</h6>
+							<p>{{ $staff->current_address }}</p>
+						</div>
 						@endif
 						@if($staff->permanent_address)
-							<div class="col-md-6">
-								<h6 class="text-muted">Permanent Address</h6>
-								<p class="mb-0">{{ $staff->permanent_address }}</p>
-							</div>
+						<div class="col-md-6">
+							<h6 class="text-muted">Permanent Address</h6>
+							<p class="mb-0">{{ $staff->permanent_address }}</p>
+						</div>
 						@endif
 					</div>
 				</div>
