@@ -8,6 +8,8 @@ use App\Models\Vehicle;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\DriverExport;
 
 class DriverController extends Controller
 {
@@ -274,8 +276,57 @@ class DriverController extends Controller
 
         $driver->forceDelete();
 
+        if (request()->ajax()) {
+            return response()->json(['message' => 'Driver permanently deleted.']);
+        }
+
         return redirect()->route('admin.drivers.trash')
             ->with('success', 'Driver permanently deleted.');
+    }
+
+    /**
+     * Bulk restore trashed drivers.
+     */
+    public function bulkRestore(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+        ]);
+
+        Driver::onlyTrashed()->whereIn('id', $request->ids)->restore();
+
+        return response()->json([
+            'message' => count($request->ids) . ' driver(s) restored successfully.',
+        ]);
+    }
+
+    /**
+     * Bulk permanently delete trashed drivers.
+     */
+    public function bulkForceDelete(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+        ]);
+
+        $drivers = Driver::onlyTrashed()->whereIn('id', $request->ids)->get();
+
+        foreach ($drivers as $driver) {
+            if ($driver->photo) {
+                Storage::disk('public')->delete($driver->photo);
+            }
+            if ($driver->license_document) {
+                Storage::disk('public')->delete($driver->license_document);
+            }
+            if ($driver->id_proof_document) {
+                Storage::disk('public')->delete($driver->id_proof_document);
+            }
+            $driver->forceDelete();
+        }
+
+        return response()->json([
+            'message' => count($request->ids) . ' driver(s) permanently deleted.',
+        ]);
     }
 
     /**
@@ -347,38 +398,7 @@ class DriverController extends Controller
 
         $drivers = $query->get();
 
-        $filename = 'drivers_' . date('Y-m-d_His') . '.csv';
-        $headers = [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
-        ];
-
-        $callback = function () use ($drivers) {
-            $file = fopen('php://output', 'w');
-
-            fputcsv($file, [
-                'Employee ID', 'Name', 'Phone', 'Email', 'License Number',
-                'License Expiry', 'License Status', 'Joining Date', 'Status', 'Assigned Vehicles'
-            ]);
-
-            foreach ($drivers as $driver) {
-                fputcsv($file, [
-                    $driver->employee_id,
-                    $driver->full_name,
-                    $driver->phone,
-                    $driver->email ?? '-',
-                    $driver->license_number,
-                    $driver->license_expiry->format('Y-m-d'),
-                    $driver->getLicenseStatusLabel(),
-                    $driver->joining_date->format('Y-m-d'),
-                    $driver->is_active ? 'Active' : 'Inactive',
-                    $driver->vehicles->pluck('vehicle_no')->implode(', ') ?: '-',
-                ]);
-            }
-
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
+        $filename = 'drivers_' . date('Y-m-d') . '.xlsx';
+        return Excel::download(new DriverExport($drivers), $filename);
     }
 }

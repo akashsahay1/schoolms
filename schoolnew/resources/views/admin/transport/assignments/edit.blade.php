@@ -98,17 +98,23 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Pickup Point</label>
-                            <input type="text" name="pickup_point" id="pickup_point" class="form-control @error('pickup_point') is-invalid @enderror" value="{{ old('pickup_point', $assignment->pickup_point) }}" placeholder="e.g., Near City Mall">
+                            <select name="pickup_point" id="pickup_point_select" class="form-select">
+                                <option value="">Select Point</option>
+                            </select>
+                            <input type="text" name="pickup_point_custom" id="pickup_point_custom" class="form-control mt-2 d-none" placeholder="Enter custom pickup point">
                             @error('pickup_point')
-                                <div class="invalid-feedback">{{ $message }}</div>
+                                <div class="text-danger mt-1" style="font-size: 13px;">{{ $message }}</div>
                             @enderror
                         </div>
 
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Drop Point</label>
-                            <input type="text" name="drop_point" id="drop_point" class="form-control @error('drop_point') is-invalid @enderror" value="{{ old('drop_point', $assignment->drop_point) }}" placeholder="e.g., Main Gate">
+                            <select name="drop_point" id="drop_point_select" class="form-select">
+                                <option value="">Select Point</option>
+                            </select>
+                            <input type="text" name="drop_point_custom" id="drop_point_custom" class="form-control mt-2 d-none" placeholder="Enter custom drop point">
                             @error('drop_point')
-                                <div class="invalid-feedback">{{ $message }}</div>
+                                <div class="text-danger mt-1" style="font-size: 13px;">{{ $message }}</div>
                             @enderror
                         </div>
                     </div>
@@ -152,22 +158,106 @@
 @push('scripts')
 <script>
 jQuery(document).ready(function() {
-    // Route selection - show info
-    jQuery('#transport_route_id').on('change', function() {
-        var selected = jQuery(this).find('option:selected');
-        if (selected.val()) {
-            var vehicle = selected.data('vehicle');
-            var fare = selected.data('fare');
-            jQuery('#routeVehicle').text(vehicle);
-            jQuery('#routeFare').text('₹' + parseFloat(fare).toFixed(2));
-            jQuery('#routeInfo').removeClass('d-none');
+    var currentPickup = '{{ old('pickup_point', $assignment->pickup_point) }}';
+    var currentDrop = '{{ old('drop_point', $assignment->drop_point) }}';
+
+    function loadStops(routeId, preselectPickup, preselectDrop) {
+        var pickupSelect = jQuery('#pickup_point_select');
+        var dropSelect = jQuery('#drop_point_select');
+
+        if (!routeId) {
+            pickupSelect.html('<option value="">Select Route First</option>').prop('disabled', true);
+            dropSelect.html('<option value="">Select Route First</option>').prop('disabled', true);
+            return;
+        }
+
+        pickupSelect.html('<option value="">Loading...</option>').prop('disabled', true);
+        dropSelect.html('<option value="">Loading...</option>').prop('disabled', true);
+
+        jQuery.ajax({
+            url: '{{ url("admin/transport/routes") }}/' + routeId + '/stops',
+            type: 'GET',
+            success: function(stops) {
+                var options = '<option value="">Select Point</option>';
+                var pickupFound = false;
+                var dropFound = false;
+
+                if (stops && stops.length > 0) {
+                    for (var i = 0; i < stops.length; i++) {
+                        options += '<option value="' + stops[i] + '">' + stops[i] + '</option>';
+                        if (stops[i] === preselectPickup) pickupFound = true;
+                        if (stops[i] === preselectDrop) dropFound = true;
+                    }
+                }
+                options += '<option value="__other__">Other (Custom)</option>';
+
+                pickupSelect.html(options).prop('disabled', false);
+                dropSelect.html(options).prop('disabled', false);
+
+                // Pre-select existing values
+                if (preselectPickup) {
+                    if (pickupFound) {
+                        pickupSelect.val(preselectPickup);
+                    } else if (preselectPickup) {
+                        pickupSelect.val('__other__');
+                        jQuery('#pickup_point_custom').removeClass('d-none').val(preselectPickup);
+                    }
+                }
+                if (preselectDrop) {
+                    if (dropFound) {
+                        dropSelect.val(preselectDrop);
+                    } else if (preselectDrop) {
+                        dropSelect.val('__other__');
+                        jQuery('#drop_point_custom').removeClass('d-none').val(preselectDrop);
+                    }
+                }
+            },
+            error: function() {
+                var fallback = '<option value="">No stops found</option><option value="__other__">Other (Custom)</option>';
+                pickupSelect.html(fallback).prop('disabled', false);
+                dropSelect.html(fallback).prop('disabled', false);
+            }
+        });
+    }
+
+    // Show/hide custom input
+    jQuery(document).on('change', '#pickup_point_select', function() {
+        if (jQuery(this).val() === '__other__') {
+            jQuery('#pickup_point_custom').removeClass('d-none').focus();
         } else {
-            jQuery('#routeInfo').addClass('d-none');
+            jQuery('#pickup_point_custom').addClass('d-none').val('');
         }
     });
 
-    if (typeof feather !== 'undefined') {
-        feather.replace();
+    jQuery(document).on('change', '#drop_point_select', function() {
+        if (jQuery(this).val() === '__other__') {
+            jQuery('#drop_point_custom').removeClass('d-none').focus();
+        } else {
+            jQuery('#drop_point_custom').addClass('d-none').val('');
+        }
+    });
+
+    // Route selection - show info + load stops
+    jQuery('#transport_route_id').on('change', function() {
+        var selected = jQuery(this).find('option:selected');
+        if (selected.val()) {
+            jQuery('#routeVehicle').text(selected.data('vehicle'));
+            jQuery('#routeFare').text('₹' + parseFloat(selected.data('fare')).toFixed(2));
+            jQuery('#routeInfo').removeClass('d-none');
+            loadStops(selected.val(), currentPickup, currentDrop);
+            // Clear preselect after first load so route change resets
+            currentPickup = '';
+            currentDrop = '';
+        } else {
+            jQuery('#routeInfo').addClass('d-none');
+            loadStops(null);
+        }
+    });
+
+    // Load stops on page load
+    var initialRoute = jQuery('#transport_route_id').val();
+    if (initialRoute) {
+        loadStops(initialRoute, currentPickup, currentDrop);
     }
 });
 </script>

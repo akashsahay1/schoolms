@@ -217,6 +217,7 @@ class ReportTemplate extends Model
             ],
             'transport' => [
                 'class_id' => ['label' => 'Class', 'type' => 'select', 'model' => 'SchoolClass'],
+                'section_id' => ['label' => 'Section', 'type' => 'select', 'model' => 'Section'],
                 'route_id' => ['label' => 'Route', 'type' => 'select', 'model' => 'TransportRoute'],
                 'vehicle_id' => ['label' => 'Vehicle', 'type' => 'select', 'model' => 'Vehicle'],
             ],

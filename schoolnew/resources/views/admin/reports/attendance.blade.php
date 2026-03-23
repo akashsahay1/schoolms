@@ -18,7 +18,7 @@
 					<h5>Attendance Report</h5>
 					@if(!empty($attendanceData))
 						<a href="{{ route('admin.reports.attendance.export', request()->all()) }}" class="btn btn-success">
-							<i data-feather="download" class="me-1"></i> Export CSV
+							<i data-feather="download" class="me-1"></i> Export Excel
 						</a>
 					@endif
 				</div>
@@ -26,7 +26,11 @@
 			<div class="card-body">
 				<!-- Filters -->
 				<form method="GET" action="{{ route('admin.reports.attendance') }}" class="mb-4">
-					<div class="row g-3">
+					<div class="row g-3 align-items-end">
+						<div class="col-md-2">
+							<label class="form-label">Search Student</label>
+							<input type="text" name="search" class="form-control" placeholder="Name, Adm No..." value="{{ request('search') }}">
+						</div>
 						<div class="col-md-2">
 							<label class="form-label">Class <span class="text-danger">*</span></label>
 							<select name="class_id" class="form-select" required>
@@ -38,10 +42,10 @@
 								@endforeach
 							</select>
 						</div>
-						<div class="col-md-2">
+						<div class="col-md-1">
 							<label class="form-label">Section</label>
 							<select name="section_id" class="form-select">
-								<option value="">All Sections</option>
+								<option value="">All</option>
 								@foreach($sections as $section)
 									<option value="{{ $section->id }}" {{ request('section_id') == $section->id ? 'selected' : '' }}>
 										{{ $section->name }}
@@ -57,11 +61,17 @@
 							<label class="form-label">End Date <span class="text-danger">*</span></label>
 							<input type="date" name="end_date" class="form-control" value="{{ $endDate }}" required>
 						</div>
-						<div class="col-md-2">
-							<label class="form-label">&nbsp;</label>
-							<button type="submit" class="btn btn-primary w-100">
-								<i data-feather="bar-chart-2" class="me-1"></i> Generate Report
-							</button>
+						<div class="col-md-3">
+							<div class="d-flex gap-2">
+								<button type="submit" class="btn btn-primary flex-fill">
+									<i class="icon-filter me-1"></i> Generate Report
+								</button>
+								@if(request()->hasAny(['search', 'class_id', 'section_id']))
+									<a href="{{ route('admin.reports.attendance') }}" class="btn btn-outline-secondary" title="Reset">
+										<i class="icon-reload"></i>
+									</a>
+								@endif
+							</div>
 						</div>
 					</div>
 				</form>

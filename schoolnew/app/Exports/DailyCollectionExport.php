@@ -22,7 +22,7 @@ class DailyCollectionExport implements FromCollection, WithHeadings, WithMapping
 
     public function collection()
     {
-        return FeeCollection::with(['student.schoolClass', 'feeStructure.feeType', 'collectedBy'])
+        return FeeCollection::with(['student.schoolClass', 'feeStructure.feeType'])
             ->whereDate('payment_date', $this->date)
             ->orderBy('created_at')
             ->get();
@@ -31,15 +31,14 @@ class DailyCollectionExport implements FromCollection, WithHeadings, WithMapping
     public function headings(): array
     {
         return [
-            'S.No',
+            '#',
             'Receipt No',
             'Time',
             'Student Name',
             'Class',
             'Fee Type',
             'Amount',
-            'Payment Mode',
-            'Collected By',
+            'Status',
         ];
     }
 
@@ -56,8 +55,7 @@ class DailyCollectionExport implements FromCollection, WithHeadings, WithMapping
             $collection->student->schoolClass->name ?? 'N/A',
             $collection->feeStructure->feeType->name ?? 'N/A',
             number_format($collection->paid_amount, 2),
-            ucfirst(str_replace('_', ' ', $collection->payment_mode)),
-            $collection->collectedBy->name ?? 'N/A',
+            'Paid',
         ];
     }
 
@@ -73,7 +71,7 @@ class DailyCollectionExport implements FromCollection, WithHeadings, WithMapping
                 'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
                 'fill' => [
                     'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                    'startColor' => ['rgb' => '548235']
+                    'startColor' => ['rgb' => '4472C4'],
                 ],
             ],
         ];

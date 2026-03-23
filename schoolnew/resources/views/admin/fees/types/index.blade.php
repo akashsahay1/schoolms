@@ -95,7 +95,12 @@
 									</td>
 									<td>{{ $feeTypes->firstItem() + $loop->index }}</td>
 									<td><span class="badge badge-light-primary">{{ $feeType->code }}</span></td>
-									<td><strong>{{ $feeType->name }}</strong></td>
+									<td>
+									<strong>{{ $feeType->name }}</strong>
+									@if(strtolower($feeType->name) === 'transport')
+										<br><small class="text-muted">Managed in <a href="{{ route('admin.transport.fees.index') }}">Transport Module</a></small>
+									@endif
+								</td>
 									<td>{{ Str::limit($feeType->description, 50) ?? '-' }}</td>
 									<td>
 										<span class="badge badge-light-{{ $feeType->is_active ? 'success' : 'danger' }}">

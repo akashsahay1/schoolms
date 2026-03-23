@@ -51,6 +51,11 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\SecurityHeaders::class,
         ]);
 
+        // Exclude webhook from CSRF verification
+        $middleware->validateCsrfTokens(except: [
+            'razorpay/webhook',
+        ]);
+
         // Alias for rate limiting and role checking
         $middleware->alias([
             'throttle.logins' => \App\Http\Middleware\ThrottleLogins::class,

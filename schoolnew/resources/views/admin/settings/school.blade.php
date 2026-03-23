@@ -175,10 +175,63 @@
                 </div>
             </div>
 
+            <!-- Certificate & Signature Settings -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5>Certificate & Signature Settings</h5>
+                    <p class="text-muted mb-0" style="font-size: 13px;">Used in Transfer Certificates and Marksheets</p>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="principal_name" class="form-label">Principal Name</label>
+                                <input type="text" class="form-control" id="principal_name" name="principal_name" value="{{ old('principal_name', $settings['principal_name'] ?? '') }}" placeholder="e.g., Dr. John Smith">
+                                <small class="text-muted">Shown under principal signature on certificates</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Principal Signature</label>
+                                @if($settings['principal_signature_image'] ?? null)
+                                    <div class="mb-2">
+                                        <img src="{{ asset('storage/' . $settings['principal_signature_image']) }}" alt="Signature" style="max-height: 60px; border: 1px solid #dee2e6; padding: 5px; border-radius: 4px;">
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" name="remove_principal_signature" value="1" id="remove_sig">
+                                        <label class="form-check-label text-danger" for="remove_sig">Remove signature</label>
+                                    </div>
+                                @endif
+                                <input type="file" class="form-control" name="principal_signature_image" accept="image/*">
+                                <small class="text-muted">Upload a transparent PNG of the signature (recommended: 300x100px)</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">School Stamp / Seal</label>
+                                @if($settings['school_stamp'] ?? null)
+                                    <div class="mb-2">
+                                        <img src="{{ asset('storage/' . $settings['school_stamp']) }}" alt="Stamp" style="max-height: 80px; border: 1px solid #dee2e6; padding: 5px; border-radius: 4px;">
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" name="remove_school_stamp" value="1" id="remove_stamp">
+                                        <label class="form-check-label text-danger" for="remove_stamp">Remove stamp</label>
+                                    </div>
+                                @endif
+                                <input type="file" class="form-control" name="school_stamp" accept="image/*">
+                                <small class="text-muted">Upload school seal/stamp image (recommended: 200x200px, transparent PNG)</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="row mt-3">
                 <div class="col-12">
                     <button type="submit" class="btn btn-primary">
-                        <i data-feather="save" class="icon-xs"></i> Save Settings
+                        <i class="icon-check me-1"></i> Save Settings
                     </button>
                 </div>
             </div>

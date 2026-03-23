@@ -203,7 +203,7 @@ jQuery(document).ready(function() {
 					type: 'POST',
 					data: {
 						_token: '{{ csrf_token() }}',
-						route_ids: selectedIds
+						ids: selectedIds
 					},
 					beforeSend: function() {
 						Swal.fire({

@@ -100,7 +100,7 @@
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <button type="submit" class="btn btn-primary me-2">Apply Filter</button>
+                            <button type="submit" class="btn btn-primary me-2"><i class="icon-filter me-1"></i> Filter</button>
                             <a href="{{ route('portal.homework.index') }}" class="btn btn-outline-secondary">Reset</a>
                         </div>
                     </form>

@@ -38,7 +38,7 @@
 						</div>
 						<div class="col-md-4 col-6">
 							<button type="submit" class="btn btn-primary">
-								<i data-feather="search" style="width: 14px; height: 14px;"></i> Filter
+								<i class="icon-filter me-1"></i> Filter
 							</button>
 							<a href="{{ route('portal.notices') }}" class="btn btn-outline-secondary">
 								<i data-feather="refresh-cw" style="width: 14px; height: 14px;"></i> Reset

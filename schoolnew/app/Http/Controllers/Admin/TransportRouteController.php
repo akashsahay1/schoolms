@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AcademicYear;
+use App\Models\TransportFee;
 use App\Models\TransportRoute;
 use App\Models\Vehicle;
 use Illuminate\Http\Request;
@@ -42,10 +44,15 @@ class TransportRouteController extends Controller
 			'start_time' => ['nullable', 'date_format:H:i'],
 			'end_time' => ['nullable', 'date_format:H:i'],
 			'is_active' => ['nullable', 'boolean'],
+			'stops' => ['nullable', 'array'],
+			'stops.*' => ['string', 'max:255'],
 		]);
 
+		// Filter empty stops
+		$stops = array_values(array_filter($request->input('stops', []), fn($s) => trim($s) !== ''));
+
 		try {
-			TransportRoute::create([
+			$route = TransportRoute::create([
 				'vehicle_id' => $validated['vehicle_id'],
 				'route_name' => $validated['route_name'],
 				'start_place' => $validated['start_place'],
@@ -54,7 +61,10 @@ class TransportRouteController extends Controller
 				'start_time' => $validated['start_time'] ?? null,
 				'end_time' => $validated['end_time'] ?? null,
 				'is_active' => $request->has('is_active'),
+				'stops' => $stops,
 			]);
+
+			$this->syncTransportFee($route);
 
 			return redirect()->route('admin.transport.routes.index')->with('success', 'Route added successfully.');
 		} catch (\Exception $e) {
@@ -79,7 +89,11 @@ class TransportRouteController extends Controller
 			'start_time' => ['nullable', 'date_format:H:i'],
 			'end_time' => ['nullable', 'date_format:H:i'],
 			'is_active' => ['nullable', 'boolean'],
+			'stops' => ['nullable', 'array'],
+			'stops.*' => ['string', 'max:255'],
 		]);
+
+		$stops = array_values(array_filter($request->input('stops', []), fn($s) => trim($s) !== ''));
 
 		try {
 			$route->update([
@@ -91,7 +105,10 @@ class TransportRouteController extends Controller
 				'start_time' => $validated['start_time'] ?? null,
 				'end_time' => $validated['end_time'] ?? null,
 				'is_active' => $request->has('is_active'),
+				'stops' => $stops,
 			]);
+
+			$this->syncTransportFee($route);
 
 			return redirect()->route('admin.transport.routes.index')->with('success', 'Route updated successfully.');
 		} catch (\Exception $e) {
@@ -203,6 +220,14 @@ class TransportRouteController extends Controller
 		}
 	}
 
+	/**
+	 * Get stops for a route (AJAX).
+	 */
+	public function getStops(TransportRoute $route)
+	{
+		return response()->json($route->stops ?? []);
+	}
+
 	public function emptyTrash()
 	{
 		try {
@@ -215,5 +240,30 @@ class TransportRouteController extends Controller
 			DB::rollBack();
 			return back()->with('error', 'An error occurred: ' . $e->getMessage());
 		}
+	}
+
+	/**
+	 * Auto-create or update TransportFee for the active academic year.
+	 * Ensures a monthly fee record exists for this route so "Generate Monthly Fees" works.
+	 */
+	private function syncTransportFee(TransportRoute $route): void
+	{
+		$activeYear = AcademicYear::getActive();
+		if (!$activeYear) {
+			return;
+		}
+
+		TransportFee::updateOrCreate(
+			[
+				'transport_route_id' => $route->id,
+				'academic_year_id' => $activeYear->id,
+				'fee_type' => 'monthly',
+			],
+			[
+				'amount' => $route->fare_amount,
+				'is_active' => $route->is_active,
+				'description' => 'Monthly transport fee for ' . $route->route_name,
+			]
+		);
 	}
 }

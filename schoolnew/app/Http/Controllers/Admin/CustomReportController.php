@@ -24,6 +24,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\CustomReportExport;
 
 class CustomReportController extends Controller
 {
@@ -100,36 +102,22 @@ class CustomReportController extends Controller
         $data = $this->fetchReportData($dataSource, $selectedColumns, $filters, $sort);
         $columnLabels = ReportTemplate::getAvailableColumns($dataSource);
 
-        $filename = 'custom_report_' . $dataSource . '_' . date('Y-m-d_H-i-s') . '.csv';
+        $headings = [];
+        foreach ($selectedColumns as $col) {
+            $headings[] = $columnLabels[$col] ?? $col;
+        }
 
-        $headers = [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
-        ];
-
-        $callback = function () use ($data, $selectedColumns, $columnLabels) {
-            $file = fopen('php://output', 'w');
-
-            // Header row
-            $headerRow = [];
+        $rows = [];
+        foreach ($data as $row) {
+            $dataRow = [];
             foreach ($selectedColumns as $col) {
-                $headerRow[] = $columnLabels[$col] ?? $col;
+                $dataRow[] = $row[$col] ?? '';
             }
-            fputcsv($file, $headerRow);
+            $rows[] = $dataRow;
+        }
 
-            // Data rows
-            foreach ($data as $row) {
-                $dataRow = [];
-                foreach ($selectedColumns as $col) {
-                    $dataRow[] = $row[$col] ?? '';
-                }
-                fputcsv($file, $dataRow);
-            }
-
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
+        $filename = 'custom_report_' . $dataSource . '_' . date('Y-m-d_H-i-s') . '.xlsx';
+        return Excel::download(new CustomReportExport($rows, $headings), $filename);
     }
 
     /**
@@ -449,17 +437,17 @@ class CustomReportController extends Controller
             $query->where('status', $filters['status']);
         }
         if (!empty($filters['date_from'])) {
-            $query->whereDate('date', '>=', $filters['date_from']);
+            $query->whereDate('attendance_date', '>=', $filters['date_from']);
         }
         if (!empty($filters['date_to'])) {
-            $query->whereDate('date', '<=', $filters['date_to']);
+            $query->whereDate('attendance_date', '<=', $filters['date_to']);
         }
 
         // Apply sorting
         if (!empty($sort['field'])) {
             $query->orderBy($sort['field'], $sort['direction'] ?? 'asc');
         } else {
-            $query->orderBy('date', 'desc');
+            $query->orderBy('attendance_date', 'desc');
         }
 
         $attendance = $query->limit(1000)->get();
@@ -481,7 +469,7 @@ class CustomReportController extends Controller
                         $row[$col] = $record->student->section->name ?? '';
                         break;
                     case 'date':
-                        $row[$col] = $record->date?->format('Y-m-d');
+                        $row[$col] = $record->attendance_date?->format('Y-m-d');
                         break;
                     case 'status':
                         $row[$col] = ucfirst($record->status ?? '');
@@ -564,7 +552,7 @@ class CustomReportController extends Controller
      */
     private function fetchFeesData(array $columns, array $filters, array $sort)
     {
-        $query = FeeCollection::with(['student.schoolClass', 'student.section', 'feeType']);
+        $query = FeeCollection::with(['student.schoolClass', 'student.section', 'feeStructure.feeType']);
 
         // Apply filters
         if (!empty($filters['class_id'])) {
@@ -578,13 +566,9 @@ class CustomReportController extends Controller
             });
         }
         if (!empty($filters['fee_type_id'])) {
-            $query->where('fee_type_id', $filters['fee_type_id']);
-        }
-        if (!empty($filters['status'])) {
-            $query->where('status', $filters['status']);
-        }
-        if (!empty($filters['payment_method'])) {
-            $query->where('payment_method', $filters['payment_method']);
+            $query->whereHas('feeStructure', function ($q) use ($filters) {
+                $q->where('fee_type_id', $filters['fee_type_id']);
+            });
         }
         if (!empty($filters['date_from'])) {
             $query->whereDate('payment_date', '>=', $filters['date_from']);
@@ -593,8 +577,9 @@ class CustomReportController extends Controller
             $query->whereDate('payment_date', '<=', $filters['date_to']);
         }
 
-        // Apply sorting
-        if (!empty($sort['field'])) {
+        // Apply sorting — only use columns that exist on fee_collections table
+        $sortableColumns = ['payment_date', 'paid_amount', 'amount', 'discount_amount', 'fine_amount', 'created_at'];
+        if (!empty($sort['field']) && in_array($sort['field'], $sortableColumns)) {
             $query->orderBy($sort['field'], $sort['direction'] ?? 'asc');
         } else {
             $query->orderBy('payment_date', 'desc');
@@ -619,19 +604,25 @@ class CustomReportController extends Controller
                         $row[$col] = $record->student->section->name ?? '';
                         break;
                     case 'fee_type':
-                        $row[$col] = $record->feeType->name ?? '';
+                        $row[$col] = $record->feeStructure->feeType->name ?? '';
                         break;
                     case 'amount':
+                        $row[$col] = number_format($record->amount ?? 0, 2);
+                        break;
                     case 'discount':
+                        $row[$col] = number_format($record->discount_amount ?? 0, 2);
+                        break;
                     case 'fine':
+                        $row[$col] = number_format($record->fine_amount ?? 0, 2);
+                        break;
                     case 'paid_amount':
-                        $row[$col] = number_format($record->{$col} ?? 0, 2);
+                        $row[$col] = number_format($record->paid_amount ?? 0, 2);
                         break;
                     case 'payment_date':
                         $row[$col] = $record->payment_date?->format('Y-m-d');
                         break;
                     case 'status':
-                        $row[$col] = ucfirst($record->status ?? '');
+                        $row[$col] = 'Paid';
                         break;
                     case 'payment_method':
                         $row[$col] = ucfirst($record->payment_method ?? '');
@@ -723,29 +714,37 @@ class CustomReportController extends Controller
      */
     private function fetchTransportData(array $columns, array $filters, array $sort)
     {
-        $query = StudentTransport::with(['student.schoolClass', 'route', 'vehicle.driver']);
+        $query = \App\Models\RouteAssignment::with(['student.schoolClass', 'student.section', 'route.vehicle'])
+            ->where('is_active', true);
 
-        // Apply filters
         if (!empty($filters['class_id'])) {
             $query->whereHas('student', function ($q) use ($filters) {
                 $q->where('class_id', $filters['class_id']);
             });
         }
+        if (!empty($filters['section_id'])) {
+            $query->whereHas('student', function ($q) use ($filters) {
+                $q->where('section_id', $filters['section_id']);
+            });
+        }
         if (!empty($filters['route_id'])) {
-            $query->where('route_id', $filters['route_id']);
+            $query->where('transport_route_id', $filters['route_id']);
         }
         if (!empty($filters['vehicle_id'])) {
-            $query->where('vehicle_id', $filters['vehicle_id']);
+            $query->whereHas('route', function ($q) use ($filters) {
+                $q->where('vehicle_id', $filters['vehicle_id']);
+            });
         }
 
-        // Apply sorting
         if (!empty($sort['field'])) {
             $query->orderBy($sort['field'], $sort['direction'] ?? 'asc');
+        } else {
+            $query->latest();
         }
 
-        $transports = $query->get();
+        $assignments = $query->get();
 
-        return $transports->map(function ($record) use ($columns) {
+        return $assignments->map(function ($record) use ($columns) {
             $row = [];
             foreach ($columns as $col) {
                 switch ($col) {
@@ -759,19 +758,19 @@ class CustomReportController extends Controller
                         $row[$col] = $record->student->schoolClass->name ?? '';
                         break;
                     case 'route_name':
-                        $row[$col] = $record->route->name ?? '';
+                        $row[$col] = $record->route->route_name ?? '';
                         break;
                     case 'vehicle_number':
-                        $row[$col] = $record->vehicle->vehicle_number ?? '';
+                        $row[$col] = $record->route->vehicle->vehicle_no ?? '';
                         break;
                     case 'driver_name':
-                        $row[$col] = $record->vehicle->driver->name ?? '';
+                        $row[$col] = $record->route->vehicle->driver_name ?? '';
                         break;
                     case 'pickup_point':
                         $row[$col] = $record->pickup_point ?? '';
                         break;
                     case 'transport_fee':
-                        $row[$col] = number_format($record->route->fee ?? 0, 2);
+                        $row[$col] = number_format($record->route->fare_amount ?? 0, 2);
                         break;
                     default:
                         $row[$col] = $record->{$col} ?? '';
@@ -793,8 +792,12 @@ class CustomReportController extends Controller
             case 'attendance':
             case 'fees':
             case 'transport':
-                $data['classes'] = SchoolClass::where('is_active', true)->orderBy('name')->get(['id', 'name']);
-                $data['sections'] = Section::where('is_active', true)->orderBy('name')->get(['id', 'name']);
+                $data['classes'] = SchoolClass::where('is_active', true)->orderBy('order')->get(['id', 'name']);
+                $data['sections'] = Section::where('is_active', true)
+                    ->orderBy('name')
+                    ->get(['id', 'name'])
+                    ->unique('name')
+                    ->values();
                 break;
             case 'staff':
             case 'staff_attendance':
@@ -816,8 +819,8 @@ class CustomReportController extends Controller
         }
 
         if ($dataSource === 'transport') {
-            $data['routes'] = TransportRoute::where('is_active', true)->orderBy('name')->get(['id', 'name']);
-            $data['vehicles'] = Vehicle::where('is_active', true)->orderBy('vehicle_number')->get(['id', 'vehicle_number']);
+            $data['routes'] = TransportRoute::where('is_active', true)->orderBy('route_name')->get(['id', 'route_name as name']);
+            $data['vehicles'] = Vehicle::where('status', 'active')->orderBy('vehicle_no')->get(['id', 'vehicle_no as name']);
         }
 
         return $data;

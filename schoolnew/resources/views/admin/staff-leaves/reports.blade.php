@@ -19,7 +19,7 @@
                     <h5>Leave Reports</h5>
                     <div class="d-flex gap-2">
                         <a href="{{ route('admin.staff-leaves.reports.export', request()->query()) }}" class="btn btn-outline-success">
-                            <i data-feather="download" class="me-1"></i> Export CSV
+                            <i data-feather="download" class="me-1"></i> Export Excel
                         </a>
                     </div>
                 </div>
@@ -27,16 +27,21 @@
             <div class="card-body">
                 <!-- Filter -->
                 <form action="{{ route('admin.staff-leaves.reports') }}" method="GET" class="mb-4">
-                    <div class="row g-3">
+                    <div class="row g-3 align-items-end">
                         <div class="col-md-4">
                             <label class="form-label">Academic Year</label>
-                            <select name="academic_year_id" class="form-select" onchange="this.form.submit()">
+                            <select name="academic_year_id" class="form-select">
                                 @foreach($academicYears as $year)
                                     <option value="{{ $year->id }}" {{ $selectedYear == $year->id ? 'selected' : '' }}>
                                         {{ $year->name }} {{ $year->is_active ? '(Current)' : '' }}
                                     </option>
                                 @endforeach
                             </select>
+                        </div>
+                        <div class="col-md-3">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="icon-filter me-1"></i> Filter
+                            </button>
                         </div>
                     </div>
                 </form>

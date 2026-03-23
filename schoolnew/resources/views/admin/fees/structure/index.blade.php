@@ -13,6 +13,11 @@
 @section('content')
 <div class="row">
 	<div class="col-12">
+		<div class="alert alert-light border mb-3 py-2 px-3" style="font-size: 13px; border-radius: 8px;">
+			<i class="icon-info-alt me-1 text-primary"></i>
+			This page manages <strong>academic fees</strong> (Tuition, Exam, Library, etc.). Transport charges are managed separately in <a href="{{ route('admin.transport.fees.index') }}">Transport → Fees</a> based on route fare.
+		</div>
+
 		@if(session('success'))
 			<div class="alert alert-success alert-dismissible fade show" role="alert">
 				{{ session('success') }}

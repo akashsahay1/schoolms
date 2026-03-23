@@ -10,6 +10,11 @@ use App\Models\Student;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\LibraryIssuesExport;
+use App\Exports\LibraryOverdueExport;
+use App\Exports\LibraryInventoryExport;
+use App\Exports\LibraryFinesExport;
 
 class LibraryReportController extends Controller
 {
@@ -199,11 +204,21 @@ class LibraryReportController extends Controller
             $query->where('class_id', $request->class_id);
         }
 
+        if ($request->filled('student_id')) {
+            $query->where('id', $request->student_id);
+        }
+
         $students = $query->orderBy('first_name')->paginate(20);
 
         $classes = \App\Models\SchoolClass::active()->ordered()->get();
 
-        return view('admin.library.reports.student-wise', compact('students', 'classes'));
+        // Students for dropdown — filtered by class if selected
+        $studentList = Student::where('status', 'active')
+            ->when($request->filled('class_id'), fn($q) => $q->where('class_id', $request->class_id))
+            ->orderBy('first_name')
+            ->get();
+
+        return view('admin.library.reports.student-wise', compact('students', 'classes', 'studentList'));
     }
 
     /**
@@ -215,89 +230,34 @@ class LibraryReportController extends Controller
         $fromDate = $request->get('from_date', now()->startOfMonth()->format('Y-m-d'));
         $toDate = $request->get('to_date', now()->format('Y-m-d'));
 
-        // This would use Laravel Excel package
-        // For now, return CSV download
-        $filename = "library_{$type}_report_{$fromDate}_to_{$toDate}.csv";
+        switch ($type) {
+            case 'issues':
+                $records = BookIssue::with(['book', 'student'])
+                    ->whereBetween('issue_date', [$fromDate, $toDate])
+                    ->get();
+                $filename = "library_issues_report_{$fromDate}_to_{$toDate}.xlsx";
+                return Excel::download(new LibraryIssuesExport($records), $filename);
 
-        $headers = [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => "attachment; filename=\"$filename\"",
-        ];
+            case 'overdue':
+                $records = BookIssue::with(['book', 'student'])->overdue()->get();
+                $filename = "library_overdue_report_" . date('Y-m-d') . ".xlsx";
+                return Excel::download(new LibraryOverdueExport($records), $filename);
 
-        $callback = function () use ($type, $fromDate, $toDate) {
-            $file = fopen('php://output', 'w');
+            case 'inventory':
+                $records = Book::with('category')->get();
+                $filename = "library_inventory_" . date('Y-m-d') . ".xlsx";
+                return Excel::download(new LibraryInventoryExport($records), $filename);
 
-            switch ($type) {
-                case 'issues':
-                    fputcsv($file, ['Issue Date', 'Book Title', 'Student Name', 'Due Date', 'Return Date', 'Fine Amount', 'Status']);
-                    $records = BookIssue::with(['book', 'student'])
-                        ->whereBetween('issue_date', [$fromDate, $toDate])
-                        ->get();
-                    foreach ($records as $record) {
-                        fputcsv($file, [
-                            $record->issue_date->format('Y-m-d'),
-                            $record->book->title ?? 'N/A',
-                            $record->student->full_name ?? 'N/A',
-                            $record->due_date->format('Y-m-d'),
-                            $record->return_date ? $record->return_date->format('Y-m-d') : '-',
-                            $record->fine_amount ?? 0,
-                            ucfirst($record->status),
-                        ]);
-                    }
-                    break;
+            case 'fines':
+                $records = BookIssue::with(['book', 'student'])
+                    ->where('fine_amount', '>', 0)
+                    ->whereBetween('return_date', [$fromDate, $toDate])
+                    ->get();
+                $filename = "library_fines_report_{$fromDate}_to_{$toDate}.xlsx";
+                return Excel::download(new LibraryFinesExport($records), $filename);
 
-                case 'overdue':
-                    fputcsv($file, ['Book Title', 'Student Name', 'Issue Date', 'Due Date', 'Overdue Days', 'Calculated Fine']);
-                    $records = BookIssue::with(['book', 'student'])->overdue()->get();
-                    foreach ($records as $record) {
-                        fputcsv($file, [
-                            $record->book->title ?? 'N/A',
-                            $record->student->full_name ?? 'N/A',
-                            $record->issue_date->format('Y-m-d'),
-                            $record->due_date->format('Y-m-d'),
-                            $record->overdue_days,
-                            $record->calculated_fine,
-                        ]);
-                    }
-                    break;
-
-                case 'inventory':
-                    fputcsv($file, ['Title', 'Author', 'ISBN', 'Category', 'Total Copies', 'Available', 'Price']);
-                    $records = Book::with('category')->get();
-                    foreach ($records as $record) {
-                        fputcsv($file, [
-                            $record->title,
-                            $record->author,
-                            $record->isbn,
-                            $record->category->name ?? 'N/A',
-                            $record->total_copies,
-                            $record->available_copies,
-                            $record->price,
-                        ]);
-                    }
-                    break;
-
-                case 'fines':
-                    fputcsv($file, ['Return Date', 'Book Title', 'Student Name', 'Overdue Days', 'Fine Amount']);
-                    $records = BookIssue::with(['book', 'student'])
-                        ->where('fine_amount', '>', 0)
-                        ->whereBetween('return_date', [$fromDate, $toDate])
-                        ->get();
-                    foreach ($records as $record) {
-                        fputcsv($file, [
-                            $record->return_date->format('Y-m-d'),
-                            $record->book->title ?? 'N/A',
-                            $record->student->full_name ?? 'N/A',
-                            $record->overdue_days,
-                            $record->fine_amount,
-                        ]);
-                    }
-                    break;
-            }
-
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
+            default:
+                return back()->with('error', 'Invalid report type');
+        }
     }
 }

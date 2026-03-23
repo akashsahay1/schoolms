@@ -112,6 +112,73 @@
         </div>
     </div>
 
+    <!-- Transport Fee -->
+    @if(isset($transportData) && $transportData)
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header pb-0">
+                    <h5>Transport Fee <small class="text-muted fw-normal">— {{ $transportData['route_name'] }}</small></h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <small class="text-muted d-block">Monthly Fare</small>
+                            <strong>₹{{ number_format($transportData['monthly_fare'], 2) }}</strong>
+                        </div>
+                        <div class="col-md-3">
+                            <small class="text-muted d-block">Total Generated</small>
+                            <strong>₹{{ number_format($transportData['total_generated'], 2) }}</strong>
+                        </div>
+                        <div class="col-md-3">
+                            <small class="text-muted d-block">Paid</small>
+                            <strong class="text-success">₹{{ number_format($transportData['total_paid'], 2) }}</strong>
+                        </div>
+                        <div class="col-md-3">
+                            <small class="text-muted d-block">Due</small>
+                            @if($transportData['total_due'] > 0)
+                                <strong class="text-danger">₹{{ number_format($transportData['total_due'], 2) }}</strong>
+                            @else
+                                <strong class="text-success">All Paid</strong>
+                            @endif
+                        </div>
+                    </div>
+                    @if($transportData['collections']->count() > 0)
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th>Month</th>
+                                        <th class="text-end">Amount</th>
+                                        <th class="text-end">Paid</th>
+                                        <th class="text-center">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($transportData['collections'] as $tc)
+                                        <tr>
+                                            <td>{{ $tc->month ?? '-' }}</td>
+                                            <td class="text-end">₹{{ number_format($tc->amount, 2) }}</td>
+                                            <td class="text-end">₹{{ number_format($tc->paid_amount, 2) }}</td>
+                                            <td class="text-center">
+                                                <span class="badge badge-light-{{ $tc->status === 'paid' ? 'success' : 'warning' }} px-2">
+                                                    {{ ucfirst($tc->status) }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @else
+                        <p class="text-muted mb-0" style="font-size: 13px;">No monthly transport fees generated yet. Contact admin.</p>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+
     <!-- Recent Payments -->
     <div class="row">
         <div class="col-12">

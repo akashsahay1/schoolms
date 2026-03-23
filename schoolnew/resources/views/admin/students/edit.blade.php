@@ -185,13 +185,39 @@
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Status <span class="text-danger">*</span></label>
-                            <select class="form-select @error('status') is-invalid @enderror" name="status" required>
+                            <select class="form-select @error('status') is-invalid @enderror" name="status" id="studentStatus" required>
                                 <option value="active" {{ old('status', $student->status) == 'active' ? 'selected' : '' }}>Active</option>
                                 <option value="inactive" {{ old('status', $student->status) == 'inactive' ? 'selected' : '' }}>Inactive</option>
                                 <option value="graduated" {{ old('status', $student->status) == 'graduated' ? 'selected' : '' }}>Graduated</option>
                                 <option value="transferred" {{ old('status', $student->status) == 'transferred' ? 'selected' : '' }}>Transferred</option>
                                 <option value="expelled" {{ old('status', $student->status) == 'expelled' ? 'selected' : '' }}>Expelled</option>
                             </select>
+                            @error('status')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <!-- Status-specific fields (shown/hidden by JS) -->
+                    <div id="statusFields" class="{{ in_array(old('status', $student->status), ['graduated', 'transferred', 'expelled']) ? '' : 'd-none' }}">
+                        <div id="statusMessage" class="alert alert-info py-2 px-3 mb-3 {{ old('status', $student->status) == 'graduated' ? '' : 'd-none' }}" style="font-size: 13px;">
+                            <i class="icon-info-alt me-1"></i> Only Class 12 students can be marked as Graduated. Leaving date will be set to session end date automatically.
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 mb-3" id="leavingDateGroup">
+                                <label class="form-label">Leaving Date <span class="text-danger leaving-required-star">*</span></label>
+                                <input type="date" class="form-control @error('leaving_date') is-invalid @enderror" name="leaving_date" id="leavingDate" value="{{ old('leaving_date', $student->leaving_date?->format('Y-m-d')) }}">
+                                @error('leaving_date')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="col-md-8 mb-3" id="leavingReasonGroup">
+                                <label class="form-label">Leaving Reason <span class="text-danger leaving-required-star">*</span></label>
+                                <input type="text" class="form-control @error('leaving_reason') is-invalid @enderror" name="leaving_reason" id="leavingReason" value="{{ old('leaving_reason', $student->leaving_reason) }}" placeholder="e.g., Family relocated, Completed education...">
+                                @error('leaving_reason')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
                         </div>
                     </div>
 
@@ -492,5 +518,52 @@
         }
     });
     @endif
+
+    // Status change — show/hide leaving fields
+    var isClass12 = {{ in_array($student->class_id, \App\Models\SchoolClass::where('name', 'like', 'Class 12%')->pluck('id')->toArray()) ? 'true' : 'false' }};
+    var sessionEndDate = '{{ $student->academicYear?->end_date?->format("Y-m-d") ?? "" }}';
+
+    function handleStatusChange() {
+        var status = document.getElementById('studentStatus').value;
+        var fields = document.getElementById('statusFields');
+        var message = document.getElementById('statusMessage');
+        var dateGroup = document.getElementById('leavingDateGroup');
+        var dateInput = document.getElementById('leavingDate');
+        var reasonInput = document.getElementById('leavingReason');
+
+        // Reset
+        fields.classList.add('d-none');
+        message.classList.add('d-none');
+        dateInput.removeAttribute('readonly');
+        dateInput.value = dateInput.value || '';
+        reasonInput.value = reasonInput.value || '';
+
+        if (status === 'graduated') {
+            fields.classList.remove('d-none');
+            message.classList.remove('d-none');
+            // Auto-fill for graduated
+            if (sessionEndDate) {
+                dateInput.value = sessionEndDate;
+            }
+            dateInput.setAttribute('readonly', true);
+            reasonInput.value = 'Completed Class 12';
+            reasonInput.setAttribute('readonly', true);
+        } else if (status === 'transferred') {
+            fields.classList.remove('d-none');
+            message.classList.add('d-none');
+            reasonInput.removeAttribute('readonly');
+            if (!dateInput.value) dateInput.value = new Date().toISOString().split('T')[0];
+        } else if (status === 'expelled') {
+            fields.classList.remove('d-none');
+            message.classList.add('d-none');
+            reasonInput.removeAttribute('readonly');
+            dateGroup.classList.remove('d-none');
+            if (!dateInput.value) dateInput.value = new Date().toISOString().split('T')[0];
+        }
+    }
+
+    document.getElementById('studentStatus').addEventListener('change', handleStatusChange);
+    // Run on page load if status is already set
+    handleStatusChange();
 </script>
 @endpush

@@ -23,7 +23,14 @@
 }
 .role-card .role-header {
 	padding: 20px;
-	border-bottom: 1px solid #f0f0f0;
+	border-bottom: none;
+}
+.role-card .role-header,
+.role-card .role-header h6,
+.role-card .role-header span,
+.role-card .role-header i,
+.role-card .role-header .badge {
+	color: #fff !important;
 }
 .role-card .role-body {
 	padding: 20px;
@@ -104,26 +111,26 @@
 				@endphp
 				<div class="col-xl-4 col-md-6 mb-4">
 					<div class="role-card bg-white h-100">
-						<div class="role-header">
+						<div class="role-header" style="background: {{ $color['bg'] }};">
 							<div class="d-flex align-items-center justify-content-between">
 								<div class="d-flex align-items-center gap-3">
-									<div class="role-icon" style="background: {{ $color['light'] }}; color: {{ $color['bg'] }};">
+									<div class="role-icon" style="background: rgba(255,255,255,0.2); color: #fff;">
 										<i class="fa-solid {{ $color['icon'] }}"></i>
 									</div>
 									<div>
-										<h6 class="mb-1 fw-bold">{{ $role->name }}</h6>
+										<h6 class="mb-1 fw-bold" style="color: #fff;">{{ $role->name }}</h6>
 										<div class="d-flex gap-2">
-											<span class="badge" style="background: {{ $color['bg'] }}; color: #fff;">
+											<span class="badge" style="background: rgba(255,255,255,0.2); color: #fff;">
 												{{ $role->permissions_count }} Permissions
 											</span>
-											<span class="badge" style="background: {{ $color['light'] }}; color: {{ $color['bg'] }};">
+											<span class="badge" style="background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.9);">
 												{{ $role->users_count }} {{ Str::plural('User', $role->users_count) }}
 											</span>
 										</div>
 									</div>
 								</div>
 								@if($isProtected)
-									<span class="badge bg-light text-muted" title="System role"><i class="fa-solid fa-lock" style="font-size: 11px;"></i></span>
+									<span class="badge" style="background: rgba(255,255,255,0.2); color: #fff;" title="System role"><i class="fa-solid fa-lock" style="font-size: 11px;"></i></span>
 								@endif
 							</div>
 						</div>

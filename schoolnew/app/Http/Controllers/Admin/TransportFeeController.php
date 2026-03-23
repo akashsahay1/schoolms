@@ -12,6 +12,8 @@ use App\Models\TransportRoute;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\TransportFeeCollectionExport;
 
 class TransportFeeController extends Controller
 {
@@ -23,6 +25,26 @@ class TransportFeeController extends Controller
         $academicYears = AcademicYear::orderBy('name', 'desc')->get();
         $currentYear = AcademicYear::where('is_active', true)->first();
         $selectedYear = $request->academic_year_id ?? $currentYear?->id;
+
+        // Auto-sync: ensure all active routes have a TransportFee for the active year
+        if ($currentYear) {
+            $routesWithoutFee = TransportRoute::where('is_active', true)
+                ->whereDoesntHave('fees', fn($q) => $q->where('academic_year_id', $currentYear->id)->where('fee_type', 'monthly'))
+                ->get();
+
+            foreach ($routesWithoutFee as $route) {
+                TransportFee::create([
+                    'transport_route_id' => $route->id,
+                    'academic_year_id' => $currentYear->id,
+                    'fee_type' => 'monthly',
+                    'amount' => $route->fare_amount,
+                    'fine_per_day' => 0,
+                    'fine_grace_days' => 0,
+                    'is_active' => true,
+                    'description' => 'Monthly transport fee for ' . $route->route_name,
+                ]);
+            }
+        }
 
         $fees = TransportFee::with(['route', 'academicYear'])
             ->when($selectedYear, fn($q) => $q->where('academic_year_id', $selectedYear))
@@ -65,10 +87,24 @@ class TransportFeeController extends Controller
         $validated['fine_per_day'] = $validated['fine_per_day'] ?? 0;
         $validated['fine_grace_days'] = $validated['fine_grace_days'] ?? 0;
 
-        TransportFee::create($validated);
+        TransportFee::updateOrCreate(
+            [
+                'academic_year_id' => $validated['academic_year_id'],
+                'transport_route_id' => $validated['transport_route_id'],
+                'fee_type' => $validated['fee_type'],
+            ],
+            [
+                'amount' => $validated['amount'],
+                'fine_per_day' => $validated['fine_per_day'],
+                'fine_grace_days' => $validated['fine_grace_days'],
+                'due_date' => $validated['due_date'] ?? null,
+                'description' => $validated['description'] ?? null,
+                'is_active' => $validated['is_active'],
+            ]
+        );
 
         return redirect()->route('admin.transport.fees.index')
-            ->with('success', 'Transport fee created successfully.');
+            ->with('success', 'Transport fee saved successfully.');
     }
 
     /**
@@ -360,35 +396,82 @@ class TransportFeeController extends Controller
         $academicYears = AcademicYear::orderBy('name', 'desc')->get();
         $currentYear = AcademicYear::where('is_active', true)->first();
         $selectedYear = $request->academic_year_id ?? $currentYear?->id;
+        $routes = TransportRoute::active()->orderBy('route_name')->get();
+
+        // All fee IDs for this academic year
+        $allFeeIds = TransportFee::where('academic_year_id', $selectedYear)->pluck('id');
+
+        // Build base collection query with filters
+        $baseQuery = TransportFeeCollection::whereIn('transport_fee_id', $allFeeIds);
+
+        if ($request->filled('route_id')) {
+            $routeFeeIds = TransportFee::where('academic_year_id', $selectedYear)
+                ->where('transport_route_id', $request->route_id)
+                ->pluck('id');
+            $baseQuery->whereIn('transport_fee_id', $routeFeeIds);
+        }
+
+        if ($request->filled('month')) {
+            $baseQuery->where('month', $request->month);
+        }
+
+        // Summary stats
+        $stats = [
+            'total_students' => (clone $baseQuery)->distinct('student_id')->count('student_id'),
+            'total_due' => (clone $baseQuery)->sum(DB::raw('amount + fine - discount')),
+            'total_collected' => (clone $baseQuery)->sum('paid_amount'),
+            'total_pending' => (clone $baseQuery)->pending()->count(),
+            'total_paid' => (clone $baseQuery)->where('status', 'paid')->count(),
+            'total_records' => (clone $baseQuery)->count(),
+        ];
+        $stats['collection_pct'] = $stats['total_due'] > 0
+            ? round(($stats['total_collected'] / $stats['total_due']) * 100, 1) : 0;
 
         // Route-wise collection summary
         $routeSummary = TransportRoute::withCount([
             'assignments' => fn($q) => $q->where('academic_year_id', $selectedYear)->where('is_active', true),
         ])->with(['fees' => fn($q) => $q->where('academic_year_id', $selectedYear)])
             ->get()
-            ->map(function ($route) use ($selectedYear) {
+            ->map(function ($route) use ($request) {
                 $feeIds = $route->fees->pluck('id');
                 $collections = TransportFeeCollection::whereIn('transport_fee_id', $feeIds);
+
+                if ($request->filled('month')) {
+                    $collections->where('month', $request->month);
+                }
+
+                $totalDue = (clone $collections)->sum(DB::raw('amount + fine - discount'));
+                $totalCollected = (clone $collections)->sum('paid_amount');
 
                 return [
                     'route' => $route,
                     'students_count' => $route->assignments_count,
-                    'total_due' => (clone $collections)->sum(DB::raw('amount + fine - discount')),
-                    'total_collected' => (clone $collections)->sum('paid_amount'),
+                    'fare' => $route->fare_amount,
+                    'total_due' => $totalDue,
+                    'total_collected' => $totalCollected,
                     'pending_count' => (clone $collections)->pending()->count(),
+                    'paid_count' => (clone $collections)->where('status', 'paid')->count(),
                 ];
             });
 
         // Monthly collection trend
-        $monthlyTrend = TransportFeeCollection::whereHas('transportFee', fn($q) => $q->where('academic_year_id', $selectedYear))
+        $monthlyTrend = TransportFeeCollection::whereIn('transport_fee_id', $allFeeIds)
             ->where('status', 'paid')
-            ->selectRaw('DATE_FORMAT(payment_date, "%Y-%m") as month, SUM(paid_amount) as total')
-            ->groupBy('month')
+            ->whereNotNull('payment_date')
+            ->selectRaw('DATE_FORMAT(payment_date, "%Y-%m") as month, SUM(paid_amount) as total, COUNT(*) as count')
+            ->groupByRaw('DATE_FORMAT(payment_date, "%Y-%m")')
             ->orderBy('month')
             ->get();
 
+        // Available months for filter
+        $availableMonths = TransportFeeCollection::whereIn('transport_fee_id', $allFeeIds)
+            ->distinct()
+            ->orderBy('month')
+            ->pluck('month');
+
         return view('admin.transport.fees.reports', compact(
-            'academicYears', 'selectedYear', 'routeSummary', 'monthlyTrend'
+            'academicYears', 'selectedYear', 'routes', 'routeSummary',
+            'monthlyTrend', 'stats', 'availableMonths'
         ));
     }
 
@@ -403,44 +486,7 @@ class TransportFeeController extends Controller
             ->whereHas('transportFee', fn($q) => $q->where('academic_year_id', $academicYearId))
             ->get();
 
-        $filename = 'transport_fee_collections_' . date('Y-m-d_His') . '.csv';
-        $headers = [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
-        ];
-
-        $callback = function () use ($collections) {
-            $file = fopen('php://output', 'w');
-
-            fputcsv($file, [
-                'Receipt No', 'Student', 'Admission No', 'Route', 'Month',
-                'Amount', 'Discount', 'Fine', 'Total', 'Paid', 'Balance',
-                'Status', 'Payment Mode', 'Payment Date'
-            ]);
-
-            foreach ($collections as $collection) {
-                $total = $collection->amount + $collection->fine - $collection->discount;
-                fputcsv($file, [
-                    $collection->receipt_number ?? '-',
-                    $collection->student->first_name . ' ' . $collection->student->last_name,
-                    $collection->student->admission_no,
-                    $collection->transportFee->route->title ?? '-',
-                    $collection->month ?? '-',
-                    $collection->amount,
-                    $collection->discount,
-                    $collection->fine,
-                    $total,
-                    $collection->paid_amount,
-                    $total - $collection->paid_amount,
-                    ucfirst($collection->status),
-                    TransportFeeCollection::PAYMENT_MODES[$collection->payment_mode] ?? $collection->payment_mode ?? '-',
-                    $collection->payment_date?->format('Y-m-d') ?? '-',
-                ]);
-            }
-
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
+        $filename = 'transport_fee_collections_' . date('Y-m-d') . '.xlsx';
+        return Excel::download(new TransportFeeCollectionExport($collections), $filename);
     }
 }

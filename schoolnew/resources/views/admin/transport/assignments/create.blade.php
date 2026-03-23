@@ -90,8 +90,8 @@
 
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Section</label>
-                            <select name="section_id" id="section_id" class="form-select">
-                                <option value="">All Sections</option>
+                            <select name="section_id" id="section_id" class="form-select" disabled>
+                                <option value="">Select Class First</option>
                             </select>
                         </div>
                     </div>
@@ -115,17 +115,23 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Pickup Point</label>
-                            <input type="text" name="pickup_point" id="pickup_point" class="form-control @error('pickup_point') is-invalid @enderror" value="{{ old('pickup_point') }}" placeholder="e.g., Near City Mall">
+                            <select name="pickup_point" id="pickup_point_select" class="form-select" disabled>
+                                <option value="">Select Route First</option>
+                            </select>
+                            <input type="text" name="pickup_point_custom" id="pickup_point_custom" class="form-control mt-2 d-none" placeholder="Enter custom pickup point">
                             @error('pickup_point')
-                                <div class="invalid-feedback">{{ $message }}</div>
+                                <div class="text-danger mt-1" style="font-size: 13px;">{{ $message }}</div>
                             @enderror
                         </div>
 
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Drop Point</label>
-                            <input type="text" name="drop_point" id="drop_point" class="form-control @error('drop_point') is-invalid @enderror" value="{{ old('drop_point') }}" placeholder="e.g., Main Gate">
+                            <select name="drop_point" id="drop_point_select" class="form-select" disabled>
+                                <option value="">Select Route First</option>
+                            </select>
+                            <input type="text" name="drop_point_custom" id="drop_point_custom" class="form-control mt-2 d-none" placeholder="Enter custom drop point">
                             @error('drop_point')
-                                <div class="invalid-feedback">{{ $message }}</div>
+                                <div class="text-danger mt-1" style="font-size: 13px;">{{ $message }}</div>
                             @enderror
                         </div>
                     </div>
@@ -175,7 +181,7 @@
 @push('scripts')
 <script>
 jQuery(document).ready(function() {
-    // Route selection - show info
+    // Route selection - show info + load stops
     jQuery('#transport_route_id').on('change', function() {
         var selected = jQuery(this).find('option:selected');
         if (selected.val()) {
@@ -184,8 +190,64 @@ jQuery(document).ready(function() {
             jQuery('#routeVehicle').text(vehicle);
             jQuery('#routeFare').text('₹' + parseFloat(fare).toFixed(2));
             jQuery('#routeInfo').removeClass('d-none');
+            loadStops(selected.val());
         } else {
             jQuery('#routeInfo').addClass('d-none');
+            loadStops(null);
+        }
+    });
+
+    // Load stops for selected route
+    function loadStops(routeId) {
+        var pickupSelect = jQuery('#pickup_point_select');
+        var dropSelect = jQuery('#drop_point_select');
+
+        if (!routeId) {
+            pickupSelect.html('<option value="">Select Route First</option>').prop('disabled', true);
+            dropSelect.html('<option value="">Select Route First</option>').prop('disabled', true);
+            jQuery('#pickup_point_custom, #drop_point_custom').addClass('d-none').val('');
+            return;
+        }
+
+        pickupSelect.html('<option value="">Loading...</option>').prop('disabled', true);
+        dropSelect.html('<option value="">Loading...</option>').prop('disabled', true);
+
+        jQuery.ajax({
+            url: '{{ url("admin/transport/routes") }}/' + routeId + '/stops',
+            type: 'GET',
+            success: function(stops) {
+                var options = '<option value="">Select Point</option>';
+                if (stops && stops.length > 0) {
+                    for (var i = 0; i < stops.length; i++) {
+                        options += '<option value="' + stops[i] + '">' + stops[i] + '</option>';
+                    }
+                }
+                options += '<option value="__other__">Other (Custom)</option>';
+                pickupSelect.html(options).prop('disabled', false);
+                dropSelect.html(options).prop('disabled', false);
+            },
+            error: function() {
+                var fallback = '<option value="">No stops found</option><option value="__other__">Other (Custom)</option>';
+                pickupSelect.html(fallback).prop('disabled', false);
+                dropSelect.html(fallback).prop('disabled', false);
+            }
+        });
+    }
+
+    // Show/hide custom input when "Other" is selected
+    jQuery(document).on('change', '#pickup_point_select', function() {
+        if (jQuery(this).val() === '__other__') {
+            jQuery('#pickup_point_custom').removeClass('d-none').focus();
+        } else {
+            jQuery('#pickup_point_custom').addClass('d-none').val('');
+        }
+    });
+
+    jQuery(document).on('change', '#drop_point_select', function() {
+        if (jQuery(this).val() === '__other__') {
+            jQuery('#drop_point_custom').removeClass('d-none').focus();
+        } else {
+            jQuery('#drop_point_custom').addClass('d-none').val('');
         }
     });
 
@@ -194,46 +256,53 @@ jQuery(document).ready(function() {
         jQuery('#transport_route_id').trigger('change');
     }
 
-    // Class selection - load sections
+    // Class selection - load sections + students
     jQuery('#class_id').on('change', function() {
         var classId = jQuery(this).val();
         var sectionSelect = jQuery('#section_id');
         var studentSelect = jQuery('#student_id');
 
-        sectionSelect.html('<option value="">Loading...</option>');
-        studentSelect.html('<option value="">Select Section or Class First</option>').prop('disabled', true);
-
-        if (classId) {
-            jQuery.ajax({
-                url: '{{ route("admin.transport.assignments.sections") }}',
-                type: 'GET',
-                data: { class_id: classId },
-                success: function(data) {
-                    var options = '<option value="">All Sections</option>';
-                    data.forEach(function(section) {
-                        options += '<option value="' + section.id + '">' + section.name + '</option>';
-                    });
-                    sectionSelect.html(options);
-
-                    // Load students for the class
-                    loadStudents(classId, null);
-                },
-                error: function() {
-                    sectionSelect.html('<option value="">Error loading sections</option>');
-                }
-            });
-        } else {
-            sectionSelect.html('<option value="">All Sections</option>');
+        if (!classId) {
+            sectionSelect.html('<option value="">Select Class First</option>').prop('disabled', true);
+            studentSelect.html('<option value="">Select Class First</option>').prop('disabled', true);
+            return;
         }
+
+        sectionSelect.html('<option value="">Loading...</option>').prop('disabled', true);
+        studentSelect.html('<option value="">Loading...</option>').prop('disabled', true);
+
+        jQuery.ajax({
+            url: '{{ route("admin.transport.assignments.sections") }}',
+            type: 'GET',
+            data: { class_id: classId },
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            success: function(data) {
+                if (data.length > 0) {
+                    var options = '<option value="">All Sections</option>';
+                    for (var i = 0; i < data.length; i++) {
+                        options += '<option value="' + data[i].id + '">' + data[i].name + '</option>';
+                    }
+                    sectionSelect.html(options).prop('disabled', false);
+                } else {
+                    sectionSelect.html('<option value="">No sections for this class</option>').prop('disabled', true);
+                }
+
+                // Load students for the class regardless of sections
+                loadStudents(classId, null);
+            },
+            error: function() {
+                sectionSelect.html('<option value="">No sections available</option>').prop('disabled', true);
+                // Still load students even if sections fail
+                loadStudents(classId, null);
+            }
+        });
     });
 
-    // Section selection - load students
+    // Section selection - reload students
     jQuery('#section_id').on('change', function() {
         var classId = jQuery('#class_id').val();
-        var sectionId = jQuery(this).val();
-
         if (classId) {
-            loadStudents(classId, sectionId);
+            loadStudents(classId, jQuery(this).val());
         }
     });
 
@@ -244,19 +313,21 @@ jQuery(document).ready(function() {
         jQuery.ajax({
             url: '{{ route("admin.transport.assignments.students") }}',
             type: 'GET',
-            data: {
-                class_id: classId,
-                section_id: sectionId
-            },
+            data: { class_id: classId, section_id: sectionId },
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
             success: function(data) {
-                var options = '<option value="">Select Student</option>';
-                data.forEach(function(student) {
-                    options += '<option value="' + student.id + '">' + student.first_name + ' ' + student.last_name + ' (' + student.admission_no + ')</option>';
-                });
-                studentSelect.html(options).prop('disabled', false);
+                if (data.length > 0) {
+                    var options = '<option value="">Select Student</option>';
+                    for (var i = 0; i < data.length; i++) {
+                        options += '<option value="' + data[i].id + '">' + data[i].first_name + ' ' + data[i].last_name + ' (' + data[i].admission_no + ')</option>';
+                    }
+                    studentSelect.html(options).prop('disabled', false);
+                } else {
+                    studentSelect.html('<option value="">No students found</option>').prop('disabled', true);
+                }
             },
             error: function() {
-                studentSelect.html('<option value="">Error loading students</option>');
+                studentSelect.html('<option value="">No students found</option>').prop('disabled', true);
             }
         });
     }

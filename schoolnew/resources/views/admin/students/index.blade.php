@@ -94,7 +94,7 @@
 						</div>
 						<div class="col-md-2">
 							<button type="submit" class="btn btn-outline-primary w-100">
-								<i data-feather="search" class="me-1"></i> Filter
+								<i class="icon-filter me-1"></i> Filter
 							</button>
 						</div>
 						@if(request()->hasAny(['search', 'class_id', 'section_id', 'status']))

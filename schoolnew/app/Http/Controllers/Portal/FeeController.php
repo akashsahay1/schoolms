@@ -7,6 +7,11 @@ use App\Http\Controllers\Portal\Traits\PortalStudentTrait;
 use App\Models\Student;
 use App\Models\FeeCollection;
 use App\Models\FeeStructure;
+use App\Models\AcademicYear;
+use App\Models\RouteAssignment;
+use App\Models\TransportFee;
+use App\Models\TransportFeeCollection;
+use App\Services\StudentFeeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -27,51 +32,68 @@ class FeeController extends Controller
         }
 
         $student->load(['schoolClass', 'section']);
+        $activeYear = AcademicYear::getActive();
 
-        // Get fee structure for student's class
+        // Academic fee structures for student's class
         $feeStructures = FeeStructure::where('class_id', $student->class_id)
             ->where('is_active', true)
+            ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
             ->with(['feeType', 'feeGroup'])
             ->get();
 
-        // Get fee structure IDs for this class
         $feeStructureIds = $feeStructures->pluck('id')->toArray();
 
-        // Get fee collections only for the fee structures of this class
+        // Academic fee collections
         $feeCollections = FeeCollection::where('student_id', $student->id)
             ->whereIn('fee_structure_id', $feeStructureIds)
             ->with(['feeStructure.feeType', 'feeStructure.feeGroup'])
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Calculate totals properly per fee structure
-        $totalFees = 0;
-        $totalPaid = 0;
-        $totalDiscount = 0;
+        // Transport fee data
+        $transportData = null;
+        if ($activeYear) {
+            $assignment = RouteAssignment::where('student_id', $student->id)
+                ->where('academic_year_id', $activeYear->id)
+                ->where('is_active', true)
+                ->with('route')
+                ->first();
 
-        foreach ($feeStructures as $structure) {
-            $totalFees += $structure->amount;
+            if ($assignment) {
+                $transportFee = TransportFee::where('transport_route_id', $assignment->transport_route_id)
+                    ->where('academic_year_id', $activeYear->id)
+                    ->where('is_active', true)
+                    ->first();
 
-            // Get payments for this specific structure
-            $structurePayments = $feeCollections->where('fee_structure_id', $structure->id);
-            $totalPaid += $structurePayments->sum('paid_amount');
-            $totalDiscount += $structurePayments->sum('discount_amount');
+                $transportCollections = $transportFee
+                    ? TransportFeeCollection::where('student_id', $student->id)
+                        ->where('transport_fee_id', $transportFee->id)
+                        ->get()
+                    : collect();
+
+                $transportTotal = $transportCollections->sum(fn($c) => $c->amount + $c->fine - $c->discount);
+                $transportPaid = $transportCollections->sum('paid_amount');
+
+                $transportData = [
+                    'route_name' => $assignment->route->route_name ?? '-',
+                    'monthly_fare' => $assignment->route->fare_amount ?? 0,
+                    'total_generated' => $transportTotal,
+                    'total_paid' => $transportPaid,
+                    'total_due' => max(0, $transportTotal - $transportPaid),
+                    'collections' => $transportCollections,
+                ];
+            }
         }
 
-        $totalDue = $totalFees - $totalPaid - $totalDiscount;
-
-        $stats = [
-            'total_fees' => $totalFees,
-            'total_paid' => $totalPaid,
-            'total_discount' => $totalDiscount,
-            'total_due' => max(0, $totalDue),
-        ];
+        // Combined stats using service
+        $stats = StudentFeeService::getStudentFeeStats($student->id, $activeYear?->id);
 
         return view('portal.fees.overview', compact(
             'student',
             'feeStructures',
             'feeCollections',
-            'stats'
+            'stats',
+            'transportData'
         ));
     }
 

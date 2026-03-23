@@ -207,9 +207,13 @@
 					</td>
 					<td style="width: 34%;">
 						<div class="label">Due Amount</div>
-						<div class="value {{ $studentStats['total_due'] > 0 ? 'red' : 'green' }}">
-							{{ $studentStats['total_due'] > 0 ? '&#8377; ' . number_format($studentStats['total_due'], 2) : 'All Paid' }}
-						</div>
+						@if($studentStats['total_due'] > 0)
+							<div class="value red">&#8377; {{ number_format($studentStats['total_due'], 2) }}</div>
+						@elseif($studentStats['total_due'] < 0)
+							<div class="value blue">Advance &#8377; {{ number_format(abs($studentStats['total_due']), 2) }}</div>
+						@else
+							<div class="value green">All Paid</div>
+						@endif
 					</td>
 				@else
 					<td style="width: 25%;">

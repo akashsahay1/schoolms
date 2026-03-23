@@ -45,20 +45,17 @@
                 </div>
                 <div class="col-md-3">
                     <button type="submit" class="btn btn-primary me-2">
-                        <i data-feather="filter" class="me-1"></i> Filter
+                        <i class="icon-filter me-1"></i> Filter
                     </button>
                     <a href="{{ route('admin.fees.reports.outstanding') }}" class="btn btn-light">Reset</a>
                 </div>
                 <div class="col-md-3 text-end">
                     <div class="btn-group">
-                        <a href="{{ route('admin.fees.reports.export', ['type' => 'outstanding'] + request()->only(['class_id', 'hide_paid'])) }}" class="btn btn-sm btn-outline-secondary" title="Export CSV">
-                            <i data-feather="file-text" style="width: 14px; height: 14px;"></i> CSV
-                        </a>
                         <a href="{{ route('admin.fees.reports.export-excel', ['type' => 'outstanding'] + request()->only(['class_id', 'hide_paid'])) }}" class="btn btn-sm btn-outline-success" title="Export Excel">
-                            <i data-feather="file" style="width: 14px; height: 14px;"></i> Excel
+                            <i data-feather="download" style="width: 14px; height: 14px;"></i> Excel
                         </a>
                         <a href="{{ route('admin.fees.reports.export-pdf', ['type' => 'outstanding'] + request()->only(['class_id', 'hide_paid'])) }}" class="btn btn-sm btn-outline-danger" title="Export PDF">
-                            <i data-feather="file-minus" style="width: 14px; height: 14px;"></i> PDF
+                            <i data-feather="file-text" style="width: 14px; height: 14px;"></i> PDF
                         </a>
                     </div>
                 </div>

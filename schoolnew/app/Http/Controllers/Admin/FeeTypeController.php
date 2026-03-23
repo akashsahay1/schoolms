@@ -47,6 +47,11 @@ class FeeTypeController extends Controller
 			'is_active' => ['nullable', 'boolean'],
 		]);
 
+		// Prevent creating duplicate "Transport" fee type
+		if (strtolower($validated['name']) === 'transport') {
+			return back()->with('error', 'Transport fee is managed via the Transport module. Use Transport → Routes to set fare amounts.')->withInput();
+		}
+
 		try {
 			FeeType::create([
 				'name' => $validated['name'],
@@ -70,6 +75,11 @@ class FeeTypeController extends Controller
 
 	public function update(Request $request, FeeType $feeType)
 	{
+		// Prevent re-activating Transport fee type (managed via Transport module)
+		if (strtolower($feeType->name) === 'transport' && $request->has('is_active')) {
+			return back()->with('error', 'Transport fee is managed via the Transport module. It cannot be activated here.');
+		}
+
 		$validated = $request->validate([
 			'name' => ['required', 'string', 'max:100'],
 			'code' => ['required', 'string', 'max:20', 'unique:fee_types,code,' . $feeType->id],
@@ -78,11 +88,14 @@ class FeeTypeController extends Controller
 		]);
 
 		try {
+			// Keep Transport always inactive
+			$isActive = strtolower($feeType->name) === 'transport' ? false : $request->has('is_active');
+
 			$feeType->update([
 				'name' => $validated['name'],
 				'code' => strtoupper($validated['code']),
 				'description' => $validated['description'] ?? null,
-				'is_active' => $request->has('is_active'),
+				'is_active' => $isActive,
 			]);
 
 			return redirect()->route('admin.fees.types.index')

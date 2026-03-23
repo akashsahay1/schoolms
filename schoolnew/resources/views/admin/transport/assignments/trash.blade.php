@@ -33,22 +33,22 @@
                     <h5>Trashed Assignments</h5>
                     <div class="d-flex gap-2">
                         <button type="button" class="btn btn-success d-none" id="bulkRestoreBtn">
-                            <i data-feather="refresh-cw" class="me-1"></i> Restore Selected (<span id="selectedRestoreCount">0</span>)
+                            <i class="icon-reload me-1"></i> Restore Selected
                         </button>
                         <button type="button" class="btn btn-danger d-none" id="bulkForceDeleteBtn">
-                            <i data-feather="trash-2" class="me-1"></i> Delete Permanently (<span id="selectedDeleteCount">0</span>)
+                            <i class="icon-trash me-1"></i> Delete Permanently
                         </button>
                         @if($assignments->count() > 0)
                             <form action="{{ route('admin.transport.assignments.empty-trash') }}" method="POST" class="d-inline" id="emptyTrashForm">
                                 @csrf
                                 @method('DELETE')
                                 <button type="button" class="btn btn-outline-danger" id="emptyTrashBtn">
-                                    <i data-feather="trash" class="me-1"></i> Empty Trash
+                                    <i class="icon-trash me-1"></i> Empty Trash
                                 </button>
                             </form>
                         @endif
-                        <a href="{{ route('admin.transport.assignments.index') }}" class="btn btn-secondary">
-                            <i data-feather="arrow-left" class="me-1"></i> Back to List
+                        <a href="{{ route('admin.transport.assignments.index') }}" class="btn btn-primary">
+                            <i class="icon-arrow-left me-1"></i> Back to List
                         </a>
                     </div>
                 </div>
@@ -92,15 +92,15 @@
                                         <div class="d-flex gap-2">
                                             <form action="{{ route('admin.transport.assignments.restore', $assignment->id) }}" method="POST" class="d-inline">
                                                 @csrf
-                                                <button type="submit" class="btn btn-success btn-sm" title="Restore">
-                                                    <i data-feather="refresh-cw" style="width: 14px; height: 14px;"></i>
+                                                <button type="submit" class="btn btn-outline-success btn-sm" title="Restore">
+                                                    <i class="icon-reload" style="font-size: 14px;"></i>
                                                 </button>
                                             </form>
                                             <form action="{{ route('admin.transport.assignments.force-delete', $assignment->id) }}" method="POST" class="d-inline force-delete-form">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="button" class="btn btn-danger btn-sm force-delete-btn" title="Delete Permanently" data-name="{{ $assignment->student->first_name ?? 'N/A' }} {{ $assignment->student->last_name ?? '' }}">
-                                                    <i data-feather="trash-2" style="width: 14px; height: 14px;"></i>
+                                                <button type="button" class="btn btn-outline-danger btn-sm force-delete-btn" title="Delete Permanently" data-name="{{ $assignment->student->first_name ?? 'N/A' }} {{ $assignment->student->last_name ?? '' }}">
+                                                    <i class="icon-trash" style="font-size: 14px;"></i>
                                                 </button>
                                             </form>
                                         </div>

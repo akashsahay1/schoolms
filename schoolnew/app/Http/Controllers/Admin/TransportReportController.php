@@ -10,6 +10,10 @@ use App\Models\AcademicYear;
 use App\Models\SchoolClass;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\TransportRouteExport;
+use App\Exports\TransportClassExport;
+use App\Exports\TransportVehicleExport;
 
 class TransportReportController extends Controller
 {
@@ -240,42 +244,22 @@ class TransportReportController extends Controller
 
         $assignments = $query->get();
 
-        $filename = 'transport_route_' . str_replace(' ', '_', $route->route_name) . '_' . date('Y-m-d') . '.csv';
+        $data = [];
+        $count = 1;
+        foreach ($assignments as $assignment) {
+            $data[] = [
+                $count++,
+                $assignment->student->admission_no ?? '-',
+                ($assignment->student->first_name ?? '') . ' ' . ($assignment->student->last_name ?? ''),
+                $assignment->student->schoolClass->name ?? '-',
+                $assignment->student->section->name ?? '-',
+                $assignment->pickup_point ?? '-',
+                $assignment->drop_point ?? '-',
+            ];
+        }
 
-        $headers = [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
-        ];
-
-        $callback = function () use ($assignments, $route) {
-            $file = fopen('php://output', 'w');
-
-            // Headers
-            fputcsv($file, [
-                'Route: ' . $route->route_name,
-                'Vehicle: ' . ($route->vehicle->vehicle_no ?? 'N/A'),
-                'Fare: ' . number_format($route->fare_amount, 2)
-            ]);
-            fputcsv($file, []);
-            fputcsv($file, ['#', 'Admission No', 'Student Name', 'Class', 'Section', 'Pickup Point', 'Drop Point']);
-
-            $count = 1;
-            foreach ($assignments as $assignment) {
-                fputcsv($file, [
-                    $count++,
-                    $assignment->student->admission_no ?? '-',
-                    ($assignment->student->first_name ?? '') . ' ' . ($assignment->student->last_name ?? ''),
-                    $assignment->student->schoolClass->name ?? '-',
-                    $assignment->student->section->name ?? '-',
-                    $assignment->pickup_point ?? '-',
-                    $assignment->drop_point ?? '-',
-                ]);
-            }
-
-            fclose($file);
-        };
-
-        return Response::stream($callback, 200, $headers);
+        $filename = 'transport_route_' . str_replace(' ', '_', $route->route_name) . '_' . date('Y-m-d') . '.xlsx';
+        return Excel::download(new TransportRouteExport($data), $filename);
     }
 
     /**
@@ -302,38 +286,23 @@ class TransportReportController extends Controller
 
         $assignments = $query->get();
 
-        $filename = 'transport_class_' . str_replace(' ', '_', $class->name) . '_' . date('Y-m-d') . '.csv';
+        $data = [];
+        $count = 1;
+        foreach ($assignments as $assignment) {
+            $data[] = [
+                $count++,
+                $assignment->student->admission_no ?? '-',
+                ($assignment->student->first_name ?? '') . ' ' . ($assignment->student->last_name ?? ''),
+                $assignment->student->section->name ?? '-',
+                $assignment->route->route_name ?? '-',
+                $assignment->route->vehicle->vehicle_no ?? '-',
+                $assignment->pickup_point ?? '-',
+                number_format($assignment->route->fare_amount ?? 0, 2),
+            ];
+        }
 
-        $headers = [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
-        ];
-
-        $callback = function () use ($assignments, $class) {
-            $file = fopen('php://output', 'w');
-
-            fputcsv($file, ['Class: ' . $class->name, 'Total Students: ' . $assignments->count()]);
-            fputcsv($file, []);
-            fputcsv($file, ['#', 'Admission No', 'Student Name', 'Section', 'Route', 'Vehicle', 'Pickup Point', 'Monthly Fare']);
-
-            $count = 1;
-            foreach ($assignments as $assignment) {
-                fputcsv($file, [
-                    $count++,
-                    $assignment->student->admission_no ?? '-',
-                    ($assignment->student->first_name ?? '') . ' ' . ($assignment->student->last_name ?? ''),
-                    $assignment->student->section->name ?? '-',
-                    $assignment->route->route_name ?? '-',
-                    $assignment->route->vehicle->vehicle_no ?? '-',
-                    $assignment->pickup_point ?? '-',
-                    number_format($assignment->route->fare_amount ?? 0, 2),
-                ]);
-            }
-
-            fclose($file);
-        };
-
-        return Response::stream($callback, 200, $headers);
+        $filename = 'transport_class_' . str_replace(' ', '_', $class->name) . '_' . date('Y-m-d') . '.xlsx';
+        return Excel::download(new TransportClassExport($data), $filename);
     }
 
     /**
@@ -362,41 +331,21 @@ class TransportReportController extends Controller
 
         $assignments = $query->get();
 
-        $filename = 'transport_vehicle_' . str_replace(' ', '_', $vehicle->vehicle_no) . '_' . date('Y-m-d') . '.csv';
+        $data = [];
+        $count = 1;
+        foreach ($assignments as $assignment) {
+            $data[] = [
+                $count++,
+                $assignment->student->admission_no ?? '-',
+                ($assignment->student->first_name ?? '') . ' ' . ($assignment->student->last_name ?? ''),
+                $assignment->student->schoolClass->name ?? '-',
+                $assignment->student->section->name ?? '-',
+                $assignment->route->route_name ?? '-',
+                $assignment->pickup_point ?? '-',
+            ];
+        }
 
-        $headers = [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
-        ];
-
-        $callback = function () use ($assignments, $vehicle) {
-            $file = fopen('php://output', 'w');
-
-            fputcsv($file, [
-                'Vehicle: ' . $vehicle->vehicle_no,
-                'Model: ' . $vehicle->vehicle_model,
-                'Capacity: ' . $vehicle->max_seating_capacity,
-                'Assigned: ' . $assignments->count()
-            ]);
-            fputcsv($file, []);
-            fputcsv($file, ['#', 'Admission No', 'Student Name', 'Class', 'Section', 'Route', 'Pickup Point']);
-
-            $count = 1;
-            foreach ($assignments as $assignment) {
-                fputcsv($file, [
-                    $count++,
-                    $assignment->student->admission_no ?? '-',
-                    ($assignment->student->first_name ?? '') . ' ' . ($assignment->student->last_name ?? ''),
-                    $assignment->student->schoolClass->name ?? '-',
-                    $assignment->student->section->name ?? '-',
-                    $assignment->route->route_name ?? '-',
-                    $assignment->pickup_point ?? '-',
-                ]);
-            }
-
-            fclose($file);
-        };
-
-        return Response::stream($callback, 200, $headers);
+        $filename = 'transport_vehicle_' . str_replace(' ', '_', $vehicle->vehicle_no) . '_' . date('Y-m-d') . '.xlsx';
+        return Excel::download(new TransportVehicleExport($data), $filename);
     }
 }

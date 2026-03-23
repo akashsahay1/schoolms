@@ -7,7 +7,6 @@ use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
-use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
@@ -17,20 +16,20 @@ class FeeCollectionExport implements FromCollection, WithHeadings, WithMapping, 
     protected $toDate;
     protected $classId;
     protected $feeTypeId;
-    protected $paymentMode;
+    protected $studentId;
 
-    public function __construct($fromDate, $toDate, $classId = null, $feeTypeId = null, $paymentMode = null)
+    public function __construct($fromDate, $toDate, $classId = null, $feeTypeId = null, $studentId = null)
     {
         $this->fromDate = $fromDate;
         $this->toDate = $toDate;
         $this->classId = $classId;
         $this->feeTypeId = $feeTypeId;
-        $this->paymentMode = $paymentMode;
+        $this->studentId = $studentId;
     }
 
     public function collection()
     {
-        $query = FeeCollection::with(['student.schoolClass', 'feeStructure.feeType', 'collectedBy'])
+        $query = FeeCollection::with(['student.schoolClass', 'feeStructure.feeType'])
             ->whereBetween('payment_date', [$this->fromDate, $this->toDate]);
 
         if ($this->classId) {
@@ -41,8 +40,8 @@ class FeeCollectionExport implements FromCollection, WithHeadings, WithMapping, 
             $query->whereHas('feeStructure', fn($q) => $q->where('fee_type_id', $this->feeTypeId));
         }
 
-        if ($this->paymentMode) {
-            $query->where('payment_mode', $this->paymentMode);
+        if ($this->studentId) {
+            $query->where('student_id', $this->studentId);
         }
 
         return $query->orderBy('payment_date', 'desc')->get();
@@ -54,15 +53,10 @@ class FeeCollectionExport implements FromCollection, WithHeadings, WithMapping, 
             'Receipt No',
             'Date',
             'Student Name',
-            'Admission No',
             'Class',
             'Fee Type',
             'Amount',
-            'Discount',
-            'Fine',
-            'Paid Amount',
-            'Payment Mode',
-            'Collected By',
+            'Status',
         ];
     }
 
@@ -72,15 +66,10 @@ class FeeCollectionExport implements FromCollection, WithHeadings, WithMapping, 
             $collection->receipt_no,
             $collection->payment_date->format('d-m-Y'),
             $collection->student->full_name ?? 'N/A',
-            $collection->student->admission_no ?? 'N/A',
             $collection->student->schoolClass->name ?? 'N/A',
             $collection->feeStructure->feeType->name ?? 'N/A',
-            number_format($collection->amount, 2),
-            number_format($collection->discount_amount, 2),
-            number_format($collection->fine_amount, 2),
             number_format($collection->paid_amount, 2),
-            ucfirst(str_replace('_', ' ', $collection->payment_mode)),
-            $collection->collectedBy->name ?? 'N/A',
+            'Paid',
         ];
     }
 
@@ -91,7 +80,7 @@ class FeeCollectionExport implements FromCollection, WithHeadings, WithMapping, 
                 'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
                 'fill' => [
                     'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                    'startColor' => ['rgb' => '4472C4']
+                    'startColor' => ['rgb' => '4472C4'],
                 ],
             ],
         ];

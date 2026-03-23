@@ -39,10 +39,10 @@
                     <label class="form-label">&nbsp;</label>
                     <div>
                         <button type="submit" class="btn btn-primary">
-                            <i data-feather="filter" class="me-1"></i> Generate Report
+                            <i class="icon-filter me-1"></i> Generate Report
                         </button>
                         <a href="{{ route('admin.library.reports.export', ['type' => 'fines', 'from_date' => $fromDate, 'to_date' => $toDate]) }}" class="btn btn-success">
-                            <i data-feather="download" class="me-1"></i> Export CSV
+                            <i data-feather="download" class="me-1"></i> Export Excel
                         </a>
                         <a href="{{ route('admin.library.reports.fines') }}" class="btn btn-light">Reset</a>
                     </div>

@@ -81,10 +81,10 @@
                 </div>
                 <div class="col-md-6">
                     <button type="submit" class="btn btn-primary">
-                        <i data-feather="filter" class="me-1"></i> Filter
+                        <i class="icon-filter me-1"></i> Filter
                     </button>
                     <a href="{{ route('admin.library.reports.export', ['type' => 'inventory']) }}" class="btn btn-success">
-                        <i data-feather="download" class="me-1"></i> Export CSV
+                        <i data-feather="download" class="me-1"></i> Export Excel
                     </a>
                     <a href="{{ route('admin.library.reports.inventory') }}" class="btn btn-light">Reset</a>
                 </div>

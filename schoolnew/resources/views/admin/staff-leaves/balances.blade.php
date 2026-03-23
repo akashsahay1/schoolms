@@ -47,7 +47,7 @@
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">&nbsp;</label>
-                            <button type="submit" class="btn btn-primary w-100">Filter</button>
+                            <button type="submit" class="btn btn-primary w-100"><i class="icon-filter me-1"></i> Filter</button>
                         </div>
                     </div>
                 </form>

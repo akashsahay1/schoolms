@@ -48,7 +48,7 @@
                 </div>
                 <div class="col-md-4">
                     <button type="submit" class="btn btn-primary me-2">
-                        <i data-feather="filter" class="me-1"></i> Filter
+                        <i class="icon-filter me-1"></i> Filter
                     </button>
                     <a href="{{ route('admin.fees.reconciliation.match') }}" class="btn btn-light">Reset</a>
                 </div>

@@ -85,8 +85,9 @@
 
 					<div class="row">
 						<div class="col-md-4 mb-3">
-							<label for="fare_amount" class="form-label">Fare Amount (₹) <span class="text-danger">*</span></label>
+							<label for="fare_amount" class="form-label">Monthly Route Fare (₹) <span class="text-danger">*</span></label>
 							<input type="number" class="form-control @error('fare_amount') is-invalid @enderror" id="fare_amount" name="fare_amount" value="{{ old('fare_amount') }}" step="0.01" min="0" placeholder="0.00" required>
+							<small class="text-muted">This amount is auto-applied as transport fee for assigned students.</small>
 							@error('fare_amount')
 								<div class="invalid-feedback">{{ $message }}</div>
 							@enderror
@@ -109,6 +110,33 @@
 						</div>
 					</div>
 
+					<!-- Stops / Pickup Points -->
+					<hr class="my-4">
+					<div class="d-flex justify-content-between align-items-center mb-3">
+						<h6 class="mb-0">Stops / Pickup Points</h6>
+						<button type="button" class="btn btn-sm btn-outline-primary" id="addStopBtn">
+							<i class="icon-plus me-1"></i> Add Stop
+						</button>
+					</div>
+					<div id="stopsContainer">
+						@if(old('stops'))
+							@foreach(old('stops') as $index => $stop)
+								@if(trim($stop) !== '')
+								<div class="input-group mb-2 stop-row">
+									<span class="input-group-text" style="width: 36px; justify-content: center;">{{ $index + 1 }}</span>
+									<input type="text" name="stops[]" class="form-control" value="{{ $stop }}" placeholder="e.g., City Mall, Main Road Junction...">
+									<button type="button" class="btn btn-outline-danger remove-stop-btn" title="Remove">
+										<i class="icon-trash"></i>
+									</button>
+								</div>
+								@endif
+							@endforeach
+						@endif
+					</div>
+					<small class="text-muted">Add pickup/drop points along this route. These will appear as dropdown options when assigning students.</small>
+
+					<hr class="my-4">
+
 					<div class="mb-3">
 						<div class="form-check">
 							<input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1" {{ old('is_active', true) ? 'checked' : '' }}>
@@ -119,7 +147,7 @@
 					<div class="d-flex justify-content-end gap-2">
 						<a href="{{ route('admin.transport.routes.index') }}" class="btn btn-light">Cancel</a>
 						<button type="submit" class="btn btn-primary">
-							<i data-feather="save" class="me-1"></i> Add Route
+							<i class="icon-check me-1"></i> Add Route
 						</button>
 					</div>
 				</form>
@@ -128,3 +156,30 @@
 	</div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+jQuery(document).ready(function() {
+    function renumberStops() {
+        jQuery('#stopsContainer .stop-row').each(function(i) {
+            jQuery(this).find('.input-group-text').text(i + 1);
+        });
+    }
+
+    jQuery('#addStopBtn').on('click', function() {
+        var count = jQuery('#stopsContainer .stop-row').length + 1;
+        var row = '<div class="input-group mb-2 stop-row">' +
+            '<span class="input-group-text" style="width: 36px; justify-content: center;">' + count + '</span>' +
+            '<input type="text" name="stops[]" class="form-control" placeholder="e.g., City Mall, Main Road Junction...">' +
+            '<button type="button" class="btn btn-outline-danger remove-stop-btn" title="Remove"><i class="icon-trash"></i></button>' +
+            '</div>';
+        jQuery('#stopsContainer').append(row);
+    });
+
+    jQuery(document).on('click', '.remove-stop-btn', function() {
+        jQuery(this).closest('.stop-row').remove();
+        renumberStops();
+    });
+});
+</script>
+@endpush

@@ -17,6 +17,7 @@ class Payment extends Model
         'amount',
         'currency',
         'fee_structure_ids',
+        'transport_fee_collection_ids',
         'status',
         'paid_at',
     ];
@@ -26,9 +27,6 @@ class Payment extends Model
         'paid_at' => 'datetime',
     ];
 
-    /**
-     * Get the student that made the payment.
-     */
     public function student()
     {
         return $this->belongsTo(Student::class);

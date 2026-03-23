@@ -89,24 +89,39 @@
                                 <tr>
                                     <th>#</th>
                                     <th>Fee Type</th>
-                                    <th>Group</th>
+                                    <th>Category</th>
                                     <th class="text-end">Amount</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($feeStructures as $index => $structure)
-                                    <tr>
-                                        <td>{{ $index + 1 }}</td>
-                                        <td>{{ $structure->feeType->name ?? 'N/A' }}</td>
-                                        <td>{{ $structure->feeGroup->name ?? '-' }}</td>
-                                        <td class="text-end">Rs. {{ number_format($structure->amount, 2) }}</td>
-                                    </tr>
-                                @endforeach
+                                @php $rowNum = 0; @endphp
+                                @if($feeStructures->count() > 0)
+                                    @foreach($feeStructures as $structure)
+                                        @php $rowNum++; @endphp
+                                        <tr>
+                                            <td>{{ $rowNum }}</td>
+                                            <td>{{ $structure->feeType->name ?? 'N/A' }}</td>
+                                            <td><span class="badge badge-light-primary px-2">Academic</span></td>
+                                            <td class="text-end">₹{{ number_format($structure->amount, 2) }}</td>
+                                        </tr>
+                                    @endforeach
+                                @endif
+                                @if(isset($transportCollections) && $transportCollections->count() > 0)
+                                    @foreach($transportCollections as $tc)
+                                        @php $rowNum++; @endphp
+                                        <tr>
+                                            <td>{{ $rowNum }}</td>
+                                            <td>Transport - {{ $tc->month ?? 'Monthly' }}</td>
+                                            <td><span class="badge badge-light-warning px-2">Transport</span></td>
+                                            <td class="text-end">₹{{ number_format($tc->amount, 2) }}</td>
+                                        </tr>
+                                    @endforeach
+                                @endif
                             </tbody>
                             <tfoot class="table-light">
                                 <tr>
                                     <th colspan="3" class="text-end">Total Paid:</th>
-                                    <th class="text-end text-success">Rs. {{ number_format($payment->amount, 2) }}</th>
+                                    <th class="text-end text-success">₹{{ number_format($payment->amount, 2) }}</th>
                                 </tr>
                             </tfoot>
                         </table>

@@ -59,7 +59,7 @@
                     <h5>Class-wise Transport Report</h5>
                     @if($selectedClass && $students->count() > 0)
                         <a href="{{ route('admin.transport.reports.export-class', ['class_id' => $selectedClass, 'academic_year_id' => $selectedYear]) }}" class="btn btn-success">
-                            <i data-feather="download" class="me-1"></i> Export CSV
+                            <i data-feather="download" class="me-1"></i> Export Excel
                         </a>
                     @endif
                 </div>
@@ -91,9 +91,16 @@
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">&nbsp;</label>
-                            <button type="submit" class="btn btn-primary w-100">
-                                <i data-feather="search" class="me-1"></i> Generate Report
-                            </button>
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary flex-fill">
+                                    <i class="icon-filter me-1"></i> Generate Report
+                                </button>
+                                @if(request('class_id'))
+                                    <a href="{{ route('admin.transport.reports.class-wise') }}" class="btn btn-outline-secondary" title="Reset">
+                                        <i class="icon-reload"></i>
+                                    </a>
+                                @endif
+                            </div>
                         </div>
                     </div>
                 </form>

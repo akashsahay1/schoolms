@@ -17,6 +17,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use App\Exports\FeeCollectionExport;
 use App\Exports\OutstandingFeesExport;
 use App\Exports\DailyCollectionExport;
+use App\Services\StudentFeeService;
 
 class FeeReportController extends Controller
 {
@@ -110,69 +111,76 @@ class FeeReportController extends Controller
     {
         $fromDate = $request->get('from_date', now()->startOfMonth()->format('Y-m-d'));
         $toDate = $request->get('to_date', now()->format('Y-m-d'));
+        $activeYear = AcademicYear::getActive();
         $selectedStudent = null;
         $studentStats = null;
 
-        $query = FeeCollection::with(['student.schoolClass', 'feeStructure.feeType'])
+        // Build a single base query with all filters applied
+        $baseQuery = FeeCollection::with(['student.schoolClass', 'feeStructure.feeType'])
             ->whereBetween('payment_date', [$fromDate, $toDate]);
 
-        // Filters
         if ($request->filled('class_id')) {
-            $query->whereHas('student', fn($q) => $q->where('class_id', $request->class_id));
+            $baseQuery->whereHas('student', fn($q) => $q->where('class_id', $request->class_id));
         }
 
         if ($request->filled('fee_type_id')) {
-            $query->whereHas('feeStructure', fn($q) => $q->where('fee_type_id', $request->fee_type_id));
+            $baseQuery->whereHas('feeStructure', fn($q) => $q->where('fee_type_id', $request->fee_type_id));
         }
 
-        // Student filter
         if ($request->filled('student_id')) {
-            $query->where('student_id', $request->student_id);
+            $baseQuery->where('student_id', $request->student_id);
             $selectedStudent = Student::with('schoolClass')->find($request->student_id);
 
-            // Calculate student-specific fee stats
+            // Student fee position — from fee structure (not date-filtered)
             if ($selectedStudent) {
-                $structures = FeeStructure::where('class_id', $selectedStudent->class_id)->where('is_active', true)->get();
-                $structureIds = $structures->pluck('id')->toArray();
-                $studentCollections = FeeCollection::where('student_id', $selectedStudent->id)->whereIn('fee_structure_id', $structureIds)->get();
+                $totalFees = FeeStructure::where('class_id', $selectedStudent->class_id)
+                    ->where('is_active', true)
+                    ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
+                    ->sum('amount');
 
-                $totalFees = $structures->sum('amount');
-                $totalPaid = $studentCollections->sum('paid_amount');
-                $totalDiscount = $studentCollections->sum('discount_amount');
+                // All-time paid for this academic year (not date-filtered)
+                $totalPaid = FeeCollection::where('student_id', $selectedStudent->id)
+                    ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
+                    ->sum('paid_amount');
+
+                $totalDiscount = FeeCollection::where('student_id', $selectedStudent->id)
+                    ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
+                    ->sum('discount_amount');
+
+                $due = $totalFees - $totalPaid - $totalDiscount;
 
                 $studentStats = [
                     'total_fees' => $totalFees,
                     'total_paid' => $totalPaid,
-                    'total_due' => max(0, $totalFees - $totalPaid - $totalDiscount),
+                    'total_due' => $due, // Can be negative (advance paid)
                 ];
             }
         }
 
-        $collections = $query->orderBy('payment_date', 'desc')->paginate(20);
+        // Paginated collection for table display
+        $collections = (clone $baseQuery)->orderBy('payment_date', 'desc')->paginate(20);
 
-        // Summary (overall)
-        $summaryQuery = FeeCollection::whereBetween('payment_date', [$fromDate, $toDate]);
-        if ($request->filled('class_id')) {
-            $summaryQuery->whereHas('student', fn($q) => $q->where('class_id', $request->class_id));
-        }
-        if ($request->filled('student_id')) {
-            $summaryQuery->where('student_id', $request->student_id);
-        }
-
+        // Summary — computed from same base query (single data source)
         $summary = [
-            'total_amount' => (clone $summaryQuery)->sum('paid_amount'),
-            'total_discount' => (clone $summaryQuery)->sum('discount_amount'),
-            'total_fine' => (clone $summaryQuery)->sum('fine_amount'),
-            'total_transactions' => (clone $summaryQuery)->count(),
+            'total_amount' => (clone $baseQuery)->sum('paid_amount'),
+            'total_discount' => (clone $baseQuery)->sum('discount_amount'),
+            'total_fine' => (clone $baseQuery)->sum('fine_amount'),
+            'total_transactions' => (clone $baseQuery)->count(),
         ];
 
-        // Daily breakdown
+        // Daily breakdown — same filters applied
         $dailyQuery = FeeCollection::select(
                 DB::raw('DATE(payment_date) as date'),
                 DB::raw('SUM(paid_amount) as total'),
                 DB::raw('COUNT(*) as count')
             )->whereBetween('payment_date', [$fromDate, $toDate]);
 
+        if ($request->filled('class_id')) {
+            $dailyQuery->whereHas('student', fn($q) => $q->where('class_id', $request->class_id));
+        }
+        if ($request->filled('fee_type_id')) {
+            $dailyQuery->whereHas('feeStructure', fn($q) => $q->where('fee_type_id', $request->fee_type_id));
+        }
         if ($request->filled('student_id')) {
             $dailyQuery->where('student_id', $request->student_id);
         }
@@ -210,31 +218,16 @@ class FeeReportController extends Controller
         $totalOutstanding = 0;
 
         foreach ($students as $student) {
-            // Get fee structures for student's class
-            $feeStructures = FeeStructure::where('class_id', $student->class_id)
-                ->where('is_active', true)
-                ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
-                ->get();
+            $stats = StudentFeeService::getStudentFeeStats($student->id, $activeYear?->id);
 
-            $totalFee = $feeStructures->sum('amount');
-
-            // Get paid amount
-            $paidAmount = FeeCollection::where('student_id', $student->id)
-                ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
-                ->sum('paid_amount');
-
-            $discountAmount = FeeCollection::where('student_id', $student->id)
-                ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
-                ->sum('discount_amount');
-
-            $outstanding = max(0, $totalFee - $paidAmount - $discountAmount);
+            $outstanding = $stats['total_due'];
 
             if ($outstanding > 0 || !$request->filled('hide_paid')) {
                 $outstandingData[] = [
                     'student' => $student,
-                    'total_fee' => $totalFee,
-                    'paid_amount' => $paidAmount,
-                    'discount' => $discountAmount,
+                    'total_fee' => $stats['total_fees'],
+                    'paid_amount' => $stats['total_paid'],
+                    'discount' => $stats['total_discount'],
                     'outstanding' => $outstanding,
                 ];
                 $totalOutstanding += $outstanding;
@@ -378,106 +371,6 @@ class FeeReportController extends Controller
     }
 
     /**
-     * Export collection report.
-     */
-    public function export(Request $request)
-    {
-        $type = $request->get('type', 'collection');
-        $fromDate = $request->get('from_date', now()->startOfMonth()->format('Y-m-d'));
-        $toDate = $request->get('to_date', now()->format('Y-m-d'));
-
-        $filename = "fee_{$type}_report_{$fromDate}_to_{$toDate}.csv";
-
-        $headers = [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => "attachment; filename=\"$filename\"",
-        ];
-
-        $callback = function () use ($type, $fromDate, $toDate) {
-            $file = fopen('php://output', 'w');
-
-            switch ($type) {
-                case 'collection':
-                    fputcsv($file, ['Receipt No', 'Date', 'Student', 'Class', 'Fee Type', 'Amount', 'Discount', 'Fine', 'Paid', 'Mode']);
-                    $records = FeeCollection::with(['student.schoolClass', 'feeStructure.feeType'])
-                        ->whereBetween('payment_date', [$fromDate, $toDate])
-                        ->orderBy('payment_date')
-                        ->get();
-                    foreach ($records as $record) {
-                        fputcsv($file, [
-                            $record->receipt_no,
-                            $record->payment_date->format('Y-m-d'),
-                            $record->student->full_name ?? 'N/A',
-                            $record->student->schoolClass->name ?? 'N/A',
-                            $record->feeStructure->feeType->name ?? 'N/A',
-                            $record->amount,
-                            $record->discount_amount,
-                            $record->fine_amount,
-                            $record->paid_amount,
-                            ucfirst(str_replace('_', ' ', $record->payment_mode)),
-                        ]);
-                    }
-                    break;
-
-                case 'outstanding':
-                    fputcsv($file, ['Student', 'Admission No', 'Class', 'Total Fee', 'Paid', 'Discount', 'Outstanding']);
-                    $activeYear = AcademicYear::getActive();
-                    $students = Student::with('schoolClass')->where('status', 'active')->get();
-                    foreach ($students as $student) {
-                        $totalFee = FeeStructure::where('class_id', $student->class_id)
-                            ->where('is_active', true)
-                            ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
-                            ->sum('amount');
-                        $paid = FeeCollection::where('student_id', $student->id)
-                            ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
-                            ->sum('paid_amount');
-                        $discount = FeeCollection::where('student_id', $student->id)
-                            ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
-                            ->sum('discount_amount');
-                        $outstanding = max(0, $totalFee - $paid - $discount);
-
-                        if ($outstanding > 0) {
-                            fputcsv($file, [
-                                $student->full_name,
-                                $student->admission_no,
-                                $student->schoolClass->name ?? 'N/A',
-                                $totalFee,
-                                $paid,
-                                $discount,
-                                $outstanding,
-                            ]);
-                        }
-                    }
-                    break;
-
-                case 'daily':
-                    $date = request('date', now()->format('Y-m-d'));
-                    fputcsv($file, ['Receipt No', 'Time', 'Student', 'Fee Type', 'Amount', 'Mode', 'Collected By']);
-                    $records = FeeCollection::with(['student', 'feeStructure.feeType', 'collectedBy'])
-                        ->whereDate('payment_date', $date)
-                        ->orderBy('created_at')
-                        ->get();
-                    foreach ($records as $record) {
-                        fputcsv($file, [
-                            $record->receipt_no,
-                            $record->created_at->format('H:i:s'),
-                            $record->student->full_name ?? 'N/A',
-                            $record->feeStructure->feeType->name ?? 'N/A',
-                            $record->paid_amount,
-                            ucfirst(str_replace('_', ' ', $record->payment_mode)),
-                            $record->collectedBy->name ?? 'N/A',
-                        ]);
-                    }
-                    break;
-            }
-
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
-    }
-
-    /**
      * Get chart data for AJAX requests.
      */
     public function chartData(Request $request)
@@ -556,7 +449,7 @@ class FeeReportController extends Controller
                         $toDate,
                         $request->get('class_id'),
                         $request->get('fee_type_id'),
-                        $request->get('payment_mode')
+                        $request->get('student_id')
                     ),
                     $filename
                 );
@@ -639,7 +532,7 @@ class FeeReportController extends Controller
                         $studentStats = [
                             'total_fees' => $totalFees,
                             'total_paid' => $totalPaid,
-                            'total_due' => max(0, $totalFees - $totalPaid - $totalDiscount),
+                            'total_due' => $totalFees - $totalPaid - $totalDiscount,
                         ];
                     }
                 }

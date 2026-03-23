@@ -22,7 +22,7 @@
                             <i data-feather="trash-2" class="me-1"></i> Trash
                         </a>
                         <a href="{{ route('admin.drivers.export', request()->query()) }}" class="btn btn-outline-success">
-                            <i data-feather="download" class="me-1"></i> Export CSV
+                            <i data-feather="download" class="me-1"></i> Export Excel
                         </a>
                         <a href="{{ route('admin.drivers.create') }}" class="btn btn-primary">
                             <i data-feather="plus" class="me-1"></i> Add New
@@ -47,11 +47,13 @@
 
                 <!-- Filters -->
                 <form action="{{ route('admin.drivers.index') }}" method="GET" class="mb-4">
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <input type="text" name="search" class="form-control" placeholder="Search by name, ID, phone..." value="{{ request('search') }}">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label">Search</label>
+                            <input type="text" name="search" class="form-control" placeholder="Name, ID, Phone..." value="{{ request('search') }}">
                         </div>
                         <div class="col-md-2">
+                            <label class="form-label">Status</label>
                             <select name="status" class="form-select">
                                 <option value="">All Status</option>
                                 <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
@@ -59,25 +61,33 @@
                             </select>
                         </div>
                         <div class="col-md-2">
+                            <label class="form-label">License</label>
                             <select name="license_status" class="form-select">
-                                <option value="">License Status</option>
+                                <option value="">All</option>
                                 <option value="valid" {{ request('license_status') === 'valid' ? 'selected' : '' }}>Valid</option>
-                                <option value="expiring" {{ request('license_status') === 'expiring' ? 'selected' : '' }}>Expiring Soon</option>
+                                <option value="expiring" {{ request('license_status') === 'expiring' ? 'selected' : '' }}>Expiring</option>
                                 <option value="expired" {{ request('license_status') === 'expired' ? 'selected' : '' }}>Expired</option>
                             </select>
                         </div>
-                        <div class="col-md-2">
-                            <button type="submit" class="btn btn-primary w-100">Filter</button>
-                        </div>
-                        <div class="col-md-2">
-                            <a href="{{ route('admin.drivers.index') }}" class="btn btn-outline-secondary w-100">Reset</a>
+                        <div class="col-md-5">
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="icon-filter me-1"></i> Filter
+                                </button>
+                                @if(request()->hasAny(['search', 'status', 'license_status']))
+                                    <a href="{{ route('admin.drivers.index') }}" class="btn btn-outline-secondary" title="Reset">
+                                        <i class="icon-reload"></i>
+                                    </a>
+                                @endif
+                                <button type="button" class="btn btn-danger d-none" id="bulkDeleteBtn">
+                                    <i class="icon-trash me-1"></i> Delete Selected
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </form>
 
-                <form id="bulkDeleteForm" action="{{ route('admin.drivers.bulk-delete') }}" method="POST">
-                    @csrf
-                    <div class="table-responsive">
+                <div class="table-responsive">
                         <table class="table table-striped table-hover">
                             <thead>
                                 <tr>
@@ -186,17 +196,11 @@
                         </table>
                     </div>
 
-                    @if($drivers->count() > 0)
-                        <div class="d-flex justify-content-between align-items-center mt-3">
-                            <button type="button" class="btn btn-danger btn-sm" id="bulkDeleteBtn" disabled>
-                                <i data-feather="trash-2" class="me-1"></i> Delete Selected
-                            </button>
-                            <div>
-                                {{ $drivers->withQueryString()->links() }}
-                            </div>
-                        </div>
-                    @endif
-                </form>
+                @if($drivers->hasPages())
+                    <div class="d-flex justify-content-center mt-3">
+                        {{ $drivers->withQueryString()->links() }}
+                    </div>
+                @endif
             </div>
         </div>
     </div>
@@ -206,46 +210,103 @@
 @push('scripts')
 <script>
 jQuery(document).ready(function() {
-    // Select all checkbox
-    jQuery('#selectAll').on('change', function() {
-        jQuery('.row-checkbox').prop('checked', jQuery(this).is(':checked'));
-        updateBulkDeleteBtn();
-    });
+    // Clear checkboxes on page load
+    jQuery('#selectAll').prop('checked', false).prop('indeterminate', false);
+    jQuery('.row-checkbox').prop('checked', false);
 
-    // Individual checkboxes
-    jQuery('.row-checkbox').on('change', function() {
-        updateBulkDeleteBtn();
-        if (!jQuery(this).is(':checked')) {
-            jQuery('#selectAll').prop('checked', false);
-        } else if (jQuery('.row-checkbox:checked').length === jQuery('.row-checkbox').length) {
-            jQuery('#selectAll').prop('checked', true);
-        }
-    });
-
-    function updateBulkDeleteBtn() {
+    function updateBulkState() {
         var checkedCount = jQuery('.row-checkbox:checked').length;
-        jQuery('#bulkDeleteBtn').prop('disabled', checkedCount === 0);
+        var totalCount = jQuery('.row-checkbox').length;
+        jQuery('#selectedCount').text(checkedCount);
+
+        if (checkedCount > 0) {
+            jQuery('#bulkDeleteBtn').removeClass('d-none');
+        } else {
+            jQuery('#bulkDeleteBtn').addClass('d-none');
+        }
+
+        if (totalCount > 0 && checkedCount === totalCount) {
+            jQuery('#selectAll').prop('checked', true).prop('indeterminate', false);
+        } else if (checkedCount > 0) {
+            jQuery('#selectAll').prop('checked', false).prop('indeterminate', true);
+        } else {
+            jQuery('#selectAll').prop('checked', false).prop('indeterminate', false);
+        }
     }
 
-    // Bulk delete
-    jQuery('#bulkDeleteBtn').on('click', function() {
-        var count = jQuery('.row-checkbox:checked').length;
+    jQuery(document).on('change', '#selectAll', function() {
+        jQuery('.row-checkbox').prop('checked', jQuery(this).is(':checked'));
+        updateBulkState();
+    });
+
+    jQuery(document).on('change', '.row-checkbox', function() {
+        updateBulkState();
+    });
+
+    // Bulk delete via AJAX
+    jQuery(document).on('click', '#bulkDeleteBtn', function() {
+        var selectedIds = [];
+        var selectedNames = [];
+
+        jQuery('.row-checkbox:checked').each(function() {
+            selectedIds.push(jQuery(this).val());
+            var row = jQuery(this).closest('tr');
+            selectedNames.push(row.find('strong').first().text().trim());
+        });
+
+        if (selectedIds.length === 0) return;
+
+        var namesText = selectedIds.length <= 5
+            ? selectedNames.join(', ')
+            : selectedNames.slice(0, 5).join(', ') + ' and ' + (selectedIds.length - 5) + ' more';
+
         Swal.fire({
-            title: 'Are you sure?',
-            text: 'You are about to delete ' + count + ' driver(s). This action can be undone from trash.',
+            title: 'Move to Trash?',
+            html: 'You are about to move <strong>' + selectedIds.length + '</strong> driver(s) to trash:<br><br><small>' + namesText + '</small><br><br><small class="text-muted">You can restore them later from the trash.</small>',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes, delete them!'
-        }).then((result) => {
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, move to trash',
+            cancelButtonText: 'Cancel'
+        }).then(function(result) {
             if (result.isConfirmed) {
-                jQuery('#bulkDeleteForm').submit();
+                jQuery.ajax({
+                    url: '{{ route("admin.drivers.bulk-delete") }}',
+                    type: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        ids: selectedIds
+                    },
+                    beforeSend: function() {
+                        Swal.fire({
+                            title: 'Moving to Trash...',
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
+                            didOpen: function() { Swal.showLoading(); }
+                        });
+                    },
+                    success: function(response) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Moved to Trash!',
+                            text: response.message || 'Drivers moved to trash successfully.',
+                            confirmButtonColor: '#3085d6'
+                        }).then(function() {
+                            window.location.reload();
+                        });
+                    },
+                    error: function(xhr) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error!',
+                            text: xhr.responseJSON?.message || 'An error occurred.'
+                        });
+                    }
+                });
             }
         });
     });
-
-    if (typeof feather !== 'undefined') feather.replace();
 });
 </script>
 @endpush

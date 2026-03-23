@@ -10,6 +10,7 @@ use App\Models\SchoolClass;
 use App\Models\AcademicYear;
 use App\Models\User;
 use App\Notifications\FeeUpdated;
+use App\Services\StudentFeeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -214,36 +215,35 @@ class FeeCollectionController extends Controller
 		$query = Student::with(['schoolClass', 'section'])
 			->where('academic_year_id', $currentYear->id);
 
-		// Class filter
 		if ($request->filled('class')) {
 			$query->where('class_id', $request->class);
 		}
 
-		// Status filter
-		$query->where('status', 'active');
+		if ($request->filled('search')) {
+			$search = $request->search;
+			$query->where(function ($q) use ($search) {
+				$q->where('first_name', 'like', "%{$search}%")
+					->orWhere('last_name', 'like', "%{$search}%")
+					->orWhere('admission_no', 'like', "%{$search}%");
+			});
+		}
 
+		$query->where('status', 'active');
 		$students = $query->orderBy('first_name')->get();
 
-		// Calculate outstanding fees for each student
 		$outstandingData = [];
 		foreach ($students as $student) {
-			$totalFees = FeeStructure::where('academic_year_id', $currentYear->id)
-				->where('class_id', $student->class_id)
-				->active()
-				->sum('amount');
+			$stats = StudentFeeService::getStudentFeeStats($student->id, $currentYear->id);
 
-			$paidFees = FeeCollection::where('student_id', $student->id)
-				->where('academic_year_id', $currentYear->id)
-				->sum('paid_amount');
-
-			$outstanding = $totalFees - $paidFees;
-
-			if ($outstanding > 0 || !$request->filled('show_only_outstanding')) {
+			if ($stats['total_due'] > 0 || !$request->filled('show_only_outstanding')) {
 				$outstandingData[] = [
 					'student' => $student,
-					'total_fees' => $totalFees,
-					'paid_fees' => $paidFees,
-					'outstanding' => $outstanding,
+					'academic_fees' => $stats['academic_fees'],
+					'transport_fees' => $stats['transport_fees'],
+					'total_fees' => $stats['total_fees'],
+					'paid_fees' => $stats['total_paid'],
+					'outstanding' => $stats['total_due'],
+					'has_transport' => $stats['has_transport'],
 				];
 			}
 		}

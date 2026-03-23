@@ -333,7 +333,38 @@ class StudentController extends Controller
 
             // Status
             'status' => ['required', 'in:active,inactive,graduated,transferred,expelled'],
+            'leaving_date' => ['nullable', 'date'],
+            'leaving_reason' => ['nullable', 'string', 'max:500'],
         ]);
+
+        // Status-specific validation
+        $newStatus = $validated['status'];
+        $oldStatus = $student->status;
+
+        if ($newStatus !== $oldStatus) {
+            if ($newStatus === 'graduated') {
+                // Only Class 12 students can graduate
+                $class12Ids = SchoolClass::where('name', 'like', 'Class 12%')->pluck('id')->toArray();
+                if (!in_array($student->class_id, $class12Ids)) {
+                    return back()->with('error', 'Only Class 12 students can be marked as Graduated.')->withInput();
+                }
+            }
+
+            if ($newStatus === 'transferred') {
+                if (empty($request->leaving_date)) {
+                    return back()->withErrors(['leaving_date' => 'Leaving date is required for transferred students.'])->withInput();
+                }
+                if (empty($request->leaving_reason)) {
+                    return back()->withErrors(['leaving_reason' => 'Leaving reason is required for transferred students.'])->withInput();
+                }
+            }
+
+            if ($newStatus === 'expelled') {
+                if (empty($request->leaving_reason)) {
+                    return back()->withErrors(['leaving_reason' => 'Leaving reason is required for expelled students.'])->withInput();
+                }
+            }
+        }
 
         try {
             DB::beginTransaction();
@@ -400,6 +431,29 @@ class StudentController extends Controller
                 'aadhaar_back' => $validated['aadhaar_back'] ?? $student->aadhaar_back,
                 'status' => $validated['status'],
             ]);
+
+            // Handle leaving fields when status changes to non-active
+            if (in_array($validated['status'], ['graduated', 'transferred', 'expelled']) && $validated['status'] !== $student->getOriginal('status')) {
+                $leavingData = [];
+
+                if ($validated['status'] === 'graduated') {
+                    $leavingData['leaving_date'] = $student->academicYear?->end_date ?? now();
+                    $leavingData['leaving_reason'] = 'Completed Class 12 (' . ($student->academicYear?->name ?? '') . ')';
+                } else {
+                    $leavingData['leaving_date'] = $validated['leaving_date'] ?? now();
+                    $leavingData['leaving_reason'] = $validated['leaving_reason'] ?? null;
+                }
+
+                $student->update($leavingData);
+            }
+
+            // Clear leaving fields if status changed back to active
+            if ($validated['status'] === 'active' && $student->getOriginal('status') !== 'active') {
+                $student->update([
+                    'leaving_date' => null,
+                    'leaving_reason' => null,
+                ]);
+            }
 
             // Save custom field values
             $this->saveCustomFieldValues($request, $student, 'student');

@@ -98,7 +98,7 @@
 						<label class="form-label">&nbsp;</label>
 						<div>
 							<button type="submit" class="btn btn-primary">
-								<i data-feather="filter" class="me-1"></i> Filter
+								<i class="icon-filter me-1"></i> Filter
 							</button>
 							<a href="{{ route('admin.fees.collection') }}" class="btn btn-light">Reset</a>
 						</div>

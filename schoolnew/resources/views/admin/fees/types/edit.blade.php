@@ -18,6 +18,13 @@
 				<h5>Edit Fee Type</h5>
 			</div>
 			<div class="card-body">
+				@if(strtolower($feeType->name) === 'transport')
+					<div class="alert alert-warning py-2 px-3 mb-3" style="font-size: 13px; border-radius: 8px;">
+						<i class="icon-alert me-1"></i>
+						Transport fees are managed via <a href="{{ route('admin.transport.fees.index') }}">Transport → Fees</a> (route-based). This fee type is kept inactive and cannot be re-activated here.
+					</div>
+				@endif
+
 				<form action="{{ route('admin.fees.types.update', $feeType) }}" method="POST">
 					@csrf
 					@method('PUT')
@@ -49,8 +56,11 @@
 
 					<div class="mb-3">
 						<div class="form-check">
-							<input type="checkbox" class="form-check-input" id="is_active" name="is_active" value="1" {{ old('is_active', $feeType->is_active) ? 'checked' : '' }}>
+							<input type="checkbox" class="form-check-input" id="is_active" name="is_active" value="1" {{ old('is_active', $feeType->is_active) ? 'checked' : '' }} {{ strtolower($feeType->name) === 'transport' ? 'disabled' : '' }}>
 							<label class="form-check-label" for="is_active">Active</label>
+							@if(strtolower($feeType->name) === 'transport')
+								<br><small class="text-muted">Cannot be activated — managed via Transport module</small>
+							@endif
 						</div>
 					</div>
 

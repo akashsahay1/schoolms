@@ -18,7 +18,7 @@
 					<h5>Exam Results Report</h5>
 					@if($examResults->isNotEmpty())
 						<a href="{{ route('admin.reports.exams.export', request()->all()) }}" class="btn btn-success">
-							<i data-feather="download" class="me-1"></i> Export CSV
+							<i data-feather="download" class="me-1"></i> Export Excel
 						</a>
 					@endif
 				</div>
@@ -26,7 +26,7 @@
 			<div class="card-body">
 				<!-- Filters -->
 				<form method="GET" action="{{ route('admin.reports.exams') }}" class="mb-4">
-					<div class="row g-3">
+					<div class="row g-3 align-items-end">
 						<div class="col-md-3">
 							<label class="form-label">Exam <span class="text-danger">*</span></label>
 							<select name="exam_id" class="form-select" required>
@@ -49,10 +49,10 @@
 								@endforeach
 							</select>
 						</div>
-						<div class="col-md-3">
+						<div class="col-md-2">
 							<label class="form-label">Section</label>
 							<select name="section_id" class="form-select">
-								<option value="">All Sections</option>
+								<option value="">All</option>
 								@foreach($sections as $section)
 									<option value="{{ $section->id }}" {{ request('section_id') == $section->id ? 'selected' : '' }}>
 										{{ $section->name }}
@@ -60,11 +60,21 @@
 								@endforeach
 							</select>
 						</div>
-						<div class="col-md-3">
-							<label class="form-label">&nbsp;</label>
-							<button type="submit" class="btn btn-primary w-100">
-								<i data-feather="bar-chart-2" class="me-1"></i> Generate Report
-							</button>
+						<div class="col-md-2">
+							<label class="form-label">Search</label>
+							<input type="text" name="search" class="form-control" placeholder="Name, Adm No..." value="{{ request('search') }}">
+						</div>
+						<div class="col-md-2">
+							<div class="d-flex gap-2">
+								<button type="submit" class="btn btn-primary flex-fill">
+									<i class="icon-filter me-1"></i> Generate
+								</button>
+								@if(request()->hasAny(['exam_id', 'class_id', 'section_id', 'search']))
+									<a href="{{ route('admin.reports.exams') }}" class="btn btn-outline-secondary" title="Reset">
+										<i class="icon-reload"></i>
+									</a>
+								@endif
+							</div>
 						</div>
 					</div>
 				</form>

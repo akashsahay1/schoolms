@@ -82,6 +82,19 @@
 					</li>
 					@endcan
 
+					<!-- Alumni -->
+					<li class="sidebar-list">
+						<a class="sidebar-link sidebar-title link-nav {{ request()->routeIs('admin.alumni.*') ? 'active' : '' }}" href="{{ route('admin.alumni.index') }}">
+							<svg class="stroke-icon">
+								<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-user') }}"></use>
+							</svg>
+							<svg class="fill-icon">
+								<use href="{{ asset('assets/svg/icon-sprite.svg#fill-user') }}"></use>
+							</svg>
+							<span>Alumni</span>
+						</a>
+					</li>
+
 					<!-- Academics -->
 					@php
 						$academicsOpen = request()->routeIs('admin.academic-years.*') || request()->routeIs('admin.classes.*') || request()->routeIs('admin.sections.*') || request()->routeIs('admin.subjects.*') || request()->routeIs('admin.teachers.*') || request()->routeIs('admin.parents.*');

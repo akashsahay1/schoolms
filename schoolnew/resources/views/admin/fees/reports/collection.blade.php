@@ -65,7 +65,7 @@
 				<div class="col-md-2">
 					<div class="d-flex gap-2">
 						<button type="submit" class="btn btn-primary flex-fill">
-							<i class="icon-search me-1"></i> Filter
+							<i class="icon-filter me-1"></i> Filter
 						</button>
 						<a href="{{ route('admin.fees.reports.collection') }}" class="btn btn-outline-secondary" title="Reset">
 							<i class="icon-reload"></i>
@@ -127,12 +127,16 @@
 						<div class="d-flex justify-content-between align-items-center">
 							<div>
 								<p class="text-muted mb-1">Due Amount</p>
-								<h4 class="mb-0 {{ $studentStats['total_due'] > 0 ? 'text-danger' : 'text-success' }}">
-									{{ $studentStats['total_due'] > 0 ? '₹' . number_format($studentStats['total_due'], 2) : 'All Paid' }}
-								</h4>
+								@if($studentStats['total_due'] > 0)
+									<h4 class="mb-0 text-danger">₹{{ number_format($studentStats['total_due'], 2) }}</h4>
+								@elseif($studentStats['total_due'] < 0)
+									<h4 class="mb-0 text-info">Advance ₹{{ number_format(abs($studentStats['total_due']), 2) }}</h4>
+								@else
+									<h4 class="mb-0 text-success">All Paid</h4>
+								@endif
 							</div>
-							<div class="stat-icon {{ $studentStats['total_due'] > 0 ? 'bg-danger' : 'bg-success' }} bg-opacity-10">
-								<i data-feather="{{ $studentStats['total_due'] > 0 ? 'alert-circle' : 'check' }}" class="{{ $studentStats['total_due'] > 0 ? 'text-danger' : 'text-success' }}" style="width: 20px; height: 20px;"></i>
+							<div class="stat-icon {{ $studentStats['total_due'] > 0 ? 'bg-danger' : ($studentStats['total_due'] < 0 ? 'bg-info' : 'bg-success') }} bg-opacity-10">
+								<i data-feather="{{ $studentStats['total_due'] > 0 ? 'alert-circle' : ($studentStats['total_due'] < 0 ? 'arrow-up-circle' : 'check') }}" class="{{ $studentStats['total_due'] > 0 ? 'text-danger' : ($studentStats['total_due'] < 0 ? 'text-info' : 'text-success') }}" style="width: 20px; height: 20px;"></i>
 							</div>
 						</div>
 					</div>
@@ -255,10 +259,28 @@
 									</tr>
 								@empty
 									<tr>
-										<td colspan="{{ $selectedStudent ? 5 : 6 }}" class="text-center py-4 text-muted">No collections found for the selected filters.</td>
+										<td colspan="{{ $selectedStudent ? 5 : 6 }}" class="text-center py-4 text-muted">
+											@if($selectedStudent)
+												No payments found for <strong>{{ $selectedStudent->full_name }}</strong> in the selected date range ({{ \Carbon\Carbon::parse($fromDate)->format('d M Y') }} — {{ \Carbon\Carbon::parse($toDate)->format('d M Y') }}).
+											@else
+												No collections found for the selected filters.
+											@endif
+										</td>
 									</tr>
 								@endforelse
 							</tbody>
+							@if($collections->count() > 0)
+								<tfoot class="bg-light">
+									<tr>
+										<th colspan="{{ $selectedStudent ? 2 : 4 }}">Total ({{ $summary['total_transactions'] }} transactions)</th>
+										<th></th>
+										<th class="text-end">₹{{ number_format($summary['total_amount'], 2) }}</th>
+										@if($selectedStudent)
+											<th></th>
+										@endif
+									</tr>
+								</tfoot>
+							@endif
 						</table>
 					</div>
 				</div>
@@ -295,7 +317,13 @@
 									</tr>
 								@empty
 									<tr>
-										<td colspan="3" class="text-center py-4 text-muted">No data</td>
+										<td colspan="3" class="text-center py-4 text-muted">
+											@if($selectedStudent)
+												No payments by {{ $selectedStudent->full_name }} in this date range.
+											@else
+												No daily data available for the selected period.
+											@endif
+										</td>
 									</tr>
 								@endforelse
 							</tbody>

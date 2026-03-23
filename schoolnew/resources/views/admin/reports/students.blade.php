@@ -53,15 +53,20 @@
 				<div class="d-flex justify-content-between align-items-center">
 					<h5>Student Report</h5>
 					<a href="{{ route('admin.reports.students.export', request()->all()) }}" class="btn btn-success">
-						<i data-feather="download" class="me-1"></i> Export CSV
+						<i data-feather="download" class="me-1"></i> Export Excel
 					</a>
 				</div>
 			</div>
 			<div class="card-body">
 				<!-- Filters -->
 				<form method="GET" action="{{ route('admin.reports.students') }}" class="mb-4">
-					<div class="row g-3">
+					<div class="row g-3 align-items-end">
+						<div class="col-md-3">
+							<label class="form-label">Search Student</label>
+							<input type="text" name="search" class="form-control" placeholder="Name, Admission No, Phone..." value="{{ request('search') }}">
+						</div>
 						<div class="col-md-2">
+							<label class="form-label">Class</label>
 							<select name="class_id" class="form-select" id="classSelect">
 								<option value="">All Classes</option>
 								@foreach($classes as $class)
@@ -71,9 +76,10 @@
 								@endforeach
 							</select>
 						</div>
-						<div class="col-md-2">
+						<div class="col-md-1">
+							<label class="form-label">Section</label>
 							<select name="section_id" class="form-select" id="sectionSelect">
-								<option value="">All Sections</option>
+								<option value="">All</option>
 								@foreach($sections as $section)
 									<option value="{{ $section->id }}" {{ request('section_id') == $section->id ? 'selected' : '' }}>
 										{{ $section->name }}
@@ -82,31 +88,32 @@
 							</select>
 						</div>
 						<div class="col-md-2">
+							<label class="form-label">Gender</label>
 							<select name="gender" class="form-select">
-								<option value="">All Gender</option>
+								<option value="">All</option>
 								<option value="male" {{ request('gender') == 'male' ? 'selected' : '' }}>Male</option>
 								<option value="female" {{ request('gender') == 'female' ? 'selected' : '' }}>Female</option>
 							</select>
 						</div>
 						<div class="col-md-2">
+							<label class="form-label">Status</label>
 							<select name="status" class="form-select">
-								<option value="">All Status</option>
+								<option value="">All</option>
 								<option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
 								<option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
 								<option value="alumni" {{ request('status') == 'alumni' ? 'selected' : '' }}>Alumni</option>
 							</select>
 						</div>
 						<div class="col-md-2">
-							<input type="text" name="search" class="form-control" placeholder="Search..." value="{{ request('search') }}">
-						</div>
-						<div class="col-md-2">
 							<div class="d-flex gap-2">
 								<button type="submit" class="btn btn-primary flex-fill">
-									<i data-feather="filter" class="me-1"></i> Filter
+									<i class="icon-filter me-1"></i> Filter
 								</button>
-								<a href="{{ route('admin.reports.students') }}" class="btn btn-outline-secondary">
-									<i data-feather="x"></i>
-								</a>
+								@if(request()->hasAny(['search', 'class_id', 'section_id', 'gender', 'status']))
+									<a href="{{ route('admin.reports.students') }}" class="btn btn-outline-secondary" title="Reset">
+										<i class="icon-reload"></i>
+									</a>
+								@endif
 							</div>
 						</div>
 					</div>
@@ -131,12 +138,17 @@
 						<tbody>
 							@forelse($students as $student)
 								<tr>
-									<td>{{ $students->firstItem() + $loop->index }}</td>
-									<td>{{ $student->admission_no }}</td>
+									<td class="text-muted">{{ $students->firstItem() + $loop->index }}</td>
+									<td><span class="badge badge-light-primary px-2">{{ $student->admission_no }}</span></td>
 									<td>
 										<div class="d-flex align-items-center">
-											<img src="{{ $student->photo_url }}" alt="Photo" class="rounded-circle me-2" width="32" height="32">
-											<span>{{ $student->full_name }}</span>
+											<img src="{{ $student->photo_url }}" alt="Photo" class="rounded-circle me-2" width="32" height="32" style="object-fit: cover;">
+											<div style="line-height: 1.3;">
+												<span class="fw-medium">{{ $student->full_name }}</span>
+												@if($student->email)
+													<br><small class="text-muted">{{ $student->email }}</small>
+												@endif
+											</div>
 										</div>
 									</td>
 									<td>{{ $student->schoolClass->name ?? '-' }}</td>

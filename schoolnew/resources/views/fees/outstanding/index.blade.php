@@ -32,7 +32,7 @@
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">&nbsp;</label>
-                        <button type="submit" class="btn btn-primary d-block">Generate Report</button>
+                        <button type="submit" class="btn btn-primary d-block"><i class="icon-filter me-1"></i> Generate Report</button>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">&nbsp;</label>

@@ -67,7 +67,7 @@
                     <h5>Fee Collections</h5>
                     <div class="d-flex gap-2">
                         <a href="{{ route('admin.transport.fees.export-collections', request()->query()) }}" class="btn btn-outline-success">
-                            <i data-feather="download" class="me-1"></i> Export CSV
+                            <i data-feather="download" class="me-1"></i> Export Excel
                         </a>
                         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#generateFeesModal">
                             <i data-feather="zap" class="me-1"></i> Generate Monthly Fees
@@ -128,7 +128,7 @@
                         <div class="col-md-3">
                             <label class="form-label">&nbsp;</label>
                             <div class="d-flex gap-2">
-                                <button type="submit" class="btn btn-primary">Filter</button>
+                                <button type="submit" class="btn btn-primary"><i class="icon-filter me-1"></i> Filter</button>
                                 <a href="{{ route('admin.transport.fees.collections') }}" class="btn btn-outline-secondary">Reset</a>
                             </div>
                         </div>

@@ -7,7 +7,11 @@ use App\Http\Controllers\Portal\Traits\PortalStudentTrait;
 use App\Models\Student;
 use App\Models\FeeCollection;
 use App\Models\FeeStructure;
+use App\Models\AcademicYear;
 use App\Models\Payment;
+use App\Models\RouteAssignment;
+use App\Models\TransportFee;
+use App\Models\TransportFeeCollection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -19,9 +23,6 @@ class PaymentController extends Controller
 {
     use PortalStudentTrait;
 
-    /**
-     * Get Razorpay API instance using .env config.
-     */
     protected function getRazorpayApi()
     {
         $keyId = config('razorpay.key_id');
@@ -34,43 +35,37 @@ class PaymentController extends Controller
         return new Api($keyId, $keySecret);
     }
 
-    /**
-     * Check if payment gateway is configured.
-     */
     protected function isGatewayConfigured(): bool
     {
         return !empty(config('razorpay.key_id')) && !empty(config('razorpay.key_secret'));
     }
 
     /**
-     * Show payment checkout page.
+     * Show payment checkout page with academic + transport fees.
      */
     public function checkout(Request $request)
     {
-        // Block payments if no active academic session
-        $activeYear = \App\Models\AcademicYear::getActive();
+        $activeYear = AcademicYear::getActive();
         if (!$activeYear) {
             return redirect()->route('portal.fees.overview')->with('error', 'The current academic session is inactive. Online payments are temporarily unavailable.');
         }
 
         $student = $this->getCurrentStudent();
-
         if (!$student) {
             return redirect()->route('portal.dashboard')->with('error', 'Student profile not found.');
         }
 
         $student->load(['schoolClass', 'section']);
 
-        // Get fee structures for student's class
+        // ─── Academic Fees ───
         $feeStructures = FeeStructure::where('class_id', $student->class_id)
+            ->where('academic_year_id', $activeYear->id)
             ->where('is_active', true)
             ->with(['feeType', 'feeGroup'])
             ->get();
 
-        // Get fee structure IDs for this class
         $feeStructureIds = $feeStructures->pluck('id')->toArray();
 
-        // Get already paid amounts (only for fee structures of this class)
         $paidAmounts = FeeCollection::where('student_id', $student->id)
             ->whereIn('fee_structure_id', $feeStructureIds)
             ->selectRaw('fee_structure_id, SUM(paid_amount) as total_paid')
@@ -85,9 +80,8 @@ class PaymentController extends Controller
             ->pluck('total_discount', 'fee_structure_id')
             ->toArray();
 
-        // Calculate pending fees
-        $pendingFees = [];
-        $totalDue = 0;
+        $pendingAcademic = [];
+        $academicDue = 0;
 
         foreach ($feeStructures as $structure) {
             $paid = $paidAmounts[$structure->id] ?? 0;
@@ -95,8 +89,9 @@ class PaymentController extends Controller
             $due = $structure->amount - $paid - $discount;
 
             if ($due > 0) {
-                $pendingFees[] = [
+                $pendingAcademic[] = [
                     'id' => $structure->id,
+                    'type' => 'academic',
                     'name' => $structure->feeType->name ?? 'Fee',
                     'group' => $structure->feeGroup->name ?? '',
                     'total' => $structure->amount,
@@ -104,35 +99,80 @@ class PaymentController extends Controller
                     'discount' => $discount,
                     'due' => $due,
                 ];
-                $totalDue += $due;
+                $academicDue += $due;
             }
         }
+
+        // ─── Transport Fees ───
+        $pendingTransport = [];
+        $transportDue = 0;
+
+        $assignment = RouteAssignment::where('student_id', $student->id)
+            ->where('academic_year_id', $activeYear->id)
+            ->where('is_active', true)
+            ->with('route')
+            ->first();
+
+        if ($assignment) {
+            $transportFee = TransportFee::where('transport_route_id', $assignment->transport_route_id)
+                ->where('academic_year_id', $activeYear->id)
+                ->where('is_active', true)
+                ->first();
+
+            if ($transportFee) {
+                $transportCollections = TransportFeeCollection::where('student_id', $student->id)
+                    ->where('transport_fee_id', $transportFee->id)
+                    ->where('status', '!=', 'paid')
+                    ->get();
+
+                foreach ($transportCollections as $tc) {
+                    $tcDue = ($tc->amount + $tc->fine - $tc->discount) - $tc->paid_amount;
+                    if ($tcDue > 0) {
+                        $pendingTransport[] = [
+                            'id' => $tc->id,
+                            'type' => 'transport',
+                            'name' => 'Transport - ' . ($tc->month ?? 'Monthly'),
+                            'group' => $assignment->route->route_name ?? 'Route',
+                            'total' => $tc->amount + $tc->fine - $tc->discount,
+                            'paid' => $tc->paid_amount,
+                            'discount' => 0,
+                            'due' => $tcDue,
+                        ];
+                        $transportDue += $tcDue;
+                    }
+                }
+            }
+        }
+
+        $pendingFees = array_merge($pendingAcademic, $pendingTransport);
+        $totalDue = $academicDue + $transportDue;
 
         if ($totalDue <= 0) {
             return redirect()->route('portal.fees.overview')->with('success', 'All fees are already paid!');
         }
 
-        // Check if payment gateway is configured via .env
         $razorpayConfigured = $this->isGatewayConfigured();
 
-        return view('portal.fees.checkout', compact('student', 'pendingFees', 'totalDue', 'razorpayConfigured'));
+        return view('portal.fees.checkout', compact(
+            'student', 'pendingFees', 'totalDue', 'academicDue', 'transportDue', 'razorpayConfigured'
+        ));
     }
 
     /**
-     * Create Razorpay order.
+     * Create Razorpay order with server-side amount validation.
      */
     public function createOrder(Request $request)
     {
-        // Block if no active session
-        $activeYear = \App\Models\AcademicYear::getActive();
+        $activeYear = AcademicYear::getActive();
         if (!$activeYear) {
-            return response()->json(['error' => 'Academic session is inactive. Payments are not allowed.'], 403);
+            return response()->json(['error' => 'Academic session is inactive.'], 403);
         }
 
         $request->validate([
-            'amount' => 'required|numeric|min:1',
-            'fee_structure_ids' => 'required|array',
+            'fee_structure_ids' => 'nullable|array',
             'fee_structure_ids.*' => 'exists:fee_structures,id',
+            'transport_collection_ids' => 'nullable|array',
+            'transport_collection_ids.*' => 'exists:transport_fee_collections,id',
         ]);
 
         $user = Auth::user();
@@ -142,24 +182,73 @@ class PaymentController extends Controller
             return response()->json(['error' => 'Student not found'], 404);
         }
 
-        $amount = $request->amount;
-        $currency = 'INR';
-        $amountInSmallestUnit = $amount * 100; // Convert to smallest currency unit (paise for INR)
+        $feeStructureIds = $request->fee_structure_ids ?? [];
+        $transportCollectionIds = $request->transport_collection_ids ?? [];
 
-        // Check if credentials are configured in .env
+        if (empty($feeStructureIds) && empty($transportCollectionIds)) {
+            return response()->json(['error' => 'No fees selected'], 400);
+        }
+
+        // ─── Server-side amount calculation (prevents frontend tampering) ───
+        $amount = 0;
+
+        foreach ($feeStructureIds as $structureId) {
+            $structure = FeeStructure::find($structureId);
+            if (!$structure) continue;
+
+            $paid = FeeCollection::where('student_id', $student->id)
+                ->where('fee_structure_id', $structureId)
+                ->sum('paid_amount');
+            $discount = FeeCollection::where('student_id', $student->id)
+                ->where('fee_structure_id', $structureId)
+                ->sum('discount_amount');
+
+            $due = $structure->amount - $paid - $discount;
+            if ($due > 0) {
+                $amount += $due;
+            }
+        }
+
+        foreach ($transportCollectionIds as $tcId) {
+            $tc = TransportFeeCollection::find($tcId);
+            if (!$tc || $tc->status === 'paid' || $tc->student_id !== $student->id) continue;
+
+            $tcDue = ($tc->amount + $tc->fine - $tc->discount) - $tc->paid_amount;
+            if ($tcDue > 0) {
+                $amount += $tcDue;
+            }
+        }
+
+        if ($amount <= 0) {
+            return response()->json(['error' => 'All selected fees are already paid.'], 400);
+        }
+
+        $currency = 'INR';
+        $amountInPaise = round($amount * 100);
+
+        // ─── Check for pending (in-flight) payment for same student ───
+        $pendingPayment = Payment::where('student_id', $student->id)
+            ->where('status', 'created')
+            ->where('created_at', '>', now()->subMinutes(30))
+            ->first();
+
+        if ($pendingPayment) {
+            // Expire old pending payment
+            $pendingPayment->update(['status' => 'expired']);
+        }
+
         $isDemoMode = !$this->isGatewayConfigured();
 
         if ($isDemoMode) {
-            // Demo mode - create fake order for simulation
             $demoOrderId = 'demo_order_' . time() . '_' . $student->id;
 
-            // Store payment record
             $payment = Payment::create([
                 'student_id' => $student->id,
                 'razorpay_order_id' => $demoOrderId,
                 'amount' => $amount,
                 'currency' => $currency,
-                'fee_structure_ids' => json_encode($request->fee_structure_ids),
+                'fee_structure_ids' => json_encode($feeStructureIds),
+                'transport_fee_collection_ids' => json_encode($transportCollectionIds),
                 'status' => 'created',
             ]);
 
@@ -167,7 +256,7 @@ class PaymentController extends Controller
                 'demo_mode' => true,
                 'order_id' => $demoOrderId,
                 'payment_id' => $payment->id,
-                'amount' => $amountInSmallestUnit,
+                'amount' => $amountInPaise,
                 'currency' => $currency,
                 'name' => config('app.name'),
                 'description' => 'Fee Payment (Demo)',
@@ -180,55 +269,46 @@ class PaymentController extends Controller
         }
 
         try {
-            return $this->createRazorpayOrder($student, $user, $request, $amount, $amountInSmallestUnit, $currency);
+            $razorpay = $this->getRazorpayApi();
+
+            $order = $razorpay->order->create([
+                'amount' => $amountInPaise,
+                'currency' => $currency,
+                'receipt' => 'rcpt_' . $student->id . '_' . time(),
+                'notes' => [
+                    'student_id' => $student->id,
+                    'student_name' => $student->name,
+                ],
+            ]);
+
+            $payment = Payment::create([
+                'student_id' => $student->id,
+                'razorpay_order_id' => $order->id,
+                'amount' => $amount,
+                'currency' => $currency,
+                'fee_structure_ids' => json_encode($feeStructureIds),
+                'transport_fee_collection_ids' => json_encode($transportCollectionIds),
+                'status' => 'created',
+            ]);
+
+            return response()->json([
+                'demo_mode' => false,
+                'order_id' => $order->id,
+                'amount' => $amountInPaise,
+                'currency' => $currency,
+                'key' => config('razorpay.key_id'),
+                'name' => config('app.name'),
+                'description' => 'Fee Payment',
+                'prefill' => [
+                    'name' => $student->name,
+                    'email' => $user->email,
+                    'contact' => $student->phone ?? '',
+                ],
+            ]);
         } catch (\Exception $e) {
             Log::error('Payment order creation failed: ' . $e->getMessage());
             return response()->json(['error' => 'Failed to create order. Please try again.'], 500);
         }
-    }
-
-    /**
-     * Create Razorpay order.
-     */
-    protected function createRazorpayOrder($student, $user, $request, $amount, $amountInSmallestUnit, $currency)
-    {
-        $razorpay = $this->getRazorpayApi();
-
-        $order = $razorpay->order->create([
-            'amount' => $amountInSmallestUnit,
-            'currency' => $currency,
-            'receipt' => 'rcpt_' . $student->id . '_' . time(),
-            'notes' => [
-                'student_id' => $student->id,
-                'student_name' => $student->name,
-                'fee_structure_ids' => implode(',', $request->fee_structure_ids),
-            ],
-        ]);
-
-        // Store payment record
-        $payment = Payment::create([
-            'student_id' => $student->id,
-            'razorpay_order_id' => $order->id,
-            'amount' => $amount,
-            'currency' => $currency,
-            'fee_structure_ids' => json_encode($request->fee_structure_ids),
-            'status' => 'created',
-        ]);
-
-        return response()->json([
-            'demo_mode' => false,
-            'order_id' => $order->id,
-            'amount' => $amountInSmallestUnit,
-            'currency' => $currency,
-            'key' => config('razorpay.key_id'),
-            'name' => config('app.name'),
-            'description' => 'Fee Payment',
-            'prefill' => [
-                'name' => $student->name,
-                'email' => $user->email,
-                'contact' => $student->phone ?? '',
-            ],
-        ]);
     }
 
     /**
@@ -248,92 +328,40 @@ class PaymentController extends Controller
             return redirect()->route('portal.fees.overview')->with('error', 'Payment record not found.');
         }
 
-        try {
-            // Verify signature
-            $attributes = [
-                'razorpay_order_id' => $request->razorpay_order_id,
-                'razorpay_payment_id' => $request->razorpay_payment_id,
-                'razorpay_signature' => $request->razorpay_signature,
-            ];
+        // Prevent duplicate processing
+        if ($payment->status === 'paid') {
+            return redirect()->route('portal.payment.receipt', $payment->id)
+                ->with('info', 'This payment has already been processed.');
+        }
 
+        try {
             $razorpay = $this->getRazorpayApi();
             if ($razorpay) {
-                $razorpay->utility->verifyPaymentSignature($attributes);
+                $razorpay->utility->verifyPaymentSignature([
+                    'razorpay_order_id' => $request->razorpay_order_id,
+                    'razorpay_payment_id' => $request->razorpay_payment_id,
+                    'razorpay_signature' => $request->razorpay_signature,
+                ]);
             }
 
-            DB::beginTransaction();
-
-            // Update payment record
-            $payment->update([
-                'razorpay_payment_id' => $request->razorpay_payment_id,
-                'razorpay_signature' => $request->razorpay_signature,
-                'status' => 'paid',
-                'paid_at' => now(),
-            ]);
-
-            // Create fee collection records
-            $feeStructureIds = json_decode($payment->fee_structure_ids, true);
-            $remainingAmount = $payment->amount;
-
-            // Get current academic year
-            $academicYear = \App\Models\AcademicYear::where('is_active', true)->first();
-            $student = Student::find($payment->student_id);
-
-            foreach ($feeStructureIds as $structureId) {
-                if ($remainingAmount <= 0) break;
-
-                $structure = FeeStructure::find($structureId);
-                if (!$structure) continue;
-
-                // Calculate how much is still due for this structure
-                $paidForStructure = FeeCollection::where('student_id', $payment->student_id)
-                    ->where('fee_structure_id', $structureId)
-                    ->sum('paid_amount');
-
-                $discountForStructure = FeeCollection::where('student_id', $payment->student_id)
-                    ->where('fee_structure_id', $structureId)
-                    ->sum('discount_amount');
-
-                $dueForStructure = $structure->amount - $paidForStructure - $discountForStructure;
-
-                if ($dueForStructure > 0) {
-                    $payingNow = min($remainingAmount, $dueForStructure);
-
-                    // Generate receipt number
-                    $receiptNo = 'RZP-' . date('Ymd') . '-' . str_pad(FeeCollection::count() + 1, 5, '0', STR_PAD_LEFT);
-
-                    FeeCollection::create([
-                        'student_id' => $payment->student_id,
-                        'fee_structure_id' => $structureId,
-                        'academic_year_id' => $academicYear->id ?? $student->academic_year_id ?? 1,
-                        'collected_by' => $student->user_id, // Self payment via portal
-                        'amount' => $structure->amount,
-                        'discount_amount' => 0,
-                        'fine_amount' => 0,
-                        'paid_amount' => $payingNow,
-                        'payment_mode' => 'online',
-                        'transaction_id' => $request->razorpay_payment_id,
-                        'payment_date' => now(),
-                        'remarks' => 'Paid via Razorpay',
-                        'receipt_no' => $receiptNo,
-                    ]);
-
-                    $remainingAmount -= $payingNow;
-                }
-            }
-
-            DB::commit();
+            $this->processPayment($payment, $request->razorpay_payment_id, $request->razorpay_signature);
 
             return redirect()->route('portal.payment.receipt', $payment->id)
                 ->with('success', 'Payment successful! Thank you for your payment.');
 
         } catch (SignatureVerificationError $e) {
-            Log::error('Razorpay signature verification failed: ' . $e->getMessage());
+            Log::error('Razorpay signature verification failed: ' . $e->getMessage(), [
+                'order_id' => $request->razorpay_order_id,
+                'payment_id' => $request->razorpay_payment_id,
+            ]);
             $payment->update(['status' => 'failed']);
             return redirect()->route('portal.fees.overview')->with('error', 'Payment verification failed. Please contact support.');
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Payment processing error: ' . $e->getMessage());
+            Log::error('Payment processing error: ' . $e->getMessage(), [
+                'payment_id' => $payment->id,
+                'trace' => $e->getTraceAsString(),
+            ]);
             $payment->update(['status' => 'failed']);
             return redirect()->route('portal.fees.overview')->with('error', 'Payment processing failed. Please contact support.');
         }
@@ -346,8 +374,12 @@ class PaymentController extends Controller
     {
         if ($request->razorpay_order_id) {
             $payment = Payment::where('razorpay_order_id', $request->razorpay_order_id)->first();
-            if ($payment) {
+            if ($payment && $payment->status !== 'paid') {
                 $payment->update(['status' => 'failed']);
+                Log::warning('Payment failed/cancelled', [
+                    'order_id' => $request->razorpay_order_id,
+                    'student_id' => $payment->student_id,
+                ]);
             }
         }
 
@@ -355,7 +387,7 @@ class PaymentController extends Controller
     }
 
     /**
-     * Handle demo payment success (simulation).
+     * Handle demo payment success.
      */
     public function demoSuccess(Request $request)
     {
@@ -376,70 +408,8 @@ class PaymentController extends Controller
         }
 
         try {
-            DB::beginTransaction();
-
-            // Generate demo payment ID
             $demoPaymentId = 'demo_pay_' . time();
-
-            // Update payment record
-            $payment->update([
-                'razorpay_payment_id' => $demoPaymentId,
-                'razorpay_signature' => 'demo_signature_' . md5($demoPaymentId),
-                'status' => 'paid',
-                'paid_at' => now(),
-            ]);
-
-            // Create fee collection records
-            $feeStructureIds = json_decode($payment->fee_structure_ids, true);
-            $remainingAmount = $payment->amount;
-
-            // Get current academic year
-            $academicYear = \App\Models\AcademicYear::where('is_active', true)->first();
-
-            foreach ($feeStructureIds as $structureId) {
-                if ($remainingAmount <= 0) break;
-
-                $structure = FeeStructure::find($structureId);
-                if (!$structure) continue;
-
-                // Calculate how much is still due for this structure
-                $paidForStructure = FeeCollection::where('student_id', $payment->student_id)
-                    ->where('fee_structure_id', $structureId)
-                    ->sum('paid_amount');
-
-                $discountForStructure = FeeCollection::where('student_id', $payment->student_id)
-                    ->where('fee_structure_id', $structureId)
-                    ->sum('discount_amount');
-
-                $dueForStructure = $structure->amount - $paidForStructure - $discountForStructure;
-
-                if ($dueForStructure > 0) {
-                    $payingNow = min($remainingAmount, $dueForStructure);
-
-                    // Generate receipt number
-                    $receiptNo = 'DEMO-' . date('Ymd') . '-' . str_pad(FeeCollection::count() + 1, 5, '0', STR_PAD_LEFT);
-
-                    FeeCollection::create([
-                        'student_id' => $payment->student_id,
-                        'fee_structure_id' => $structureId,
-                        'academic_year_id' => $academicYear->id ?? $student->academic_year_id ?? 1,
-                        'collected_by' => $student->user_id,
-                        'amount' => $structure->amount,
-                        'discount_amount' => 0,
-                        'fine_amount' => 0,
-                        'paid_amount' => $payingNow,
-                        'payment_mode' => 'online',
-                        'transaction_id' => $demoPaymentId,
-                        'payment_date' => now(),
-                        'remarks' => 'Demo Payment - Simulated',
-                        'receipt_no' => $receiptNo,
-                    ]);
-
-                    $remainingAmount -= $payingNow;
-                }
-            }
-
-            DB::commit();
+            $this->processPayment($payment, $demoPaymentId, 'demo_signature_' . md5($demoPaymentId));
 
             return redirect()->route('portal.payment.receipt', $payment->id)
                 ->with('success', 'Demo payment successful! This is a simulated payment for testing purposes.');
@@ -450,6 +420,171 @@ class PaymentController extends Controller
             $payment->update(['status' => 'failed']);
             return redirect()->route('portal.fees.overview')->with('error', 'Demo payment processing failed.');
         }
+    }
+
+    /**
+     * Razorpay webhook handler — catches payments even if frontend fails.
+     */
+    public function webhook(Request $request)
+    {
+        $payload = $request->getContent();
+        $webhookSecret = config('razorpay.webhook_secret');
+
+        // Verify webhook signature if secret is configured
+        if ($webhookSecret) {
+            $expectedSignature = hash_hmac('sha256', $payload, $webhookSecret);
+            $receivedSignature = $request->header('X-Razorpay-Signature');
+
+            if (!hash_equals($expectedSignature, $receivedSignature ?? '')) {
+                Log::warning('Razorpay webhook: invalid signature');
+                return response()->json(['status' => 'invalid_signature'], 400);
+            }
+        }
+
+        $data = json_decode($payload, true);
+        $event = $data['event'] ?? '';
+
+        Log::info('Razorpay webhook received', ['event' => $event]);
+
+        if ($event === 'payment.captured' || $event === 'order.paid') {
+            $orderId = $data['payload']['payment']['entity']['order_id'] ?? null;
+            $paymentId = $data['payload']['payment']['entity']['id'] ?? null;
+
+            if (!$orderId || !$paymentId) {
+                return response()->json(['status' => 'missing_data'], 400);
+            }
+
+            $payment = Payment::where('razorpay_order_id', $orderId)->first();
+
+            if (!$payment) {
+                Log::warning('Razorpay webhook: payment record not found', ['order_id' => $orderId]);
+                return response()->json(['status' => 'not_found'], 404);
+            }
+
+            // Already processed — skip
+            if ($payment->status === 'paid') {
+                return response()->json(['status' => 'already_processed']);
+            }
+
+            try {
+                $this->processPayment($payment, $paymentId, 'webhook_verified');
+                Log::info('Razorpay webhook: payment processed successfully', ['payment_id' => $payment->id]);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error('Razorpay webhook: processing failed', [
+                    'payment_id' => $payment->id,
+                    'error' => $e->getMessage(),
+                ]);
+                return response()->json(['status' => 'processing_failed'], 500);
+            }
+        }
+
+        return response()->json(['status' => 'ok']);
+    }
+
+    /**
+     * Process payment — create fee collection records for both academic and transport.
+     * Uses pessimistic locking to prevent concurrent duplicate processing.
+     * Atomic transaction: all succeed or all fail.
+     */
+    private function processPayment(Payment $payment, string $paymentId, string $signature): void
+    {
+        DB::beginTransaction();
+
+        // Pessimistic lock — re-fetch and lock the row to prevent concurrent processing
+        $payment = Payment::where('id', $payment->id)->lockForUpdate()->first();
+
+        if ($payment->status === 'paid') {
+            DB::rollBack();
+            return; // Already processed by another request (e.g., webhook + frontend race)
+        }
+
+        // Generate a single receipt number for this entire payment
+        $receiptNo = 'PAY-' . date('Ymd') . '-' . str_pad($payment->id, 5, '0', STR_PAD_LEFT);
+
+        $payment->update([
+            'razorpay_payment_id' => $paymentId,
+            'razorpay_signature' => $signature,
+            'status' => 'paid',
+            'paid_at' => now(),
+        ]);
+
+        $academicYear = AcademicYear::getActive();
+        $student = Student::find($payment->student_id);
+        $remainingAmount = $payment->amount;
+
+        // ─── Process Academic Fees ───
+        $feeStructureIds = json_decode($payment->fee_structure_ids, true) ?? [];
+
+        foreach ($feeStructureIds as $structureId) {
+            if ($remainingAmount <= 0) break;
+
+            $structure = FeeStructure::find($structureId);
+            if (!$structure) continue;
+
+            $paidForStructure = FeeCollection::where('student_id', $payment->student_id)
+                ->where('fee_structure_id', $structureId)
+                ->sum('paid_amount');
+
+            $discountForStructure = FeeCollection::where('student_id', $payment->student_id)
+                ->where('fee_structure_id', $structureId)
+                ->sum('discount_amount');
+
+            $dueForStructure = $structure->amount - $paidForStructure - $discountForStructure;
+
+            if ($dueForStructure > 0) {
+                $payingNow = min($remainingAmount, $dueForStructure);
+
+                FeeCollection::create([
+                    'student_id' => $payment->student_id,
+                    'fee_structure_id' => $structureId,
+                    'academic_year_id' => $academicYear->id ?? $student->academic_year_id ?? 1,
+                    'collected_by' => $student->user_id,
+                    'amount' => $structure->amount,
+                    'discount_amount' => 0,
+                    'fine_amount' => 0,
+                    'paid_amount' => $payingNow,
+                    'payment_mode' => 'online',
+                    'transaction_id' => $paymentId,
+                    'payment_date' => now(),
+                    'remarks' => 'Paid via Razorpay',
+                    'receipt_no' => $receiptNo,
+                ]);
+
+                $remainingAmount -= $payingNow;
+            }
+        }
+
+        // ─── Process Transport Fees ───
+        $transportCollectionIds = json_decode($payment->transport_fee_collection_ids, true) ?? [];
+
+        foreach ($transportCollectionIds as $tcId) {
+            if ($remainingAmount <= 0) break;
+
+            // Lock the transport collection row too
+            $tc = TransportFeeCollection::where('id', $tcId)->lockForUpdate()->first();
+            if (!$tc || $tc->status === 'paid') continue;
+
+            $tcDue = ($tc->amount + $tc->fine - $tc->discount) - $tc->paid_amount;
+
+            if ($tcDue > 0) {
+                $payingNow = min($remainingAmount, $tcDue);
+                $newPaid = $tc->paid_amount + $payingNow;
+                $totalOwed = $tc->amount + $tc->fine - $tc->discount;
+
+                $tc->update([
+                    'paid_amount' => $newPaid,
+                    'status' => $newPaid >= $totalOwed ? 'paid' : 'partial',
+                    'payment_date' => now(),
+                    'payment_mode' => 'online',
+                    'receipt_number' => $receiptNo,
+                ]);
+
+                $remainingAmount -= $payingNow;
+            }
+        }
+
+        DB::commit();
     }
 
     /**
@@ -465,11 +600,16 @@ class PaymentController extends Controller
 
         $payment->load('student.schoolClass', 'student.section');
 
-        $feeStructureIds = json_decode($payment->fee_structure_ids, true);
+        $feeStructureIds = json_decode($payment->fee_structure_ids, true) ?? [];
         $feeStructures = FeeStructure::whereIn('id', $feeStructureIds)
             ->with(['feeType', 'feeGroup'])
             ->get();
 
-        return view('portal.fees.payment-receipt', compact('payment', 'student', 'feeStructures'));
+        $transportCollectionIds = json_decode($payment->transport_fee_collection_ids, true) ?? [];
+        $transportCollections = TransportFeeCollection::whereIn('id', $transportCollectionIds)
+            ->with(['transportFee.route'])
+            ->get();
+
+        return view('portal.fees.payment-receipt', compact('payment', 'student', 'feeStructures', 'transportCollections'));
     }
 }

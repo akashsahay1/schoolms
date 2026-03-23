@@ -48,7 +48,7 @@
 					</div>
 					<div class="col-md-2">
 						<button type="submit" class="btn btn-primary w-100">
-							<i data-feather="filter" style="width: 14px; height: 14px;"></i> Generate Report
+							<i class="icon-filter me-1"></i> Generate Report
 						</button>
 					</div>
 				</form>

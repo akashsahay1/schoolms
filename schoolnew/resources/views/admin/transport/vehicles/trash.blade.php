@@ -78,7 +78,7 @@
 						<thead>
 							<tr>
 								<th style="width: 40px;">
-									<input type="checkbox" class="form-check-input" id="selectAll" title="Select All">
+									<input type="checkbox" class="form-check-input" id="selectAll" title="Select All" autocomplete="off">
 								</th>
 								<th>#</th>
 								<th>Vehicle No</th>
@@ -93,7 +93,7 @@
 							@forelse($vehicles as $vehicle)
 								<tr>
 									<td>
-										<input type="checkbox" class="form-check-input vehicle-checkbox" value="{{ $vehicle->id }}" data-name="{{ $vehicle->vehicle_no }}">
+										<input type="checkbox" class="form-check-input vehicle-checkbox" value="{{ $vehicle->id }}" data-name="{{ $vehicle->vehicle_no }}" autocomplete="off">
 									</td>
 									<td>{{ $vehicles->firstItem() + $loop->index }}</td>
 									<td>{{ $vehicle->vehicle_no }}</td>
@@ -160,49 +160,41 @@
 @push('scripts')
 <script>
 jQuery(document).ready(function() {
-	const selectAllCheckbox = jQuery('#selectAll');
-	const vehicleCheckboxes = jQuery('.vehicle-checkbox');
-	const bulkRestoreBtn = jQuery('#bulkRestoreBtn');
-	const bulkDeleteBtn = jQuery('#bulkDeleteBtn');
-	const restoreCountSpan = jQuery('#restoreCount');
-	const deleteCountSpan = jQuery('#deleteCount');
+	// Clear all checkboxes on page load (prevents browser autocomplete restoring state)
+	jQuery('#selectAll').prop('checked', false).prop('indeterminate', false);
+	jQuery('.vehicle-checkbox').prop('checked', false);
 
-	// Update selected count and toggle bulk buttons
 	function updateBulkState() {
-		const checkedCount = jQuery('.vehicle-checkbox:checked').length;
-		restoreCountSpan.text(checkedCount);
-		deleteCountSpan.text(checkedCount);
+		var checkedCount = jQuery('.vehicle-checkbox:checked').length;
+		var totalCount = jQuery('.vehicle-checkbox').length;
+		jQuery('#restoreCount').text(checkedCount);
+		jQuery('#deleteCount').text(checkedCount);
 
 		if (checkedCount > 0) {
-			bulkRestoreBtn.removeClass('d-none');
-			bulkDeleteBtn.removeClass('d-none');
+			jQuery('#bulkRestoreBtn').removeClass('d-none');
+			jQuery('#bulkDeleteBtn').removeClass('d-none');
 		} else {
-			bulkRestoreBtn.addClass('d-none');
-			bulkDeleteBtn.addClass('d-none');
+			jQuery('#bulkRestoreBtn').addClass('d-none');
+			jQuery('#bulkDeleteBtn').addClass('d-none');
 		}
 
-		// Update select all checkbox state
-		const totalCheckboxes = vehicleCheckboxes.length;
-		if (totalCheckboxes > 0 && checkedCount === totalCheckboxes) {
-			selectAllCheckbox.prop('checked', true);
-			selectAllCheckbox.prop('indeterminate', false);
+		if (totalCount > 0 && checkedCount === totalCount) {
+			jQuery('#selectAll').prop('checked', true).prop('indeterminate', false);
 		} else if (checkedCount > 0) {
-			selectAllCheckbox.prop('checked', false);
-			selectAllCheckbox.prop('indeterminate', true);
+			jQuery('#selectAll').prop('checked', false).prop('indeterminate', true);
 		} else {
-			selectAllCheckbox.prop('checked', false);
-			selectAllCheckbox.prop('indeterminate', false);
+			jQuery('#selectAll').prop('checked', false).prop('indeterminate', false);
 		}
 	}
 
 	// Select All checkbox handler
-	selectAllCheckbox.on('change', function() {
-		vehicleCheckboxes.prop('checked', jQuery(this).is(':checked'));
+	jQuery(document).on('change', '#selectAll', function() {
+		jQuery('.vehicle-checkbox').prop('checked', jQuery(this).is(':checked'));
 		updateBulkState();
 	});
 
 	// Individual checkbox handler
-	vehicleCheckboxes.on('change', function() {
+	jQuery(document).on('change', '.vehicle-checkbox', function() {
 		updateBulkState();
 	});
 
@@ -220,7 +212,7 @@ jQuery(document).ready(function() {
 	}
 
 	// Bulk Restore button handler
-	bulkRestoreBtn.on('click', function() {
+	jQuery(document).on('click', '#bulkRestoreBtn', function() {
 		const { ids, names } = getSelectedData();
 
 		if (ids.length === 0) return;
@@ -245,7 +237,7 @@ jQuery(document).ready(function() {
 					type: 'POST',
 					data: {
 						_token: '{{ csrf_token() }}',
-						vehicle_ids: ids
+						ids: ids
 					},
 					beforeSend: function() {
 						Swal.fire({
@@ -282,7 +274,7 @@ jQuery(document).ready(function() {
 	});
 
 	// Bulk Permanent Delete button handler
-	bulkDeleteBtn.on('click', function() {
+	jQuery(document).on('click', '#bulkDeleteBtn', function() {
 		const { ids, names } = getSelectedData();
 
 		if (ids.length === 0) return;
@@ -307,7 +299,7 @@ jQuery(document).ready(function() {
 					type: 'POST',
 					data: {
 						_token: '{{ csrf_token() }}',
-						vehicle_ids: ids
+						ids: ids
 					},
 					beforeSend: function() {
 						Swal.fire({

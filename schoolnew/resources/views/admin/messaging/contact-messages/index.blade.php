@@ -119,7 +119,7 @@
 							</select>
 						</div>
 						<div class="col-md-3">
-							<button type="submit" class="btn btn-primary">Filter</button>
+							<button type="submit" class="btn btn-primary"><i class="icon-filter me-1"></i> Filter</button>
 							<a href="{{ route('admin.messaging.contact-messages.index') }}" class="btn btn-outline-secondary">Reset</a>
 						</div>
 					</div>

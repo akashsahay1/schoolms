@@ -27,14 +27,11 @@
                 </div>
                 <div class="col-md-6 text-end">
                     <div class="btn-group">
-                        <a href="{{ route('admin.fees.reports.export', ['type' => 'daily', 'date' => $date]) }}" class="btn btn-sm btn-outline-secondary" title="Export CSV">
-                            <i data-feather="file-text" style="width: 14px; height: 14px;"></i> CSV
-                        </a>
                         <a href="{{ route('admin.fees.reports.export-excel', ['type' => 'daily', 'date' => $date]) }}" class="btn btn-sm btn-outline-success" title="Export Excel">
-                            <i data-feather="file" style="width: 14px; height: 14px;"></i> Excel
+                            <i data-feather="download" style="width: 14px; height: 14px;"></i> Excel
                         </a>
                         <a href="{{ route('admin.fees.reports.export-pdf', ['type' => 'daily', 'date' => $date]) }}" class="btn btn-sm btn-outline-danger" title="Export PDF">
-                            <i data-feather="file-minus" style="width: 14px; height: 14px;"></i> PDF
+                            <i data-feather="file-text" style="width: 14px; height: 14px;"></i> PDF
                         </a>
                     </div>
                 </div>

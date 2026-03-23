@@ -157,10 +157,25 @@
 			line-height: 1;
 		}
 
-		/* Button text color fix */
-		.btn-primary, .btn-success, .btn-danger, .btn-warning,
-		.btn-info, .btn-secondary, .btn-dark {
-			color: #fff !important;
+		/* Button text & icon color — white on solid colored buttons */
+		button.btn-primary, a.btn-primary,
+		button.btn-success, a.btn-success,
+		button.btn-danger, a.btn-danger,
+		button.btn-warning, a.btn-warning,
+		button.btn-info, a.btn-info,
+		button.btn-secondary, a.btn-secondary,
+		button.btn-dark, a.btn-dark {
+			color: #ffffff !important;
+		}
+		button.btn-primary i, button.btn-primary [class^="icon-"], button.btn-primary [class*=" icon-"],
+		a.btn-primary i, a.btn-primary [class^="icon-"], a.btn-primary [class*=" icon-"],
+		button.btn-success i, a.btn-success i,
+		button.btn-danger i, a.btn-danger i,
+		button.btn-warning i, a.btn-warning i,
+		button.btn-info i, a.btn-info i,
+		button.btn-secondary i, a.btn-secondary i,
+		button.btn-dark i, a.btn-dark i {
+			color: #ffffff !important;
 		}
 		.btn-light, .btn-white {
 			color: #000 !important;

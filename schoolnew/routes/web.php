@@ -334,7 +334,6 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Super Admin,Ad
             Route::get('/fee-type-wise', [FeeReportController::class, 'feeTypeWise'])->name('fee-type-wise');
             Route::get('/class-wise', [FeeReportController::class, 'classWise'])->name('class-wise');
             Route::get('/daily', [FeeReportController::class, 'daily'])->name('daily');
-            Route::get('/export', [FeeReportController::class, 'export'])->name('export');
             Route::get('/export-excel', [FeeReportController::class, 'exportExcel'])->name('export-excel');
             Route::get('/export-pdf', [FeeReportController::class, 'exportPdf'])->name('export-pdf');
             Route::get('/chart-data', [FeeReportController::class, 'chartData'])->name('chart-data');
@@ -530,8 +529,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Super Admin,Ad
         Route::post('/routes/bulk-restore', [TransportRouteController::class, 'bulkRestore'])->name('routes.bulk-restore');
         Route::post('/routes/bulk-force-delete', [TransportRouteController::class, 'bulkForceDelete'])->name('routes.bulk-force-delete');
         Route::delete('/routes-trash/empty', [TransportRouteController::class, 'emptyTrash'])->name('routes.empty-trash');
+        Route::get('/routes/{route}/stops', [TransportRouteController::class, 'getStops'])->name('routes.stops');
 
         // Route Assignments
+        Route::get('/assignments/students', [RouteAssignmentController::class, 'getStudents'])->name('assignments.students');
+        Route::get('/assignments/sections', [RouteAssignmentController::class, 'getSections'])->name('assignments.sections');
         Route::get('/assignments', [RouteAssignmentController::class, 'index'])->name('assignments.index');
         Route::get('/assignments/create', [RouteAssignmentController::class, 'create'])->name('assignments.create');
         Route::post('/assignments', [RouteAssignmentController::class, 'store'])->name('assignments.store');
@@ -545,8 +547,6 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Super Admin,Ad
         Route::post('/assignments/bulk-restore', [RouteAssignmentController::class, 'bulkRestore'])->name('assignments.bulk-restore');
         Route::post('/assignments/bulk-force-delete', [RouteAssignmentController::class, 'bulkForceDelete'])->name('assignments.bulk-force-delete');
         Route::delete('/assignments-trash/empty', [RouteAssignmentController::class, 'emptyTrash'])->name('assignments.empty-trash');
-        Route::get('/assignments/students', [RouteAssignmentController::class, 'getStudents'])->name('assignments.students');
-        Route::get('/assignments/sections', [RouteAssignmentController::class, 'getSections'])->name('assignments.sections');
 
         // Transport Reports
         Route::get('/reports', [TransportReportController::class, 'index'])->name('reports.index');
@@ -575,6 +575,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Super Admin,Ad
     // Drivers
     Route::resource('drivers', DriverController::class);
     Route::post('drivers/bulk-delete', [DriverController::class, 'bulkDelete'])->name('drivers.bulk-delete');
+    Route::post('drivers/bulk-restore', [DriverController::class, 'bulkRestore'])->name('drivers.bulk-restore');
+    Route::post('drivers/bulk-force-delete', [DriverController::class, 'bulkForceDelete'])->name('drivers.bulk-force-delete');
     Route::get('drivers-trash', [DriverController::class, 'trash'])->name('drivers.trash');
     Route::post('drivers/{id}/restore', [DriverController::class, 'restore'])->name('drivers.restore');
     Route::delete('drivers/{id}/force-delete', [DriverController::class, 'forceDelete'])->name('drivers.force-delete');
@@ -640,6 +642,18 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Super Admin,Ad
             Route::delete('/{contactMessage}', [ContactMessageController::class, 'destroy'])->name('destroy');
         });
     });
+
+    // Alumni
+    Route::get('/alumni', [App\Http\Controllers\Admin\AlumniController::class, 'index'])->name('alumni.index');
+    Route::post('/alumni/auto-graduate', [App\Http\Controllers\Admin\AlumniController::class, 'autoGraduate'])->name('alumni.auto-graduate');
+
+    // Student Quick Actions
+    Route::post('/students/{student}/mark-graduated', [App\Http\Controllers\Admin\AlumniController::class, 'markGraduated'])->name('students.mark-graduated');
+    Route::post('/students/{student}/mark-transferred', [App\Http\Controllers\Admin\AlumniController::class, 'markTransferred'])->name('students.mark-transferred');
+
+    // Certificates
+    Route::get('/certificates/tc/{student}', [App\Http\Controllers\Admin\CertificateController::class, 'transferCertificate'])->name('certificates.tc');
+    Route::get('/certificates/marksheet/{student}', [App\Http\Controllers\Admin\CertificateController::class, 'marksheet'])->name('certificates.marksheet');
 
     // Reports
     Route::prefix('reports')->name('reports.')->group(function () {
@@ -923,3 +937,7 @@ Route::prefix('teacher')->name('teacher.')->middleware(['auth', 'role:Teacher,Su
         Route::post('/{message}/reply', [App\Http\Controllers\Teacher\MessageController::class, 'reply'])->name('reply');
     });
 });
+
+// Razorpay Webhook — outside auth middleware, CSRF excluded in bootstrap/app.php
+Route::post('/razorpay/webhook', [App\Http\Controllers\Portal\PaymentController::class, 'webhook'])
+    ->name('razorpay.webhook');

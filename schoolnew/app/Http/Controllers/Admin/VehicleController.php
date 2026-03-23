@@ -17,6 +17,16 @@ class VehicleController extends Controller
 			$query->where('status', $request->status);
 		}
 
+		if ($request->filled('search')) {
+			$search = $request->search;
+			$query->where(function ($q) use ($search) {
+				$q->where('vehicle_no', 'like', "%{$search}%")
+					->orWhere('registration_no', 'like', "%{$search}%")
+					->orWhere('driver_name', 'like', "%{$search}%")
+					->orWhere('vehicle_model', 'like', "%{$search}%");
+			});
+		}
+
 		$vehicles = $query->orderBy('vehicle_no')->paginate(15);
 		$trashedCount = Vehicle::onlyTrashed()->count();
 
@@ -131,8 +141,9 @@ class VehicleController extends Controller
 		}
 
 		$vehicles = $query->orderBy('deleted_at', 'desc')->paginate(15);
+		$trashedCount = Vehicle::onlyTrashed()->count();
 
-		return view('admin.transport.vehicles.trash', compact('vehicles'));
+		return view('admin.transport.vehicles.trash', compact('vehicles', 'trashedCount'));
 	}
 
 	public function restore($id)

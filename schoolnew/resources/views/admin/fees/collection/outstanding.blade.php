@@ -28,61 +28,87 @@
 				</div>
 			</div>
 			<div class="card-body">
-				<form action="{{ route('admin.fees.outstanding') }}" method="GET" class="row g-3 mb-3">
-					<div class="col-md-4">
-						<select name="class" class="form-select" onchange="this.form.submit()">
+				<form action="{{ route('admin.fees.outstanding') }}" method="GET" class="row g-3 align-items-end mb-4">
+					<div class="col-md-3">
+						<label class="form-label">Search Student</label>
+						<input type="text" name="search" class="form-control" placeholder="Name, Admission No..." value="{{ request('search') }}">
+					</div>
+					<div class="col-md-2">
+						<label class="form-label">Class</label>
+						<select name="class" class="form-select">
 							<option value="">All Classes</option>
 							@foreach($classes as $class)
 								<option value="{{ $class->id }}" {{ request('class') == $class->id ? 'selected' : '' }}>{{ $class->name }}</option>
 							@endforeach
 						</select>
 					</div>
+					<div class="col-md-3">
+						<div class="form-check mt-4">
+							<input type="checkbox" class="form-check-input" id="show_only_outstanding" name="show_only_outstanding" value="1" {{ request('show_only_outstanding') ? 'checked' : '' }}>
+							<label class="form-check-label" for="show_only_outstanding">Only outstanding</label>
+						</div>
+					</div>
 					<div class="col-md-4">
-						<div class="form-check mt-2">
-							<input type="checkbox" class="form-check-input" id="show_only_outstanding" name="show_only_outstanding" value="1" {{ request('show_only_outstanding') ? 'checked' : '' }} onchange="this.form.submit()">
-							<label class="form-check-label" for="show_only_outstanding">Show only students with outstanding fees</label>
+						<div class="d-flex gap-2">
+							<button type="submit" class="btn btn-primary">
+								<i class="icon-filter me-1"></i> Filter
+							</button>
+							@if(request()->hasAny(['search', 'class', 'show_only_outstanding']))
+								<a href="{{ route('admin.fees.outstanding') }}" class="btn btn-outline-secondary" title="Reset">
+									<i class="icon-reload"></i>
+								</a>
+							@endif
 						</div>
 					</div>
 				</form>
 
 				<div class="table-responsive">
-					<table class="table table-striped table-hover">
-						<thead>
+					<table class="table table-hover mb-0">
+						<thead class="bg-light">
 							<tr>
-								<th>#</th>
-								<th>Student</th>
-								<th>Admission No</th>
-								<th>Class</th>
-								<th>Total Fees</th>
-								<th>Paid</th>
-								<th>Outstanding</th>
-								<th>Action</th>
+								<th style="width: 4%;">#</th>
+								<th style="width: 18%;">Student</th>
+								<th style="width: 10%;">Admission</th>
+								<th style="width: 10%;">Class</th>
+								<th style="width: 12%;" class="text-end">Academic</th>
+								<th style="width: 12%;" class="text-end">Transport</th>
+								<th style="width: 12%;" class="text-end">Paid</th>
+								<th style="width: 12%;" class="text-end">Outstanding</th>
+								<th style="width: 10%;" class="text-center">Action</th>
 							</tr>
 						</thead>
 						<tbody>
 							@forelse($outstandingData as $index => $data)
-								<tr class="{{ $data['outstanding'] > 0 ? 'table-warning' : '' }}">
-									<td>{{ $index + 1 }}</td>
+								<tr>
+									<td class="text-muted">{{ $index + 1 }}</td>
 									<td><strong>{{ $data['student']->full_name }}</strong></td>
-									<td>{{ $data['student']->admission_no }}</td>
+									<td><span class="text-muted">{{ $data['student']->admission_no }}</span></td>
 									<td>
-										<span class="badge badge-light-info">
-											{{ $data['student']->schoolClass->name }} {{ $data['student']->section ? '(' . $data['student']->section->name . ')' : '' }}
-										</span>
+										{{ $data['student']->schoolClass->name ?? '-' }}
+										@if($data['student']->section)
+											<span class="text-muted">({{ $data['student']->section->name }})</span>
+										@endif
 									</td>
-									<td>₹{{ number_format($data['total_fees'], 2) }}</td>
-									<td><span class="text-success">₹{{ number_format($data['paid_fees'], 2) }}</span></td>
-									<td>
+									<td class="text-end">₹{{ number_format($data['academic_fees'], 2) }}</td>
+									<td class="text-end">
+										@if($data['has_transport'])
+											₹{{ number_format($data['transport_fees'], 2) }}
+										@else
+											<span class="text-muted">-</span>
+										@endif
+									</td>
+									<td class="text-end text-success">₹{{ number_format($data['paid_fees'], 2) }}</td>
+									<td class="text-end">
 										@if($data['outstanding'] > 0)
 											<strong class="text-danger">₹{{ number_format($data['outstanding'], 2) }}</strong>
 										@else
-											<span class="text-success">Fully Paid</span>
+											<span class="badge badge-light-success px-2">Paid</span>
 										@endif
 									</td>
-									<td>
+									<td class="text-center">
 										@if($data['outstanding'] > 0)
 											<a href="{{ route('admin.fees.collect', $data['student']) }}" class="btn btn-sm btn-outline-primary">
-												View Details
+												View
 											</a>
 										@else
 											<span class="text-muted">-</span>
@@ -91,22 +117,25 @@
 								</tr>
 							@empty
 								<tr>
-									<td colspan="8" class="text-center py-4">
-										<div class="text-muted">
-											<i data-feather="check-circle" style="width: 48px; height: 48px;"></i>
-											<p class="mt-2 mb-0">No outstanding fees found.</p>
+									<td colspan="9" class="text-center py-5">
+										<div class="d-flex flex-column align-items-center">
+											<div class="rounded-circle bg-light d-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px;">
+												<i class="icon-check" style="font-size: 24px; color: #27ae60;"></i>
+											</div>
+											<p class="text-muted mb-0">No outstanding fees found.</p>
 										</div>
 									</td>
 								</tr>
 							@endforelse
 						</tbody>
 						@if(count($outstandingData) > 0)
-							<tfoot>
-								<tr class="table-active">
-									<td colspan="4"><strong>Total</strong></td>
-									<td><strong>₹{{ number_format(array_sum(array_column($outstandingData, 'total_fees')), 2) }}</strong></td>
-									<td><strong>₹{{ number_format(array_sum(array_column($outstandingData, 'paid_fees')), 2) }}</strong></td>
-									<td><strong class="text-danger">₹{{ number_format(array_sum(array_column($outstandingData, 'outstanding')), 2) }}</strong></td>
+							<tfoot class="bg-light">
+								<tr class="fw-bold">
+									<td colspan="4">Total</td>
+									<td class="text-end">₹{{ number_format(array_sum(array_column($outstandingData, 'academic_fees')), 2) }}</td>
+									<td class="text-end">₹{{ number_format(array_sum(array_column($outstandingData, 'transport_fees')), 2) }}</td>
+									<td class="text-end text-success">₹{{ number_format(array_sum(array_column($outstandingData, 'paid_fees')), 2) }}</td>
+									<td class="text-end text-danger">₹{{ number_format(array_sum(array_column($outstandingData, 'outstanding')), 2) }}</td>
 									<td></td>
 								</tr>
 							</tfoot>

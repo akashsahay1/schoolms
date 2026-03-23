@@ -244,42 +244,6 @@ class DashboardController extends Controller
      */
     private function getFeeStats($studentId)
     {
-        $student = Student::find($studentId);
-        if (!$student) {
-            return ['total_fees' => 0, 'total_paid' => 0, 'total_due' => 0, 'total_discount' => 0];
-        }
-
-        // Get fee structures for student's class
-        $feeStructures = FeeStructure::where('class_id', $student->class_id)
-            ->where('is_active', true)
-            ->get();
-
-        $feeStructureIds = $feeStructures->pluck('id')->toArray();
-
-        // Get fee collections for these structures
-        $feeCollections = FeeCollection::where('student_id', $studentId)
-            ->whereIn('fee_structure_id', $feeStructureIds)
-            ->get();
-
-        // Calculate totals per structure (same as Fee Overview)
-        $totalFees = 0;
-        $totalPaid = 0;
-        $totalDiscount = 0;
-
-        foreach ($feeStructures as $structure) {
-            $totalFees += $structure->amount;
-            $payments = $feeCollections->where('fee_structure_id', $structure->id);
-            $totalPaid += $payments->sum('paid_amount');
-            $totalDiscount += $payments->sum('discount_amount');
-        }
-
-        $totalDue = $totalFees - $totalPaid - $totalDiscount;
-
-        return [
-            'total_fees' => $totalFees,
-            'total_paid' => $totalPaid,
-            'total_due' => max(0, $totalDue),
-            'total_discount' => $totalDiscount,
-        ];
+        return \App\Services\StudentFeeService::getStudentFeeStats($studentId);
     }
 }

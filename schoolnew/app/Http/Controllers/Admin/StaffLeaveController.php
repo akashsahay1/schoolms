@@ -15,6 +15,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Response;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\StaffLeaveExport;
 
 class StaffLeaveController extends Controller
 {
@@ -500,36 +502,24 @@ class StaffLeaveController extends Controller
             ->orderBy('from_date')
             ->get();
 
-        $filename = 'staff_leave_report_' . date('Y-m-d') . '.csv';
+        $data = [];
+        $count = 1;
+        foreach ($leaves as $leave) {
+            $staff = Staff::find($leave->applicant_id);
+            $data[] = [
+                $count++,
+                $staff ? $staff->first_name . ' ' . $staff->last_name : $leave->appliedByUser->name ?? 'N/A',
+                $leave->leave_type,
+                $leave->from_date->format('d-m-Y'),
+                $leave->to_date->format('d-m-Y'),
+                $leave->total_days,
+                ucfirst($leave->status),
+                $leave->reason,
+            ];
+        }
 
-        $headers = [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
-        ];
-
-        $callback = function () use ($leaves) {
-            $file = fopen('php://output', 'w');
-            fputcsv($file, ['#', 'Staff Name', 'Leave Type', 'From Date', 'To Date', 'Days', 'Status', 'Reason']);
-
-            $count = 1;
-            foreach ($leaves as $leave) {
-                $staff = Staff::find($leave->applicant_id);
-                fputcsv($file, [
-                    $count++,
-                    $staff ? $staff->first_name . ' ' . $staff->last_name : $leave->appliedByUser->name ?? 'N/A',
-                    $leave->leave_type,
-                    $leave->from_date->format('Y-m-d'),
-                    $leave->to_date->format('Y-m-d'),
-                    $leave->total_days,
-                    $leave->status,
-                    $leave->reason,
-                ]);
-            }
-
-            fclose($file);
-        };
-
-        return Response::stream($callback, 200, $headers);
+        $filename = 'staff_leave_report_' . date('Y-m-d') . '.xlsx';
+        return Excel::download(new StaffLeaveExport($data), $filename);
     }
 
     /**

@@ -32,6 +32,15 @@ class RouteAssignmentController extends Controller
             $query->where('is_active', $request->status === 'active');
         }
 
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->whereHas('student', function ($q) use ($search) {
+                $q->where('first_name', 'like', "%{$search}%")
+                    ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhere('admission_no', 'like', "%{$search}%");
+            });
+        }
+
         $assignments = $query->orderBy('created_at', 'desc')->paginate(15);
         $routes = TransportRoute::active()->orderBy('route_name')->get();
         $classes = SchoolClass::where('is_active', true)->orderBy('order')->get();
@@ -70,9 +79,20 @@ class RouteAssignmentController extends Controller
             'student_id' => ['required', 'exists:students,id'],
             'academic_year_id' => ['required', 'exists:academic_years,id'],
             'pickup_point' => ['nullable', 'string', 'max:255'],
+            'pickup_point_custom' => ['nullable', 'string', 'max:255'],
             'drop_point' => ['nullable', 'string', 'max:255'],
+            'drop_point_custom' => ['nullable', 'string', 'max:255'],
             'is_active' => ['nullable', 'boolean'],
         ]);
+
+        // Resolve pickup/drop: use custom if "Other" selected
+        $pickupPoint = ($validated['pickup_point'] ?? '') === '__other__'
+            ? ($validated['pickup_point_custom'] ?? null)
+            : ($validated['pickup_point'] ?? null);
+
+        $dropPoint = ($validated['drop_point'] ?? '') === '__other__'
+            ? ($validated['drop_point_custom'] ?? null)
+            : ($validated['drop_point'] ?? null);
 
         // Check if student already has an active assignment for this academic year
         $existing = RouteAssignment::where('student_id', $validated['student_id'])
@@ -89,8 +109,8 @@ class RouteAssignmentController extends Controller
                 'transport_route_id' => $validated['transport_route_id'],
                 'student_id' => $validated['student_id'],
                 'academic_year_id' => $validated['academic_year_id'],
-                'pickup_point' => $validated['pickup_point'] ?? null,
-                'drop_point' => $validated['drop_point'] ?? null,
+                'pickup_point' => $pickupPoint,
+                'drop_point' => $dropPoint,
                 'is_active' => $request->has('is_active'),
             ]);
 
@@ -115,16 +135,26 @@ class RouteAssignmentController extends Controller
             'transport_route_id' => ['required', 'exists:transport_routes,id'],
             'academic_year_id' => ['required', 'exists:academic_years,id'],
             'pickup_point' => ['nullable', 'string', 'max:255'],
+            'pickup_point_custom' => ['nullable', 'string', 'max:255'],
             'drop_point' => ['nullable', 'string', 'max:255'],
+            'drop_point_custom' => ['nullable', 'string', 'max:255'],
             'is_active' => ['nullable', 'boolean'],
         ]);
+
+        $pickupPoint = ($validated['pickup_point'] ?? '') === '__other__'
+            ? ($validated['pickup_point_custom'] ?? null)
+            : ($validated['pickup_point'] ?? null);
+
+        $dropPoint = ($validated['drop_point'] ?? '') === '__other__'
+            ? ($validated['drop_point_custom'] ?? null)
+            : ($validated['drop_point'] ?? null);
 
         try {
             $assignment->update([
                 'transport_route_id' => $validated['transport_route_id'],
                 'academic_year_id' => $validated['academic_year_id'],
-                'pickup_point' => $validated['pickup_point'] ?? null,
-                'drop_point' => $validated['drop_point'] ?? null,
+                'pickup_point' => $pickupPoint,
+                'drop_point' => $dropPoint,
                 'is_active' => $request->has('is_active'),
             ]);
 
@@ -257,10 +287,9 @@ class RouteAssignmentController extends Controller
      */
     public function getStudents(Request $request)
     {
-        $request->validate([
-            'class_id' => 'required|exists:school_classes,id',
-            'section_id' => 'nullable|exists:sections,id',
-        ]);
+        if (!$request->filled('class_id')) {
+            return response()->json([]);
+        }
 
         $query = Student::where('class_id', $request->class_id)
             ->where('status', 'active');
@@ -279,9 +308,9 @@ class RouteAssignmentController extends Controller
      */
     public function getSections(Request $request)
     {
-        $request->validate([
-            'class_id' => 'required|exists:school_classes,id',
-        ]);
+        if (!$request->filled('class_id')) {
+            return response()->json([]);
+        }
 
         $sections = Section::where('class_id', $request->class_id)
             ->where('is_active', true)

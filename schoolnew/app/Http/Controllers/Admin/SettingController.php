@@ -11,7 +11,16 @@ class SettingController extends Controller
 {
     public function school()
     {
-        $settings = Setting::getByGroup('school');
+        $keys = [
+            'school_name', 'school_address', 'school_phone', 'school_email',
+            'school_website', 'school_tagline', 'school_map_embed', 'school_logo',
+            'principal_name', 'principal_signature_image', 'school_stamp',
+        ];
+
+        $settings = [];
+        foreach ($keys as $key) {
+            $settings[$key] = Setting::get($key);
+        }
 
         return view('admin.settings.school', compact('settings'));
     }
@@ -27,6 +36,9 @@ class SettingController extends Controller
             'school_tagline' => 'nullable|string|max:255',
             'school_map_embed' => 'nullable|string|max:2000',
             'school_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'principal_name' => 'nullable|string|max:255',
+            'principal_signature_image' => 'nullable|image|mimes:jpeg,png,jpg|max:1024',
+            'school_stamp' => 'nullable|image|mimes:jpeg,png,jpg|max:1024',
         ]);
 
         // Update text settings
@@ -58,6 +70,41 @@ class SettingController extends Controller
                 Storage::disk('public')->delete($oldLogo);
             }
             Setting::set('school_logo', null);
+        }
+
+        // Certificate settings
+        Setting::set('principal_name', $request->principal_name);
+
+        // Principal signature upload
+        if ($request->hasFile('principal_signature_image')) {
+            $old = Setting::get('principal_signature_image');
+            if ($old && Storage::disk('public')->exists($old)) {
+                Storage::disk('public')->delete($old);
+            }
+            Setting::set('principal_signature_image', $request->file('principal_signature_image')->store('certificates', 'public'));
+        }
+        if ($request->has('remove_principal_signature')) {
+            $old = Setting::get('principal_signature_image');
+            if ($old && Storage::disk('public')->exists($old)) {
+                Storage::disk('public')->delete($old);
+            }
+            Setting::set('principal_signature_image', null);
+        }
+
+        // School stamp upload
+        if ($request->hasFile('school_stamp')) {
+            $old = Setting::get('school_stamp');
+            if ($old && Storage::disk('public')->exists($old)) {
+                Storage::disk('public')->delete($old);
+            }
+            Setting::set('school_stamp', $request->file('school_stamp')->store('certificates', 'public'));
+        }
+        if ($request->has('remove_school_stamp')) {
+            $old = Setting::get('school_stamp');
+            if ($old && Storage::disk('public')->exists($old)) {
+                Storage::disk('public')->delete($old);
+            }
+            Setting::set('school_stamp', null);
         }
 
         return redirect()->route('admin.settings.school')
