@@ -23,12 +23,15 @@
 @else
 @php
     $fs = $fieldSettings ?? [];
+    // Fields that are always required by backend validation
+    $alwaysRequired = ['first_name', 'gender', 'date_of_birth', 'class_id', 'section_id', 'father_name', 'status'];
     // Helper: check if field is visible (default true)
     $isVisible = function($field) use ($fs) {
         return ($fs[$field]['visible'] ?? true);
     };
-    // Helper: check if field is required by settings
-    $isRequired = function($field) use ($fs) {
+    // Helper: check if field is required by settings OR always required
+    $isRequired = function($field) use ($fs, $alwaysRequired) {
+        if (in_array($field, $alwaysRequired)) return true;
         return ($fs[$field]['required'] ?? false) && ($fs[$field]['visible'] ?? true);
     };
 @endphp

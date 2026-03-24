@@ -13,10 +13,12 @@
 @section('content')
 @php
 	$fs = $fieldSettings ?? [];
+	$alwaysRequired = ['first_name', 'gender', 'date_of_birth', 'email', 'phone', 'subject_id', 'designation_id', 'joining_date', 'contract_type'];
 	$isVisible = function($field) use ($fs) {
 		return ($fs[$field]['visible'] ?? true);
 	};
-	$isRequired = function($field) use ($fs) {
+	$isRequired = function($field) use ($fs, $alwaysRequired) {
+		if (in_array($field, $alwaysRequired)) return true;
 		return ($fs[$field]['required'] ?? false) && ($fs[$field]['visible'] ?? true);
 	};
 @endphp

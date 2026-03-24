@@ -17,10 +17,13 @@
 @section('content')
 @php
     $fs = $fieldSettings ?? [];
+    // Fields that are always required by backend validation
+    $alwaysRequired = ['first_name', 'gender', 'date_of_birth', 'class_id', 'section_id', 'father_name', 'status'];
     $isVisible = function($field) use ($fs) {
         return ($fs[$field]['visible'] ?? true);
     };
-    $isRequired = function($field) use ($fs) {
+    $isRequired = function($field) use ($fs, $alwaysRequired) {
+        if (in_array($field, $alwaysRequired)) return true;
         return ($fs[$field]['required'] ?? false) && ($fs[$field]['visible'] ?? true);
     };
 @endphp

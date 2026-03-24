@@ -124,7 +124,7 @@ class StudentController extends Controller
             'photo' => ['nullable', 'image', 'max:2048'],
 
             // Aadhaar Card
-            'aadhaar_number' => ['nullable', 'string', 'size:12', 'regex:/^[0-9]{12}$/'],
+            'aadhaar_number' => ['nullable', 'string', 'max:12'],
             'aadhaar_front' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048'],
             'aadhaar_back' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048'],
 
@@ -337,7 +337,7 @@ class StudentController extends Controller
             'photo' => ['nullable', 'image', 'max:2048'],
 
             // Aadhaar Card
-            'aadhaar_number' => ['nullable', 'string', 'size:12', 'regex:/^[0-9]{12}$/'],
+            'aadhaar_number' => ['nullable', 'string', 'max:12'],
             'aadhaar_front' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048'],
             'aadhaar_back' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048'],
 
