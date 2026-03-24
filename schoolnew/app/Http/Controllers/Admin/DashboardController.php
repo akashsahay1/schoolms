@@ -16,9 +16,11 @@ use App\Models\Event;
 use App\Models\FeeCollection;
 use App\Models\Attendance;
 use App\Models\LeaveApplication;
+use App\Models\ExamMark;
 use App\Models\FeeStructure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
 
 class DashboardController extends Controller
@@ -162,7 +164,34 @@ class DashboardController extends Controller
         $recentStudents = Student::with(['schoolClass', 'section'])->latest()->take(5)->get();
         $classWiseStudents = SchoolClass::with('sections')->withCount('students')->orderBy('order')->get();
         $topStudents = collect([]);
+
+        // Top performers from exam marks
         $topPerformers = collect([]);
+        try {
+            $topPerformers = DB::table('exam_marks')
+                ->join('students', 'exam_marks.student_id', '=', 'students.id')
+                ->leftJoin('classes', 'students.class_id', '=', 'classes.id')
+                ->where('exam_marks.full_marks', '>', 0)
+                ->select(
+                    'students.id',
+                    'students.admission_no',
+                    'students.first_name',
+                    'students.last_name',
+                    'students.photo',
+                    'students.class_id',
+                    'students.academic_year_id',
+                    'classes.name as class_name',
+                    DB::raw('SUM(exam_marks.marks_obtained) as total_marks'),
+                    DB::raw('SUM(exam_marks.full_marks) as total_full'),
+                    DB::raw('ROUND(SUM(exam_marks.marks_obtained) / SUM(exam_marks.full_marks) * 100, 1) as percentage')
+                )
+                ->groupBy('students.id', 'students.admission_no', 'students.first_name', 'students.last_name', 'students.photo', 'students.class_id', 'students.academic_year_id', 'classes.name')
+                ->orderByDesc('percentage')
+                ->limit(5)
+                ->get();
+        } catch (\Exception $e) {
+            // Table may not exist
+        }
 
         // Unpaid fees
         $unpaidFees = $this->loadUnpaidFees($currentAcademicYear);
@@ -423,5 +452,349 @@ class DashboardController extends Controller
             'colors' => $colors,
             'total' => $total
         ]);
+    }
+
+    /**
+     * Academic Performance chart data — average exam marks by day of week.
+     */
+    public function academicPerformance(Request $request)
+    {
+        $activeYear = AcademicYear::getActive();
+        $dates = $this->resolveDateRange($request);
+        $period = $request->get('period', 'this_month');
+
+        $cacheKey = 'dash_academic_' . md5($period . ($activeYear?->id ?? 0));
+        $cached = cache()->get($cacheKey);
+        if ($cached) return response()->json($cached);
+
+        // Always use 6 fixed categories: Mon–Sat
+        $dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        $dayMap = [2 => 0, 3 => 1, 4 => 2, 5 => 3, 6 => 4, 7 => 5]; // MySQL DAYOFWEEK → index
+
+        // Pre-fill with zeros
+        $values = array_fill(0, 6, 0);
+
+        $query = ExamMark::query()->where('full_marks', '>', 0);
+
+        if ($activeYear) {
+            $hasData = (clone $query)
+                ->whereHas('exam', fn($q) => $q->where('academic_year_id', $activeYear->id))
+                ->whereBetween('created_at', [$dates['start'], $dates['end']])
+                ->exists();
+            if ($hasData) {
+                $query->whereHas('exam', fn($q) => $q->where('academic_year_id', $activeYear->id));
+            }
+        }
+
+        $data = $query->whereBetween('created_at', [$dates['start'], $dates['end']])
+            ->selectRaw('DAYOFWEEK(created_at) as dow, AVG(marks_obtained / full_marks * 100) as avg_pct')
+            ->groupBy('dow')
+            ->get();
+
+        // Fill actual values into fixed slots
+        foreach ($data as $row) {
+            $idx = $dayMap[$row->dow] ?? null;
+            if ($idx !== null) {
+                $values[$idx] = round($row->avg_pct, 1);
+            }
+        }
+
+        $result = [
+            'categories' => $dayNames,
+            'series' => [['name' => 'Avg Score %', 'data' => $values]],
+            'has_data' => true,
+        ];
+
+        if ($data->isNotEmpty()) {
+            cache()->put($cacheKey, $result, 60);
+        }
+
+        return response()->json($result);
+    }
+
+    /**
+     * School Performance chart data — attendance % and exam performance % by week.
+     */
+    public function schoolPerformance(Request $request)
+    {
+        $period = $request->get('period', 'this_month');
+        $dates = $this->resolveDateRange($request);
+        $start = $dates['start'];
+        $end = $dates['end'];
+
+        $cacheKey = 'dash_school_' . md5($period);
+        $cached = cache()->get($cacheKey);
+        if ($cached) return response()->json($cached);
+
+        // Fixed label sets per period — always same count, never single point
+        switch ($period) {
+            case 'today':
+                $labels = ['8 AM', '9 AM', '10 AM', '11 AM', '12 PM', '1 PM', '2 PM', '3 PM', '4 PM'];
+                $slotCount = 9;
+                $groupBy = 'HOUR(attendance_date)';
+                $slotMap = [8=>0, 9=>1, 10=>2, 11=>3, 12=>4, 13=>5, 14=>6, 15=>7, 16=>8];
+                break;
+            case 'this_week':
+                $labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                $slotCount = 6;
+                $groupBy = 'DAYOFWEEK(attendance_date)';
+                $slotMap = [2=>0, 3=>1, 4=>2, 5=>3, 6=>4, 7=>5]; // MySQL: Mon=2..Sat=7
+                break;
+            case 'last_3_months':
+                $labels = [];
+                $slotMap = [];
+                $now = now();
+                for ($i = 2; $i >= 0; $i--) {
+                    $m = $now->copy()->subMonths($i);
+                    $labels[] = $m->format('M');
+                    $slotMap[$m->month] = 2 - $i;
+                }
+                $slotCount = 3;
+                $groupBy = 'MONTH(attendance_date)';
+                break;
+            case 'this_month':
+            default:
+                $labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+                $slotCount = 4;
+                $groupBy = 'FLOOR((DAY(attendance_date) - 1) / 7) + 1';
+                $slotMap = [1=>0, 2=>1, 3=>2, 4=>3];
+                break;
+        }
+
+        // Pre-fill arrays with zeros
+        $attendanceSeries = array_fill(0, $slotCount, 0);
+        $examSeries = array_fill(0, $slotCount, 0);
+
+        // Fetch attendance grouped by slot
+        $attendanceData = Attendance::whereBetween('attendance_date', [$start, $end])
+            ->selectRaw($groupBy . ' as slot_key, COUNT(*) as total, SUM(CASE WHEN status = "present" THEN 1 ELSE 0 END) as present_count')
+            ->groupByRaw($groupBy)
+            ->get();
+
+        foreach ($attendanceData as $row) {
+            $idx = $slotMap[(int)$row->slot_key] ?? null;
+            if ($idx !== null) {
+                $attendanceSeries[$idx] = $row->total > 0 ? round(($row->present_count / $row->total) * 100, 1) : 0;
+            }
+        }
+
+        // Fetch exam performance grouped by same slots
+        $examGroupBy = str_replace('attendance_date', 'created_at', $groupBy);
+        $examResults = ExamMark::where('full_marks', '>', 0)
+            ->whereBetween('created_at', [$start, $end])
+            ->selectRaw($examGroupBy . ' as slot_key, AVG(marks_obtained / full_marks * 100) as avg_pct')
+            ->groupByRaw($examGroupBy)
+            ->get();
+
+        foreach ($examResults as $row) {
+            $idx = $slotMap[(int)$row->slot_key] ?? null;
+            if ($idx !== null) {
+                $examSeries[$idx] = round($row->avg_pct, 1);
+            }
+        }
+
+        $result = [
+            'labels' => $labels,
+            'series' => [
+                ['name' => 'Attendance %', 'type' => 'area', 'data' => $attendanceSeries],
+                ['name' => 'Exam Score %', 'type' => 'line', 'data' => $examSeries],
+            ],
+            'has_data' => true,
+        ];
+
+        if ($attendanceData->isNotEmpty() || $examResults->isNotEmpty()) {
+            cache()->put($cacheKey, $result, 60);
+        }
+
+        return response()->json($result);
+    }
+
+    /**
+     * Finance chart data — income (fee collections) grouped by period.
+     */
+    public function financePerformance(Request $request)
+    {
+        $period = $request->get('period', 'this_month');
+        $dates = $this->resolveDateRange($request);
+        $start = $dates['start'];
+        $end = $dates['end'];
+
+        $cacheKey = 'dash_finance_' . md5($period);
+        $cached = cache()->get($cacheKey);
+        if ($cached) return response()->json($cached);
+
+        // Fixed labels per period
+        switch ($period) {
+            case 'this_month':
+                $labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+                $groupBy = 'FLOOR((DAY(payment_date) - 1) / 7) + 1';
+                $slotMap = [1=>0, 2=>1, 3=>2, 4=>3];
+                $slotCount = 4;
+                break;
+            case 'previous_month':
+                $labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+                $groupBy = 'FLOOR((DAY(payment_date) - 1) / 7) + 1';
+                $slotMap = [1=>0, 2=>1, 3=>2, 4=>3];
+                $slotCount = 4;
+                break;
+            case 'last_3_months':
+                $labels = [];
+                $slotMap = [];
+                $now = now();
+                for ($i = 2; $i >= 0; $i--) {
+                    $m = $now->copy()->subMonths($i);
+                    $labels[] = $m->format('M');
+                    $slotMap[$m->month] = 2 - $i;
+                }
+                $groupBy = 'MONTH(payment_date)';
+                $slotCount = 3;
+                break;
+            case 'last_6_months':
+            default:
+                $labels = [];
+                $slotMap = [];
+                $now = now();
+                for ($i = 5; $i >= 0; $i--) {
+                    $m = $now->copy()->subMonths($i);
+                    $labels[] = $m->format('M');
+                    $slotMap[$m->month] = 5 - $i;
+                }
+                $groupBy = 'MONTH(payment_date)';
+                $slotCount = 6;
+                break;
+        }
+
+        $incomeSeries = array_fill(0, $slotCount, 0);
+
+        // Fee collections as income
+        $incomeData = FeeCollection::whereBetween('payment_date', [$start, $end])
+            ->selectRaw($groupBy . ' as slot_key, SUM(paid_amount) as total')
+            ->groupByRaw($groupBy)
+            ->get();
+
+        $maxVal = 0;
+        foreach ($incomeData as $row) {
+            $idx = $slotMap[(int)$row->slot_key] ?? null;
+            if ($idx !== null) {
+                $val = round($row->total / 1000, 1); // Convert to thousands
+                $incomeSeries[$idx] = $val;
+                if ($val > $maxVal) $maxVal = $val;
+            }
+        }
+
+        // Revenue = income (same as collected for now)
+        $revenueSeries = $incomeSeries;
+
+        // Expense placeholder (zeros — no expense table exists)
+        $expenseSeries = array_fill(0, $slotCount, 0);
+
+        $result = [
+            'categories' => $labels,
+            'series' => [
+                ['name' => 'Income', 'type' => 'line', 'data' => $incomeSeries],
+                ['name' => 'Expense', 'type' => 'line', 'data' => $expenseSeries],
+                ['name' => 'Revenue', 'type' => 'line', 'data' => $revenueSeries],
+            ],
+            'totals' => [
+                'income' => array_sum($incomeSeries),
+                'expense' => 0,
+                'revenue' => array_sum($revenueSeries),
+            ],
+            'has_data' => true,
+        ];
+
+        if ($incomeData->isNotEmpty()) {
+            cache()->put($cacheKey, $result, 60);
+        }
+
+        return response()->json($result);
+    }
+
+    /**
+     * Attendance bar chart data — present vs absent by day.
+     */
+    public function attendancePerformance(Request $request)
+    {
+        $period = $request->get('period', 'this_month');
+        $dates = $this->resolveDateRange($request);
+        $start = $dates['start'];
+        $end = $dates['end'];
+
+        $cacheKey = 'dash_attendance_' . md5($period);
+        $cached = cache()->get($cacheKey);
+        if ($cached) return response()->json($cached);
+
+        // Always 7 days: Mon–Sun
+        $labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        $slotMap = [2=>0, 3=>1, 4=>2, 5=>3, 6=>4, 7=>5, 1=>6]; // MySQL DAYOFWEEK
+        $presentSeries = array_fill(0, 7, 0);
+        $absentSeries = array_fill(0, 7, 0);
+
+        $data = Attendance::whereBetween('attendance_date', [$start, $end])
+            ->selectRaw('DAYOFWEEK(attendance_date) as dow, SUM(CASE WHEN status = "present" THEN 1 ELSE 0 END) as present_count, SUM(CASE WHEN status = "absent" THEN 1 ELSE 0 END) as absent_count')
+            ->groupByRaw('DAYOFWEEK(attendance_date)')
+            ->get();
+
+        foreach ($data as $row) {
+            $idx = $slotMap[(int)$row->dow] ?? null;
+            if ($idx !== null) {
+                $presentSeries[$idx] = (int)$row->present_count;
+                $absentSeries[$idx] = (int)$row->absent_count;
+            }
+        }
+
+        // Calculate percentage stats
+        $totalPresent = array_sum($presentSeries);
+        $totalAbsent = array_sum($absentSeries);
+        $totalAll = $totalPresent + $totalAbsent;
+        $presentPct = $totalAll > 0 ? round(($totalPresent / $totalAll) * 100) : 0;
+        $absentPct = $totalAll > 0 ? round(($totalAbsent / $totalAll) * 100) : 0;
+        $latePct = 0; // No late tracking column yet
+
+        $result = [
+            'categories' => $labels,
+            'series' => [
+                ['name' => 'Total Present', 'data' => $presentSeries],
+                ['name' => 'Total Absent', 'data' => $absentSeries],
+            ],
+            'stats' => [
+                'present' => $presentPct,
+                'absent' => $absentPct,
+                'late' => $latePct,
+            ],
+            'has_data' => true,
+        ];
+
+        if ($data->isNotEmpty()) {
+            cache()->put($cacheKey, $result, 60);
+        }
+
+        return response()->json($result);
+    }
+
+    /**
+     * Resolve date range from request — supports both preset periods and custom dates.
+     */
+    private function resolveDateRange(Request $request): array
+    {
+        // Custom date range takes priority
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            return [
+                'start' => $request->start_date . ' 00:00:00',
+                'end' => $request->end_date . ' 23:59:59',
+            ];
+        }
+
+        $period = $request->get('period', 'this_month');
+        $now = now();
+
+        return match($period) {
+            'today' => ['start' => $now->copy()->startOfDay(), 'end' => $now->copy()->endOfDay()],
+            'this_week' => ['start' => $now->copy()->startOfWeek(), 'end' => $now->copy()->endOfWeek()],
+            'previous_month' => ['start' => $now->copy()->subMonth()->startOfMonth(), 'end' => $now->copy()->subMonth()->endOfMonth()],
+            'last_3_months' => ['start' => $now->copy()->subMonths(3)->startOfDay(), 'end' => $now->copy()->endOfDay()],
+            'last_6_months' => ['start' => $now->copy()->subMonths(6)->startOfDay(), 'end' => $now->copy()->endOfDay()],
+            default => ['start' => $now->copy()->startOfMonth(), 'end' => $now->copy()->endOfMonth()],
+        };
     }
 }

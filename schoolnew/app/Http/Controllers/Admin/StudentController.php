@@ -274,7 +274,16 @@ class StudentController extends Controller
         $customFieldValues = $this->getCustomFieldValues($student);
         $fieldSettings = $this->getFormFieldSettings('student');
 
-        return view('admin.students.show', compact('student', 'customFields', 'customFieldValues', 'fieldSettings'));
+        // Load promotion history for academic progression
+        $promotionHistory = \App\Models\StudentPromotion::where('student_id', $student->id)
+            ->with(['fromClass', 'toClass', 'fromAcademicYear', 'toAcademicYear'])
+            ->orderBy('promoted_at', 'desc')
+            ->get();
+
+        // Check if alumni
+        $isAlumni = in_array($student->status, ['graduated', 'transferred', 'expelled']);
+
+        return view('admin.students.show', compact('student', 'customFields', 'customFieldValues', 'fieldSettings', 'promotionHistory', 'isAlumni'));
     }
 
     public function edit(Student $student)
@@ -285,8 +294,9 @@ class StudentController extends Controller
         $customFields = $this->getCustomFields('student');
         $customFieldValues = $this->getCustomFieldValues($student);
         $fieldSettings = $this->getFormFieldSettings('student');
+        $isAlumni = in_array($student->status, ['graduated', 'transferred', 'expelled']);
 
-        return view('admin.students.edit', compact('student', 'classes', 'academicYear', 'customFields', 'customFieldValues', 'fieldSettings'));
+        return view('admin.students.edit', compact('student', 'classes', 'academicYear', 'customFields', 'customFieldValues', 'fieldSettings', 'isAlumni'));
     }
 
     public function update(Request $request, Student $student)
@@ -336,6 +346,16 @@ class StudentController extends Controller
             'leaving_date' => ['nullable', 'date'],
             'leaving_reason' => ['nullable', 'string', 'max:500'],
         ]);
+
+        // Alumni protection — block academic field changes
+        $isAlumni = in_array($student->status, ['graduated', 'transferred', 'expelled']);
+        if ($isAlumni) {
+            // Force academic fields to stay unchanged
+            $validated['class_id'] = $student->class_id;
+            $validated['section_id'] = $student->section_id;
+            $validated['status'] = $student->status;
+            $validated['roll_no'] = $student->roll_no;
+        }
 
         // Status-specific validation
         $newStatus = $validated['status'];

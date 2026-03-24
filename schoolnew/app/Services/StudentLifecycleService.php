@@ -33,14 +33,14 @@ class StudentLifecycleService
             return ['graduated' => 0, 'skipped' => 0, 'message' => 'No Class 12 found in the system.'];
         }
 
-        // Only active students in Class 12 for this academic year
-        $students = Student::where('status', 'active')
+        // Count eligible students first
+        $totalEligible = Student::where('status', 'active')
             ->where('academic_year_id', $academicYear->id)
             ->whereIn('class_id', $class12Ids)
-            ->get();
+            ->count();
 
-        if ($students->isEmpty()) {
-            return ['graduated' => 0, 'skipped' => 0, 'message' => 'No active Class 12 students found for session ' . $academicYear->name . '.'];
+        if ($totalEligible === 0) {
+            return ['graduated' => 0, 'skipped' => 0, 'total' => 0, 'message' => 'No active Class 12 students found for session ' . $academicYear->name . '.'];
         }
 
         // Find exams for this academic year if no specific exam given
@@ -56,22 +56,29 @@ class StudentLifecycleService
         $graduated = 0;
         $skipped = 0;
 
-        foreach ($students as $student) {
-            if (self::hasPassedExam($student->id, $examId, $examIds)) {
-                $student->update([
-                    'status' => 'graduated',
-                    'leaving_date' => $leavingDate,
-                    'leaving_reason' => 'Completed Class 12 - Passed (' . $academicYear->name . ')',
-                ]);
-                $graduated++;
-            } else {
-                $skipped++;
-            }
-        }
+        // Process in chunks to avoid memory issues with large batches
+        Student::where('status', 'active')
+            ->where('academic_year_id', $academicYear->id)
+            ->whereIn('class_id', $class12Ids)
+            ->chunk(50, function ($students) use ($examId, $examIds, $leavingDate, $academicYear, &$graduated, &$skipped) {
+                foreach ($students as $student) {
+                    if (self::hasPassedExam($student->id, $examId, $examIds)) {
+                        $student->update([
+                            'status' => 'graduated',
+                            'leaving_date' => $leavingDate,
+                            'leaving_reason' => 'Completed Class 12 - Passed (' . $academicYear->name . ')',
+                        ]);
+                        $graduated++;
+                    } else {
+                        $skipped++;
+                    }
+                }
+            });
 
         return [
             'graduated' => $graduated,
             'skipped' => $skipped,
+            'total' => $totalEligible,
             'message' => "Session {$academicYear->name}: Graduated {$graduated} student(s). Skipped {$skipped} (not passed or no marks).",
         ];
     }

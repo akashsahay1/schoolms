@@ -26,12 +26,15 @@
 @push('scripts')
 <script>
 jQuery(document).ready(function() {
+	// Initialize feather icons if not already done
+	if (typeof feather !== 'undefined') {
+		feather.replace();
+	}
+
 	// Mark module notifications as read when clicking Quick Action cards
 	jQuery('.quick-action-card[data-module]').on('click', function(e) {
 		var module = jQuery(this).data('module');
-		var href = jQuery(this).attr('href');
 
-		// Fire and forget — don't block navigation
 		jQuery.post('{{ route("portal.notifications.mark-read") }}', {
 			_token: '{{ csrf_token() }}',
 			module: module
@@ -40,7 +43,7 @@ jQuery(document).ready(function() {
 });
 </script>
 @endpush
-@section('content')
+@push('styles')
 <style>
 	.welcome-card .card-body,
 	.welcome-card .card-body *:not(.bg-white):not(.bg-white *):not(.bg-light):not(.bg-light *),
@@ -103,8 +106,32 @@ jQuery(document).ready(function() {
 		border-radius: 10px;
 		padding: 8px 10px;
 	}
+	/* Ensure welcome card gradient works */
+	.welcome-card.student-theme {
+		background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;
+	}
+	.welcome-card.parent-theme {
+		background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+	}
+	/* Fix quick action cards vertical alignment */
+	.quick-action-card {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 8px;
+		transition: transform 0.15s ease, box-shadow 0.15s ease;
+	}
+	.quick-action-card:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+	}
+	/* Fix tab content visibility */
+	.tab-pane { min-height: 100px; }
 </style>
+@endpush
 
+@section('content')
 <div class="container-fluid">
 	<!-- Welcome Card -->
 	<div class="row mb-4">
@@ -321,7 +348,7 @@ jQuery(document).ready(function() {
 						<h5 class="mb-0">
 							<i data-feather="clock" style="width: 18px; height: 18px;" class="me-2"></i>Today's Schedule
 						</h5>
-						<span class="badge bg-primary">{{ now()->format('l') }}</span>
+						<span class="badge bg-primary px-3 py-2" style="font-size: 13px;">{{ now()->format('l') }}</span>
 					</div>
 				</div>
 				<div class="card-body pt-3">
@@ -330,14 +357,14 @@ jQuery(document).ready(function() {
 							@foreach($todaysTimetable as $entry)
 								<div class="list-group-item px-0 border-0 py-2">
 									<div class="d-flex align-items-center">
-										<div class="flex-shrink-0 me-3 text-center" style="width: 60px;">
-											<span class="badge bg-primary d-block py-2">{{ $entry->period->name ?? 'N/A' }}</span>
-											<small class="text-muted">
-												{{ $entry->period ? \Carbon\Carbon::parse($entry->period->start_time)->format('h:i') : '' }}
+										<div class="flex-shrink-0 me-3 text-center" style="min-width: 80px;">
+											<span class="badge bg-primary d-block py-2 px-2" style="font-size: 11px; white-space: normal; line-height: 1.3;">{{ $entry->period->name ?? 'N/A' }}</span>
+											<small class="text-muted" style="font-size: 11px;">
+												{{ $entry->period ? \Carbon\Carbon::parse($entry->period->start_time)->format('h:i A') : '' }}
 											</small>
 										</div>
 										<div class="flex-grow-1">
-											<h6 class="mb-1">{{ $entry->subject->name ?? 'N/A' }}</h6>
+											<h6 class="mb-1" style="font-size: 14px;">{{ $entry->subject->name ?? 'N/A' }}</h6>
 											<small class="text-muted">
 												<i data-feather="user" style="width: 12px; height: 12px;"></i>
 												{{ $entry->teacher->first_name ?? '' }} {{ $entry->teacher->last_name ?? '' }}

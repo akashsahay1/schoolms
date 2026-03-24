@@ -95,6 +95,10 @@ Route::middleware('auth')->group(function () {
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Super Admin,Admin,Accountant,Librarian,Receptionist'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/student-stats', [DashboardController::class, 'studentStats'])->name('dashboard.student-stats');
+    Route::get('/dashboard/academic-performance', [DashboardController::class, 'academicPerformance'])->name('dashboard.academic-performance');
+    Route::get('/dashboard/school-performance', [DashboardController::class, 'schoolPerformance'])->name('dashboard.school-performance');
+    Route::get('/dashboard/finance-performance', [DashboardController::class, 'financePerformance'])->name('dashboard.finance-performance');
+    Route::get('/dashboard/attendance-stats', [DashboardController::class, 'attendancePerformance'])->name('dashboard.attendance-performance');
 
     // Profile and Settings
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
@@ -650,6 +654,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Super Admin,Ad
     // Student Quick Actions
     Route::post('/students/{student}/mark-graduated', [App\Http\Controllers\Admin\AlumniController::class, 'markGraduated'])->name('students.mark-graduated');
     Route::post('/students/{student}/mark-transferred', [App\Http\Controllers\Admin\AlumniController::class, 'markTransferred'])->name('students.mark-transferred');
+    Route::post('/students/{student}/revert-active', [App\Http\Controllers\Admin\AlumniController::class, 'revertToActive'])->name('students.revert-active');
 
     // Certificates
     Route::get('/certificates/tc/{student}', [App\Http\Controllers\Admin\CertificateController::class, 'transferCertificate'])->name('certificates.tc');

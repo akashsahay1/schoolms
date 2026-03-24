@@ -25,6 +25,32 @@
     };
 @endphp
 
+@if($isAlumni ?? false)
+<div class="alert alert-warning border-warning mb-3 py-3 px-4" style="border-radius: 10px;">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+            <strong><i class="icon-lock me-1"></i> Alumni Record — Academic data is locked</strong>
+            <p class="mb-0 mt-1" style="font-size: 13px;">
+                This student is <strong>{{ ucfirst($student->status) }}</strong>. Only contact details, name, and photo can be updated.
+                @if($student->status === 'graduated')
+                    This is a final record.
+                @endif
+            </p>
+        </div>
+        <div class="d-flex gap-2">
+            @if($student->status === 'expelled' && auth()->user()->hasAnyRole(['Super Admin', 'Admin']))
+                <form action="{{ route('admin.students.revert-active', $student) }}" method="POST" class="d-inline" id="revertForm">
+                    @csrf
+                    <button type="button" class="btn btn-sm btn-outline-danger" id="revertActiveBtn">
+                        <i class="icon-reload me-1"></i> Revert to Active
+                    </button>
+                </form>
+            @endif
+        </div>
+    </div>
+</div>
+@endif
+
 @if(auth()->user()->hasRole('Super Admin'))
 <div class="d-flex justify-content-end gap-2 mb-3">
     <a href="{{ route('admin.custom-fields.form-settings') }}" class="btn btn-outline-info btn-sm">
@@ -148,12 +174,15 @@
                         @if($isVisible('class_id'))
                         <div class="col-md-4 mb-3">
                             <label class="form-label">Class @if($isRequired('class_id'))<span class="text-danger">*</span>@endif</label>
-                            <select class="form-select @error('class_id') is-invalid @enderror" name="class_id" id="classSelect" {{ $isRequired('class_id') ? 'required' : '' }}>
+                            <select class="form-select @error('class_id') is-invalid @enderror" name="{{ ($isAlumni ?? false) ? '' : 'class_id' }}" id="classSelect" {{ $isRequired('class_id') ? 'required' : '' }} {{ ($isAlumni ?? false) ? 'disabled' : '' }}>
                                 <option value="">Select Class</option>
                                 @foreach($classes as $class)
                                     <option value="{{ $class->id }}" {{ old('class_id', $student->class_id) == $class->id ? 'selected' : '' }}>{{ $class->name }}</option>
                                 @endforeach
                             </select>
+                            @if($isAlumni ?? false)
+                                <input type="hidden" name="class_id" value="{{ $student->class_id }}">
+                            @endif
                             @error('class_id')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -162,9 +191,12 @@
                         @if($isVisible('section_id'))
                         <div class="col-md-4 mb-3">
                             <label class="form-label">Section @if($isRequired('section_id'))<span class="text-danger">*</span>@endif</label>
-                            <select class="form-select @error('section_id') is-invalid @enderror" name="section_id" id="sectionSelect" {{ $isRequired('section_id') ? 'required' : '' }}>
+                            <select class="form-select @error('section_id') is-invalid @enderror" name="{{ ($isAlumni ?? false) ? '' : 'section_id' }}" id="sectionSelect" {{ $isRequired('section_id') ? 'required' : '' }} {{ ($isAlumni ?? false) ? 'disabled' : '' }}>
                                 <option value="">Select Section</option>
                             </select>
+                            @if($isAlumni ?? false)
+                                <input type="hidden" name="section_id" value="{{ $student->section_id }}">
+                            @endif
                             @error('section_id')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -173,7 +205,7 @@
                         @if($isVisible('roll_no'))
                         <div class="col-md-4 mb-3">
                             <label class="form-label">Roll No @if($isRequired('roll_no'))<span class="text-danger">*</span>@endif</label>
-                            <input type="text" class="form-control @error('roll_no') is-invalid @enderror" name="roll_no" value="{{ old('roll_no', $student->roll_no) }}" {{ $isRequired('roll_no') ? 'required' : '' }}>
+                            <input type="text" class="form-control @error('roll_no') is-invalid @enderror" name="roll_no" value="{{ old('roll_no', $student->roll_no) }}" {{ $isRequired('roll_no') ? 'required' : '' }} {{ ($isAlumni ?? false) ? 'readonly' : '' }}>
                         </div>
                         @endif
                     </div>
@@ -185,21 +217,27 @@
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Status <span class="text-danger">*</span></label>
-                            <select class="form-select @error('status') is-invalid @enderror" name="status" id="studentStatus" required>
-                                <option value="active" {{ old('status', $student->status) == 'active' ? 'selected' : '' }}>Active</option>
-                                <option value="inactive" {{ old('status', $student->status) == 'inactive' ? 'selected' : '' }}>Inactive</option>
-                                <option value="graduated" {{ old('status', $student->status) == 'graduated' ? 'selected' : '' }}>Graduated</option>
-                                <option value="transferred" {{ old('status', $student->status) == 'transferred' ? 'selected' : '' }}>Transferred</option>
-                                <option value="expelled" {{ old('status', $student->status) == 'expelled' ? 'selected' : '' }}>Expelled</option>
-                            </select>
-                            @error('status')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            @if($isAlumni ?? false)
+                                <input type="text" class="form-control" value="{{ ucfirst($student->status) }}" disabled>
+                                <input type="hidden" name="status" value="{{ $student->status }}">
+                                <small class="text-muted">Use "Revert to Active" button above to change status</small>
+                            @else
+                                <select class="form-select @error('status') is-invalid @enderror" name="status" id="studentStatus" required>
+                                    <option value="active" {{ old('status', $student->status) == 'active' ? 'selected' : '' }}>Active</option>
+                                    <option value="inactive" {{ old('status', $student->status) == 'inactive' ? 'selected' : '' }}>Inactive</option>
+                                    <option value="graduated" {{ old('status', $student->status) == 'graduated' ? 'selected' : '' }}>Graduated</option>
+                                    <option value="transferred" {{ old('status', $student->status) == 'transferred' ? 'selected' : '' }}>Transferred</option>
+                                    <option value="expelled" {{ old('status', $student->status) == 'expelled' ? 'selected' : '' }}>Expelled</option>
+                                </select>
+                                @error('status')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            @endif
                         </div>
                     </div>
 
-                    <!-- Status-specific fields (shown/hidden by JS) -->
-                    <div id="statusFields" class="{{ in_array(old('status', $student->status), ['graduated', 'transferred', 'expelled']) ? '' : 'd-none' }}">
+                    <!-- Status-specific fields (shown/hidden by JS) — hidden for alumni -->
+                    <div id="statusFields" class="{{ ($isAlumni ?? false) ? 'd-none' : (in_array(old('status', $student->status), ['graduated', 'transferred', 'expelled']) ? '' : 'd-none') }}">
                         <div id="statusMessage" class="alert alert-info py-2 px-3 mb-3 {{ old('status', $student->status) == 'graduated' ? '' : 'd-none' }}" style="font-size: 13px;">
                             <i class="icon-info-alt me-1"></i> Only Class 12 students can be marked as Graduated. Leaving date will be set to session end date automatically.
                         </div>
@@ -562,8 +600,27 @@
         }
     }
 
+    @if(!($isAlumni ?? false))
     document.getElementById('studentStatus').addEventListener('change', handleStatusChange);
-    // Run on page load if status is already set
     handleStatusChange();
+    @endif
+
+    // Revert to Active confirmation
+    jQuery(document).on('click', '#revertActiveBtn', function() {
+        Swal.fire({
+            title: 'Revert to Active?',
+            html: 'Are you sure you want to move <strong>{{ $student->full_name }}</strong> back to the active students list?<br><br><small class="text-muted">Status will change to Active. Leaving date and reason will be cleared.</small>',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, Revert to Active',
+            cancelButtonText: 'Cancel'
+        }).then(function(result) {
+            if (result.isConfirmed) {
+                jQuery('#revertForm').submit();
+            }
+        });
+    });
 </script>
 @endpush

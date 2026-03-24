@@ -115,6 +115,7 @@
   if (document.querySelector("#academic_performance-chart")) {
     var academic_performance_chart = new ApexCharts(document.querySelector("#academic_performance-chart"), options_academic_performance);
     academic_performance_chart.render();
+    window._academicChart = academic_performance_chart;
   }
 
   //2. School Performance Chart
@@ -247,6 +248,7 @@
   if (document.querySelector("#chart-school-performance")) {
     var chart_school_performance = new ApexCharts(document.querySelector("#chart-school-performance"), options_school_performance);
     chart_school_performance.render();
+    window._schoolChart = chart_school_performance;
   }
 
   // 3.income-chart
@@ -419,6 +421,7 @@
   if (document.querySelector("#income_chart")) {
     var chart_income = new ApexCharts(document.querySelector("#income_chart"), options_income);
     chart_income.render();
+    window._financeChart = chart_income;
   }
   //4. Performance pie chart
   var options_current_academic = {
@@ -824,5 +827,6 @@
   if (document.querySelector("#attendance-chart")) {
     var attendance_chart = new ApexCharts(document.querySelector("#attendance-chart"), attendance_option);
     attendance_chart.render();
+    window._attendanceChart = attendance_chart;
   }
 })();

@@ -121,7 +121,7 @@
 		/* Balanced vertical spacing for page body content */
 		.page-body {
 			padding-top: 20px !important;
-			padding-bottom: 20px !important;
+			padding-bottom: 30px !important;
 		}
 
 		/* Header page title responsive adjustments */

@@ -48,6 +48,42 @@
 .new-enroll-student th {
 	white-space: nowrap;
 }
+/* Fix: dropdown overflow in dashboard performance cards */
+.dashboard-7 .card:has(.card-header-right-icon),
+.dashboard-7 .card:has(.icon-dropdown) {
+	overflow: visible !important;
+}
+.dashboard-7 .card-header-right-icon .dropdown {
+	position: relative;
+}
+.dashboard-7 .card-header-right-icon .dropdown-menu {
+	z-index: 1060;
+	min-width: 140px;
+	right: 0;
+	left: auto;
+	box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+	border-radius: 6px;
+}
+.dashboard-7 .icon-dropdown .dropdown-menu {
+	z-index: 1060;
+	box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+	border-radius: 6px;
+}
+/* Button text truncate for small screens */
+.dashboard-7 .card-header-right-icon .dropdown-toggle {
+	overflow: hidden;
+	max-width: 130px;
+	text-overflow: ellipsis;
+	display: inline-block;
+	vertical-align: middle;
+}
+@media (max-width: 767px) {
+	.dashboard-7 .card-header-right-icon .dropdown-toggle {
+		max-width: 100px;
+		padding: 4px 8px;
+		font-size: 12px;
+	}
+}
 </style>
 @endpush
 
@@ -477,10 +513,10 @@
                                         <i class="icon-more-alt"></i>
                                     </button>
                                     <div class="dropdown-menu dropdown-menu-end" aria-labelledby="performance_dropdown">
-                                        <a class="dropdown-item" href="#">This Month</a>
-                                        <a class="dropdown-item" href="#">Previous Month</a>
-                                        <a class="dropdown-item" href="#">Last 3 Months</a>
-                                        <a class="dropdown-item" href="#">Last 6 Months</a>
+                                        <a class="dropdown-item academic-period active" href="#" data-period="this_month">This Month</a>
+                                        <a class="dropdown-item academic-period" href="#" data-period="previous_month">Prev Month</a>
+                                        <a class="dropdown-item academic-period" href="#" data-period="last_3_months">3 Months</a>
+                                        <a class="dropdown-item academic-period" href="#" data-period="last_6_months">6 Months</a>
                                     </div>
                                 </div>
                             </div>
@@ -501,12 +537,12 @@
                                 <h5>School Performance</h5>
                                 <div class="card-header-right-icon">
                                     <div class="dropdown">
-                                        <button class="btn dropdown-toggle" id="viewButton" type="button" data-bs-toggle="dropdown" aria-expanded="false">Today <i class="fa fa-angle-down ms-1"></i></button>
+                                        <button class="btn dropdown-toggle" id="viewButton" type="button" data-bs-toggle="dropdown" aria-expanded="false">This Month <i class="fa fa-angle-down ms-1"></i></button>
                                         <div class="dropdown-menu dropdown-menu-end" aria-labelledby="viewButton">
-                                            <a class="dropdown-item" href="#">This Month</a>
-                                            <a class="dropdown-item" href="#">Previous Month</a>
-                                            <a class="dropdown-item" href="#">Last 3 Months</a>
-                                            <a class="dropdown-item" href="#">Last 6 Months</a>
+                                            <a class="dropdown-item school-period" href="#" data-period="today">Today</a>
+                                            <a class="dropdown-item school-period" href="#" data-period="this_week">This Week</a>
+                                            <a class="dropdown-item school-period active" href="#" data-period="this_month">This Month</a>
+                                            <a class="dropdown-item school-period" href="#" data-period="last_3_months">3 Months</a>
                                         </div>
                                     </div>
                                 </div>
@@ -609,10 +645,10 @@
                                         <i class="icon-more-alt"></i>
                                     </button>
                                     <div class="dropdown-menu dropdown-menu-end" aria-labelledby="income_dropdown">
-                                        <a class="dropdown-item" href="#">This Month</a>
-                                        <a class="dropdown-item" href="#">Previous Month</a>
-                                        <a class="dropdown-item" href="#">Last 3 Months</a>
-                                        <a class="dropdown-item" href="#">Last 6 Months</a>
+                                        <a class="dropdown-item finance-period active" href="#" data-period="this_month">This Month</a>
+                                        <a class="dropdown-item finance-period" href="#" data-period="previous_month">Prev Month</a>
+                                        <a class="dropdown-item finance-period" href="#" data-period="last_3_months">3 Months</a>
+                                        <a class="dropdown-item finance-period" href="#" data-period="last_6_months">6 Months</a>
                                     </div>
                                 </div>
                             </div>
@@ -859,7 +895,7 @@
                             <div class="knowledge-wrapper">
                                 <div>
                                     <p class="f-light">The essential way to learn about anything is by reading quality literature!</p>
-                                    <a class="btn btn-primary btn-hover-effect f-w-500 knowledge-btn" href="#">Learn More</a>
+                                    <a class="btn btn-primary btn-hover-effect f-w-500 knowledge-btn" href="{{ route('admin.library.books.index') }}">Learn More</a>
                                 </div>
                                 <div class="knowledgebase-wrapper">
                                     <img class="knowledge-img img-fluid w-100" src="{{ asset('assets/images/dashboard-7/knowledge-base.png') }}" alt="knowledge-base">
@@ -1068,18 +1104,6 @@
                 <div class="card-header card-no-border">
                     <div class="header-top">
                         <h5>Top Students</h5>
-                        <div class="card-header-right-icon">
-                            <div class="dropdown icon-dropdown">
-                                <button class="btn dropdown-toggle" id="customerButton" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="icon-more-alt"></i>
-                                </button>
-                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="customerButton">
-                                    <a class="dropdown-item" href="#!">Today</a>
-                                    <a class="dropdown-item" href="#!">Tomorrow</a>
-                                    <a class="dropdown-item" href="#!">Yesterday</a>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
                 <div class="card-body px-0 pt-0 top-student-table">
@@ -1087,37 +1111,44 @@
                         <table class="table" id="top-students">
                             <thead>
                                 <tr>
-                                    <th></th>
-                                    <th>ID</th>
-                                    <th>Name</th>
-                                    <th>Marks</th>
-                                    <th>Percentage</th>
-                                    <th>Year</th>
-                                    <th>Standard</th>
+                                    <th style="width: 5%; padding-left: 20px;">#</th>
+                                    <th style="width: 30%;">Student</th>
+                                    <th style="width: 15%;">Marks</th>
+                                    <th style="width: 15%;">Percentage</th>
+                                    <th style="width: 20%;">Class</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @forelse($topPerformers ?? [] as $student)
+                                @forelse($topPerformers ?? [] as $index => $performer)
                                 <tr>
-                                    <td></td>
-                                    <td><a href="#">#{{ $student->admission_no ?? '00000' }}</a></td>
+                                    <td style="padding-left: 20px;">{{ $index + 1 }}</td>
                                     <td>
-                                        <div class="common-align justify-content-start">
-                                            <img class="rounded-circle me-2" src="{{ $student->photo_url ?? asset('assets/images/dashboard/profile.png') }}" alt="user" style="width: 40px; height: 40px; object-fit: cover;">
-                                            <div class="img-content-box">
-                                                <a class="f-w-500" href="#">{{ $student->full_name ?? 'Student Name' }}</a>
+                                        <div class="d-flex align-items-center">
+                                            @if($performer->photo)
+                                                <img class="rounded-circle me-2" src="{{ asset('storage/' . $performer->photo) }}" alt="" style="width: 36px; height: 36px; object-fit: cover;">
+                                            @else
+                                                <div class="rounded-circle bg-primary me-2 d-flex align-items-center justify-content-center text-white" style="width: 36px; height: 36px; font-size: 14px; flex-shrink: 0;">
+                                                    {{ strtoupper(substr($performer->first_name, 0, 1)) }}
+                                                </div>
+                                            @endif
+                                            <div>
+                                                <span class="f-w-500">{{ $performer->first_name }} {{ $performer->last_name }}</span>
+                                                <br><small class="text-muted">{{ $performer->admission_no }}</small>
                                             </div>
                                         </div>
                                     </td>
-                                    <td>{{ $student->total_marks ?? 0 }}</td>
-                                    <td>{{ $student->percentage ?? 0 }}%</td>
-                                    <td>{{ $student->academic_year ?? date('Y') }}</td>
-                                    <td>{{ $student->schoolClass->name ?? 'Class' }}</td>
+                                    <td><strong>{{ number_format($performer->total_marks, 0) }}</strong><small class="text-muted">/{{ number_format($performer->total_full, 0) }}</small></td>
+                                    <td>
+                                        <span class="badge badge-light-{{ $performer->percentage >= 80 ? 'success' : ($performer->percentage >= 60 ? 'primary' : 'warning') }} px-2">
+                                            {{ $performer->percentage }}%
+                                        </span>
+                                    </td>
+                                    <td>{{ $performer->class_name ?? '-' }}</td>
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="7" class="text-center py-4">
-                                        <p class="text-muted">No data available</p>
+                                    <td colspan="5" class="text-center py-4">
+                                        <p class="text-muted mb-0">No exam data available yet</p>
                                     </td>
                                 </tr>
                                 @endforelse
@@ -1230,9 +1261,9 @@
                                     <i class="icon-more-alt"></i>
                                 </button>
                                 <div class="dropdown-menu dropdown-menu-end" aria-labelledby="attendanceDropdown">
-                                    <a class="dropdown-item" href="#!">Today</a>
-                                    <a class="dropdown-item" href="#!">This Week</a>
-                                    <a class="dropdown-item" href="#!">This Month</a>
+                                    <a class="dropdown-item attendance-period" href="#" data-period="today">Today</a>
+                                    <a class="dropdown-item attendance-period" href="#" data-period="this_week">This Week</a>
+                                    <a class="dropdown-item attendance-period active" href="#" data-period="this_month">This Month</a>
                                 </div>
                             </div>
                         </div>
@@ -1318,51 +1349,71 @@
 <script>
 	// Student Chart Filter Functionality
 	jQuery(document).ready(function() {
-		// Class dropdown filter
+		var studentLoading = false;
+
+		function createStudentDonut(el, data) {
+			return new ApexCharts(el, {
+				series: data.series,
+				labels: data.labels,
+				chart: { height: 338, type: 'donut' },
+				plotOptions: { pie: { expandOnClick: false, donut: { size: '75%', labels: { show: true, name: { offsetY: 4 }, value: { fontSize: '14px', offsetY: 10, fontFamily: 'Rubik, sans-serif', fontWeight: 400, color: '#52526C' }, total: { show: true, fontSize: '20px', fontWeight: 500, fontFamily: 'Rubik, sans-serif', label: data.total.toString(), formatter: function() { return 'Total'; } } } } } },
+				dataLabels: { enabled: false },
+				colors: data.colors,
+				fill: { type: 'solid' },
+				legend: { show: true, position: 'bottom', horizontalAlign: 'center', fontSize: '14px', fontFamily: 'Rubik, sans-serif', fontWeight: 500, labels: { colors: 'var(--chart-text-color)' }, formatter: function(seriesName, opts) { return [seriesName, ' - ', opts.w.globals.series[opts.seriesIndex]]; }, markers: { width: 8, height: 8 } },
+				stroke: { width: 0 },
+				responsive: [{ breakpoint: 576, options: { chart: { height: 280 } } }]
+			});
+		}
+
 		jQuery(document).on('click', '.student-filter-class', function(e) {
 			e.preventDefault();
+			if (studentLoading) return;
+			studentLoading = true;
+
 			var classId = jQuery(this).data('class-id') || '';
 			var className = jQuery(this).text();
 
-			// Update button text with icon
 			jQuery('#classDropdown').html(className + ' <i class="fa fa-angle-down ms-1"></i>');
-
-			// Mark active
 			jQuery('.student-filter-class').removeClass('active');
 			jQuery(this).addClass('active');
 
-			// Fetch and update chart data
-			updateStudentChart(classId);
-		});
+			var wrap = jQuery('#student-chart').parent();
+			wrap.css('position', 'relative');
+			if (!wrap.find('.chart-loader').length) {
+				wrap.append('<div class="chart-loader" style="position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,0.7);display:flex;align-items:center;justify-content:center;z-index:5;"><div class="spinner-border spinner-border-sm text-primary"></div></div>');
+			}
+			wrap.find('.chart-loader').show();
 
-		// Function to update chart via AJAX
-		function updateStudentChart(classId) {
 			jQuery.ajax({
 				url: '{{ route("admin.dashboard.student-stats") }}',
 				type: 'GET',
 				data: { class_id: classId },
-				success: function(response) {
+				success: function(data) {
+					console.log('Student data:', data);
+
 					if (window.studentChartInstance) {
-						window.studentChartInstance.updateSeries(response.series);
-						window.studentChartInstance.updateOptions({
-							labels: response.labels,
-							colors: response.colors,
-							plotOptions: {
-								pie: {
-									donut: {
-										labels: {
-											total: {
-												label: response.total.toString()
-											}
-										}
-									}
-								}
-							}
-						});
+						try { window.studentChartInstance.destroy(); } catch(ex) {}
+						window.studentChartInstance = null;
 					}
+
+					var el = document.getElementById('student-chart');
+					el.innerHTML = '';
+
+					setTimeout(function() {
+						window.studentChartInstance = createStudentDonut(el, data);
+						window.studentChartInstance.render();
+						wrap.find('.chart-loader').hide();
+						studentLoading = false;
+					}, 100);
+				},
+				error: function(xhr) {
+					console.error('Student API error:', xhr.status);
+					wrap.find('.chart-loader').hide();
+					studentLoading = false;
 				}
 			});
-		}
+		});
 	});
 </script>
 <script>
@@ -1388,5 +1439,284 @@
 	});
 </script>
 <script src="{{ asset('assets/js/dashboard/dashboard_7.js') }}"></script>
+<script>
+jQuery(document).ready(function() {
+	var academicLoading = false;
+	var schoolLoading = false;
+
+	function createAcademicChart(el, data) {
+		return new ApexCharts(el, {
+			series: data.series,
+			fill: { type: 'gradient', gradient: { type: 'vertical', shadeIntensity: 0.4, gradientToColors: '#54BA4A', opacityFrom: 0.4, opacityTo: 0, stops: [0, 90, 100], colorStops: [] } },
+			chart: { height: 230, type: 'area', dropShadow: { enabled: true, color: '#54BA4A', top: 8, left: 0, blur: 2, opacity: 0.2 }, toolbar: { show: false } },
+			colors: ['#54BA4A', '#54BA4A'],
+			dataLabels: { enabled: true },
+			stroke: { curve: 'smooth', width: 3 },
+			tooltip: { x: { show: false }, z: { show: false } },
+			markers: { size: 1 },
+			xaxis: { categories: data.categories, axisTicks: { show: false }, axisBorder: { show: false } },
+			yaxis: { min: 0, max: 160, tickAmount: 4 },
+			legend: { position: 'top', horizontalAlign: 'right', floating: true, offsetY: -25, offsetX: -5 },
+			responsive: [{ breakpoint: 1131, options: { chart: { height: 210 } } }, { breakpoint: 1007, options: { chart: { height: 225 } } }]
+		});
+	}
+
+	function createSchoolChart(el, data) {
+		return new ApexCharts(el, {
+			series: data.series,
+			chart: { height: 220, type: 'line', stacked: false, toolbar: { show: false }, dropShadow: { enabled: true, top: 4, left: 0, blur: 2, color: '#7366FF', opacity: 0.02 } },
+			stroke: { width: [3, 3], curve: 'smooth' },
+			grid: { show: true, borderColor: 'var(--chart-border)', strokeDashArray: 0, position: 'back', xaxis: { lines: { show: true } } },
+			colors: ['#7366FF', '#54BA4A'],
+			fill: { type: ['gradient', 'solid'], gradient: { shade: 'light', type: 'vertical', opacityFrom: 0.6, opacityTo: 0, stops: [0, 100] } },
+			labels: data.labels,
+			markers: { hover: { size: 6, sizeOffset: 0 } },
+			xaxis: { type: 'category', tickAmount: 4, tickPlacement: 'on', tooltip: { enabled: false }, axisBorder: { color: 'var(--chart-border)' }, axisTicks: { show: false } },
+			legend: { show: false },
+			yaxis: { min: 0, max: 100, tickAmount: 5 },
+			tooltip: { shared: false, intersect: false },
+			responsive: [{ breakpoint: 1200, options: { chart: { height: 250 } } }, { breakpoint: 1201, options: { chart: { height: 260 } } }]
+		});
+	}
+
+	// ─── Academic Performance ───
+	jQuery(document).on('click', '.academic-period', function(e) {
+		e.preventDefault();
+		if (academicLoading) return;
+		academicLoading = true;
+
+		var period = jQuery(this).data('period');
+		var wrap = jQuery('#academic_performance-chart').parent();
+
+		// Show loading
+		wrap.css('position', 'relative');
+		if (!wrap.find('.chart-loader').length) {
+			wrap.append('<div class="chart-loader" style="position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,0.7);display:flex;align-items:center;justify-content:center;z-index:5;"><div class="spinner-border spinner-border-sm text-success"></div></div>');
+		}
+		wrap.find('.chart-loader').show();
+
+		jQuery.ajax({
+			url: '{{ route("admin.dashboard.academic-performance") }}',
+			data: { period: period },
+			success: function(data) {
+				console.log('Academic data:', data);
+
+				// Destroy old
+				if (window._academicChart) {
+					try { window._academicChart.destroy(); } catch(ex) { console.warn('Academic destroy error:', ex); }
+					window._academicChart = null;
+				}
+
+				var el = document.getElementById('academic_performance-chart');
+				el.innerHTML = '';
+
+				// Wait for DOM to settle then create fresh chart
+				setTimeout(function() {
+					window._academicChart = createAcademicChart(el, data);
+					window._academicChart.render();
+					wrap.find('.chart-loader').hide();
+					academicLoading = false;
+				}, 100);
+			},
+			error: function(xhr) {
+				console.error('Academic API error:', xhr.status, xhr.responseText);
+				wrap.find('.chart-loader').hide();
+				academicLoading = false;
+				document.getElementById('academic_performance-chart').innerHTML = '<div class="text-center py-4 text-muted" style="font-size:13px;">Failed to load</div>';
+			}
+		});
+	});
+
+	// ─── School Performance ───
+	jQuery(document).on('click', '.school-period', function(e) {
+		e.preventDefault();
+		if (schoolLoading) return;
+		schoolLoading = true;
+
+		var period = jQuery(this).data('period');
+		var text = jQuery(this).text().trim();
+		var wrap = jQuery('#chart-school-performance').parent();
+
+		jQuery('#viewButton').html(text + ' <i class="fa fa-angle-down ms-1"></i>');
+
+		// Show loading
+		wrap.css('position', 'relative');
+		if (!wrap.find('.chart-loader').length) {
+			wrap.append('<div class="chart-loader" style="position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,0.7);display:flex;align-items:center;justify-content:center;z-index:5;"><div class="spinner-border spinner-border-sm text-primary"></div></div>');
+		}
+		wrap.find('.chart-loader').show();
+
+		jQuery.ajax({
+			url: '{{ route("admin.dashboard.school-performance") }}',
+			data: { period: period },
+			success: function(data) {
+				console.log('School data:', data);
+
+				// Destroy old
+				if (window._schoolChart) {
+					try { window._schoolChart.destroy(); } catch(ex) { console.warn('School destroy error:', ex); }
+					window._schoolChart = null;
+				}
+
+				var el = document.getElementById('chart-school-performance');
+				el.innerHTML = '';
+
+				// Wait for DOM to settle then create fresh chart
+				setTimeout(function() {
+					window._schoolChart = createSchoolChart(el, data);
+					window._schoolChart.render();
+					wrap.find('.chart-loader').hide();
+					schoolLoading = false;
+				}, 100);
+			},
+			error: function(xhr) {
+				console.error('School API error:', xhr.status, xhr.responseText);
+				wrap.find('.chart-loader').hide();
+				schoolLoading = false;
+				document.getElementById('chart-school-performance').innerHTML = '<div class="text-center py-4 text-muted" style="font-size:13px;">Failed to load</div>';
+			}
+		});
+	});
+
+	// ─── School Finance ───
+	var financeLoading = false;
+
+	function createFinanceChart(el, data) {
+		return new ApexCharts(el, {
+			series: data.series,
+			chart: { height: 265, type: 'line', toolbar: { show: false }, dropShadow: { enabled: true, top: 4, left: 0, blur: 2, colors: ['#7366FF', '#54BA4A', '#FFAA05'], opacity: 0.02 } },
+			grid: { show: false, xaxis: { lines: { show: false } } },
+			colors: ['#7366FF', '#54BA4A', '#FFAA05'],
+			stroke: { width: 3, curve: 'smooth', opacity: 1 },
+			tooltip: { shared: false, intersect: false, marker: { width: 5, height: 5 } },
+			xaxis: { type: 'category', categories: data.categories, crosshairs: { show: false }, labels: { style: { colors: 'var(--chart-text-color)', fontSize: '12px', fontFamily: 'Rubik, sans-serif', fontWeight: 400 } }, axisTicks: { show: false }, axisBorder: { show: false }, tooltip: { enabled: false } },
+			fill: { opacity: 1, type: 'gradient', gradient: { shade: 'light', type: 'horizontal', shadeIntensity: 1, opacityFrom: 0.95, opacityTo: 1, stops: [0, 90, 100] } },
+			yaxis: { tickAmount: 5, labels: { show: false } },
+			legend: { show: false },
+			responsive: [{ breakpoint: 1736, options: { chart: { height: 230 } } }, { breakpoint: 1401, options: { chart: { height: 250 } } }, { breakpoint: 1200, options: { chart: { height: 250 } } }, { breakpoint: 1007, options: { chart: { height: 230 } } }]
+		});
+	}
+
+	jQuery(document).on('click', '.finance-period', function(e) {
+		e.preventDefault();
+		if (financeLoading) return;
+		financeLoading = true;
+
+		var period = jQuery(this).data('period');
+		var wrap = jQuery('#income_chart').parent();
+
+		wrap.css('position', 'relative');
+		if (!wrap.find('.chart-loader').length) {
+			wrap.append('<div class="chart-loader" style="position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,0.7);display:flex;align-items:center;justify-content:center;z-index:5;"><div class="spinner-border spinner-border-sm text-primary"></div></div>');
+		}
+		wrap.find('.chart-loader').show();
+
+		jQuery.ajax({
+			url: '{{ route("admin.dashboard.finance-performance") }}',
+			data: { period: period },
+			success: function(data) {
+				console.log('Finance data:', data);
+
+				if (window._financeChart) {
+					try { window._financeChart.destroy(); } catch(ex) {}
+					window._financeChart = null;
+				}
+
+				// Update summary numbers
+				if (data.totals) {
+					jQuery('.income-wrapper li:eq(0) h6').text('₹' + (data.totals.income > 0 ? data.totals.income.toLocaleString('en-IN') + 'K' : '0'));
+					jQuery('.income-wrapper li:eq(1) h6').text('₹' + (data.totals.expense > 0 ? data.totals.expense.toLocaleString('en-IN') + 'K' : '0'));
+					jQuery('.income-wrapper li:eq(2) h6').text('₹' + (data.totals.revenue > 0 ? data.totals.revenue.toLocaleString('en-IN') + 'K' : '0'));
+				}
+
+				var el = document.getElementById('income_chart');
+				el.innerHTML = '';
+
+				setTimeout(function() {
+					window._financeChart = createFinanceChart(el, data);
+					window._financeChart.render();
+					wrap.find('.chart-loader').hide();
+					financeLoading = false;
+				}, 100);
+			},
+			error: function(xhr) {
+				console.error('Finance API error:', xhr.status, xhr.responseText);
+				wrap.find('.chart-loader').hide();
+				financeLoading = false;
+			}
+		});
+	});
+
+	// ─── Attendance Chart ───
+	var attendanceLoading = false;
+
+	function createAttendanceChart(el, data) {
+		return new ApexCharts(el, {
+			series: data.series,
+			chart: { type: 'bar', height: 340, toolbar: { show: false } },
+			plotOptions: { bar: { horizontal: false, columnWidth: '55%', endingShape: 'rounded' } },
+			dataLabels: { enabled: false },
+			stroke: { show: true, width: 2, colors: ['transparent'] },
+			grid: { show: true, borderColor: 'var(--chart-border)' },
+			xaxis: { categories: data.categories, axisTicks: { show: false }, labels: { style: { colors: 'var(--chart-text-color)', fontSize: '12px', fontFamily: 'Rubik, sans-serif', fontWeight: 400 } } },
+			yaxis: { min: 0, tickAmount: 6, labels: { style: { colors: 'var(--chart-text-color)', fontSize: '12px', fontFamily: 'Rubik, sans-serif', fontWeight: 400 } } },
+			colors: ['var(--theme-default)', '#54BA4A'],
+			fill: { opacity: 1 },
+			legend: { show: false },
+			responsive: [{ breakpoint: 1661, options: { chart: { height: 325 } } }, { breakpoint: 1531, options: { chart: { height: 380 } } }, { breakpoint: 1400, options: { chart: { height: 370 } } }, { breakpoint: 1200, options: { chart: { height: 320 } } }, { breakpoint: 771, options: { chart: { height: 275 } } }, { breakpoint: 590, options: { chart: { height: 215 } } }]
+		});
+	}
+
+	jQuery(document).on('click', '.attendance-period', function(e) {
+		e.preventDefault();
+		if (attendanceLoading) return;
+		attendanceLoading = true;
+
+		var period = jQuery(this).data('period');
+		var wrap = jQuery('#attendance-chart').parent();
+
+		wrap.css('position', 'relative');
+		if (!wrap.find('.chart-loader').length) {
+			wrap.append('<div class="chart-loader" style="position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,0.7);display:flex;align-items:center;justify-content:center;z-index:5;"><div class="spinner-border spinner-border-sm text-primary"></div></div>');
+		}
+		wrap.find('.chart-loader').show();
+
+		jQuery.ajax({
+			url: '{{ route("admin.dashboard.attendance-performance") }}',
+			data: { period: period },
+			success: function(data) {
+				console.log('Attendance data:', data);
+
+				if (window._attendanceChart) {
+					try { window._attendanceChart.destroy(); } catch(ex) {}
+					window._attendanceChart = null;
+				}
+
+				// Update percentage stats
+				if (data.stats) {
+					jQuery('.sales-report-chart').siblings('.flex-grow-1').find('.f-w-500').eq(0).text(data.stats.present + '%');
+					jQuery('.sales-report-chart').siblings('.flex-grow-1').find('.f-w-500').eq(1).text(data.stats.absent + '%');
+					jQuery('.sales-report-chart').siblings('.flex-grow-1').find('.f-w-500').eq(2).text(data.stats.late + '%');
+				}
+
+				var el = document.getElementById('attendance-chart');
+				el.innerHTML = '';
+
+				setTimeout(function() {
+					window._attendanceChart = createAttendanceChart(el, data);
+					window._attendanceChart.render();
+					wrap.find('.chart-loader').hide();
+					attendanceLoading = false;
+				}, 100);
+			},
+			error: function(xhr) {
+				console.error('Attendance API error:', xhr.status, xhr.responseText);
+				wrap.find('.chart-loader').hide();
+				attendanceLoading = false;
+			}
+		});
+	});
+});
+</script>
 @endif
 @endpush

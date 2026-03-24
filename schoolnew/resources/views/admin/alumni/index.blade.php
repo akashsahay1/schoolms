@@ -212,17 +212,29 @@
                                 </td>
                                 <td>{{ $student->leaving_date ? $student->leaving_date->format('d M Y') : '-' }}</td>
                                 <td><span class="text-muted">{{ Str::limit($student->leaving_reason, 30) ?? '-' }}</span></td>
-                                <td class="text-center">
-                                    <div class="d-flex gap-1 justify-content-center">
-                                        @if($student->status === 'transferred')
-                                            <a href="{{ route('admin.certificates.tc', $student) }}" class="btn btn-sm btn-outline-primary" title="Download TC">
-                                                <i class="icon-download" style="font-size: 13px;"></i> TC
-                                            </a>
-                                        @endif
+                                <td>
+                                    <div class="d-flex gap-1 justify-content-center" style="white-space: nowrap;">
+                                        <a href="{{ route('admin.students.show', $student) }}" class="btn btn-sm btn-outline-secondary" title="View Profile">
+                                            <i class="icon-eye"></i>
+                                        </a>
+                                        <a href="{{ route('admin.students.edit', $student) }}" class="btn btn-sm btn-outline-info" title="Edit">
+                                            <i class="icon-pencil"></i>
+                                        </a>
                                         @if($student->status === 'graduated')
                                             <a href="{{ route('admin.certificates.marksheet', $student) }}" class="btn btn-sm btn-outline-success" title="Download Marksheet">
-                                                <i class="icon-download" style="font-size: 13px;"></i> Marksheet
+                                                <i class="icon-download me-1"></i>Marksheet
                                             </a>
+                                        @elseif($student->status === 'transferred')
+                                            <a href="{{ route('admin.certificates.tc', $student) }}" class="btn btn-sm btn-outline-primary" title="Download TC">
+                                                <i class="icon-download me-1"></i>TC
+                                            </a>
+                                        @elseif($student->status === 'expelled')
+                                            <form action="{{ route('admin.students.revert-active', $student) }}" method="POST" class="d-inline revert-form">
+                                                @csrf
+                                                <button type="button" class="btn btn-sm btn-outline-danger revert-btn" title="Revert to Active" data-name="{{ $student->full_name }}">
+                                                    <i class="icon-reload me-1"></i>Revert
+                                                </button>
+                                            </form>
                                         @endif
                                     </div>
                                 </td>
@@ -268,6 +280,27 @@ jQuery(document).ready(function() {
         }).then(function(result) {
             if (result.isConfirmed) {
                 jQuery('#autoGraduateForm').submit();
+            }
+        });
+    });
+
+    // Revert expelled student
+    jQuery(document).on('click', '.revert-btn', function() {
+        var form = jQuery(this).closest('form');
+        var name = jQuery(this).data('name');
+
+        Swal.fire({
+            title: 'Revert to Active?',
+            html: 'Are you sure you want to restore <strong>' + name + '</strong> to the active student list?<br><br><small class="text-muted">Leaving reason will be kept for records.</small>',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, Revert',
+            cancelButtonText: 'Cancel'
+        }).then(function(result) {
+            if (result.isConfirmed) {
+                form.submit();
             }
         });
     });

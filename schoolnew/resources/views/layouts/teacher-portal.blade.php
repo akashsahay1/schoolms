@@ -250,6 +250,11 @@
 			border-radius: 12px;
 			margin-bottom: 15px;
 		}
+		/* Consistent page body spacing */
+		.page-body {
+			padding-top: 20px !important;
+			padding-bottom: 30px !important;
+		}
 		.welcome-card {
 			background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 			border-radius: 15px;

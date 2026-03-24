@@ -120,4 +120,35 @@ class AlumniController extends Controller
 
         return back()->with('success', $student->full_name . ' has been transferred.');
     }
+
+    /**
+     * Revert an alumni student back to active. Admin only.
+     */
+    /**
+     * Revert expelled student to active. Keeps leaving_reason for history.
+     */
+    public function revertToActive(Student $student)
+    {
+        if ($student->status !== 'expelled') {
+            $msg = match($student->status) {
+                'graduated' => 'Graduated is a final record and cannot be reverted.',
+                'transferred' => 'Transferred students cannot be reverted. Use Re-admit instead.',
+                default => 'This student is already active.',
+            };
+            return back()->with('error', $msg);
+        }
+
+        if (!auth()->user()->hasAnyRole(['Super Admin', 'Admin'])) {
+            return back()->with('error', 'You do not have permission to perform this action.');
+        }
+
+        $student->update([
+            'status' => 'active',
+            'leaving_date' => null,
+            // Keep leaving_reason for audit history
+        ]);
+
+        return redirect()->route('admin.students.edit', $student)
+            ->with('success', $student->full_name . ' has been reverted to Active.');
+    }
 }

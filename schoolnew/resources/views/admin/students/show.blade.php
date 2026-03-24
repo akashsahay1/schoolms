@@ -27,7 +27,16 @@
 				<h4 class="mb-1">{{ $student->full_name }}</h4>
 				<p class="text-muted mb-2">{{ $student->admission_no }}</p>
 
-				<span class="badge badge-light-{{ $student->status == 'active' ? 'success' : ($student->status == 'inactive' ? 'secondary' : 'warning') }} fs-6 mb-3">
+				@php
+					$statusColor = match($student->status) {
+						'active' => 'success',
+						'graduated' => 'success',
+						'transferred' => 'warning',
+						'expelled' => 'danger',
+						default => 'secondary',
+					};
+				@endphp
+				<span class="badge badge-light-{{ $statusColor }} fs-6 mb-3">
 					{{ ucfirst($student->status) }}
 				</span>
 
@@ -41,15 +50,34 @@
 				<hr>
 
 				<div class="d-grid gap-2">
-					<a href="{{ route('admin.students.id-card', $student) }}" class="btn btn-success">
-						<i data-feather="credit-card" class="me-1"></i> Print ID Card
-					</a>
-					<a href="{{ route('admin.students.edit', $student) }}" class="btn btn-outline-primary">
-						<i data-feather="edit" class="me-1"></i> Edit Student
-					</a>
-					<a href="{{ route('admin.students.index') }}" class="btn btn-outline-secondary">
-						<i data-feather="arrow-left" class="me-1"></i> Back to List
-					</a>
+					@if($isAlumni ?? false)
+						@if($student->status === 'graduated')
+							<a href="{{ route('admin.certificates.marksheet', $student) }}" class="btn btn-success">
+								<i class="icon-download me-1"></i> Download Marksheet
+							</a>
+						@endif
+						@if($student->status === 'transferred')
+							<a href="{{ route('admin.certificates.tc', $student) }}" class="btn btn-primary">
+								<i class="icon-download me-1"></i> Download TC
+							</a>
+						@endif
+						<a href="{{ route('admin.students.edit', $student) }}" class="btn btn-outline-primary">
+							<i class="icon-pencil me-1"></i> Edit Student
+						</a>
+						<a href="{{ route('admin.alumni.index') }}" class="btn btn-outline-secondary">
+							<i class="icon-arrow-left me-1"></i> Back to Alumni
+						</a>
+					@else
+						<a href="{{ route('admin.students.id-card', $student) }}" class="btn btn-success">
+							<i class="icon-credit-card me-1"></i> Print ID Card
+						</a>
+						<a href="{{ route('admin.students.edit', $student) }}" class="btn btn-outline-primary">
+							<i class="icon-pencil me-1"></i> Edit Student
+						</a>
+						<a href="{{ route('admin.students.index') }}" class="btn btn-outline-secondary">
+							<i class="icon-arrow-left me-1"></i> Back to List
+						</a>
+					@endif
 				</div>
 			</div>
 		</div>
@@ -394,6 +422,98 @@
 						</div>
 						@endif
 					@endforeach
+				</div>
+			</div>
+		</div>
+		@endif
+
+		<!-- Alumni: Leaving Information -->
+		@if($isAlumni ?? false)
+		<div class="card border-{{ $student->status === 'graduated' ? 'success' : ($student->status === 'transferred' ? 'warning' : 'danger') }}">
+			<div class="card-header bg-{{ $student->status === 'graduated' ? 'success' : ($student->status === 'transferred' ? 'warning' : 'danger') }}">
+				<h5 class="text-white mb-0">
+					@if($student->status === 'graduated')
+						Graduation Details
+					@elseif($student->status === 'transferred')
+						Transfer Details
+					@else
+						{{ ucfirst($student->status) }} Details
+					@endif
+				</h5>
+			</div>
+			<div class="card-body">
+				<div class="row">
+					<div class="col-md-4">
+						<span class="text-muted d-block" style="font-size: 12px;">Status</span>
+						<span class="badge badge-light-{{ $student->status === 'graduated' ? 'success' : ($student->status === 'transferred' ? 'warning' : 'danger') }} fs-6">{{ ucfirst($student->status) }}</span>
+					</div>
+					@if($student->leaving_date)
+					<div class="col-md-4">
+						<span class="text-muted d-block" style="font-size: 12px;">Leaving Date</span>
+						<strong>{{ $student->leaving_date->format('d M Y') }}</strong>
+					</div>
+					@endif
+					@if($student->academicYear)
+					<div class="col-md-4">
+						<span class="text-muted d-block" style="font-size: 12px;">Academic Session</span>
+						<strong>{{ $student->academicYear->name }}</strong>
+					</div>
+					@endif
+				</div>
+				@if($student->leaving_reason)
+				<div class="mt-3">
+					<span class="text-muted d-block" style="font-size: 12px;">Reason</span>
+					<p class="mb-0">{{ $student->leaving_reason }}</p>
+				</div>
+				@endif
+			</div>
+		</div>
+		@endif
+
+		<!-- Academic History (Promotion History) -->
+		@if(isset($promotionHistory) && $promotionHistory->count() > 0)
+		<div class="card">
+			<div class="card-header">
+				<h5>Academic History</h5>
+			</div>
+			<div class="card-body p-0">
+				<div class="table-responsive">
+					<table class="table table-hover mb-0">
+						<thead class="bg-light">
+							<tr>
+								<th>Session</th>
+								<th>From Class</th>
+								<th>To Class</th>
+								<th class="text-center">Status</th>
+								<th>Date</th>
+							</tr>
+						</thead>
+						<tbody>
+							@foreach($promotionHistory as $promotion)
+								<tr>
+									<td>
+										<span class="badge badge-light-info px-2">{{ $promotion->fromAcademicYear->name ?? '-' }}</span>
+										→
+										<span class="badge badge-light-primary px-2">{{ $promotion->toAcademicYear->name ?? '-' }}</span>
+									</td>
+									<td>{{ $promotion->fromClass->name ?? '-' }}</td>
+									<td>{{ $promotion->toClass->name ?? '-' }}</td>
+									<td class="text-center">
+										@if($promotion->status === 'promoted')
+											<span class="badge badge-light-success px-2">Promoted</span>
+										@elseif($promotion->status === 'retained')
+											<span class="badge badge-light-warning px-2">Retained</span>
+										@elseif($promotion->status === 'alumni')
+											<span class="badge badge-light-info px-2">Alumni</span>
+										@else
+											<span class="badge badge-light-secondary px-2">{{ ucfirst($promotion->status) }}</span>
+										@endif
+									</td>
+									<td>{{ $promotion->promoted_at ? \Carbon\Carbon::parse($promotion->promoted_at)->format('d M Y') : '-' }}</td>
+								</tr>
+							@endforeach
+						</tbody>
+					</table>
 				</div>
 			</div>
 		</div>

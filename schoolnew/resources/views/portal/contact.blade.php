@@ -113,10 +113,10 @@
 
 		<!-- Previous Messages -->
 		<div class="col-xl-6 mb-4">
-			<div class="card h-100">
-				<div class="card-header pb-0">
-					<h5 class="mb-0">
-						<i data-feather="inbox" style="width: 18px; height: 18px;"></i> My Messages
+			<div class="card h-100" style="border: 1px solid #e9ecef;">
+				<div class="card-header" style="padding: 15px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+					<h5 class="mb-0 text-white">
+						<i data-feather="inbox" style="width: 18px; height: 18px; stroke: #fff;"></i> My Messages
 					</h5>
 				</div>
 				<div class="card-body">
@@ -172,7 +172,14 @@
 	</div>
 
 	<!-- Contact Info Cards -->
+	@php
+		$schoolPhone = \App\Models\Setting::get('school_phone');
+		$schoolEmail = \App\Models\Setting::get('school_email');
+		$schoolAddress = \App\Models\Setting::get('school_address');
+	@endphp
+	@if($schoolPhone || $schoolEmail || $schoolAddress)
 	<div class="row">
+		@if($schoolPhone)
 		<div class="col-md-4 mb-3">
 			<div class="card info-card h-100">
 				<div class="card-body text-center py-4">
@@ -180,10 +187,12 @@
 						<i data-feather="phone" class="text-primary" style="width: 24px; height: 24px;"></i>
 					</div>
 					<h6>Phone</h6>
-					<p class="text-muted mb-0">Contact school office</p>
+					<p class="text-muted mb-0">{{ $schoolPhone }}</p>
 				</div>
 			</div>
 		</div>
+		@endif
+		@if($schoolEmail)
 		<div class="col-md-4 mb-3">
 			<div class="card info-card h-100">
 				<div class="card-body text-center py-4">
@@ -191,21 +200,25 @@
 						<i data-feather="mail" class="text-success" style="width: 24px; height: 24px;"></i>
 					</div>
 					<h6>Email</h6>
-					<p class="text-muted mb-0">Send us an email</p>
+					<p class="text-muted mb-0">{{ $schoolEmail }}</p>
 				</div>
 			</div>
 		</div>
+		@endif
+		@if($schoolAddress)
 		<div class="col-md-4 mb-3">
 			<div class="card info-card h-100">
 				<div class="card-body text-center py-4">
 					<div class="quick-action-icon bg-light-warning mx-auto mb-3" style="width: 60px; height: 60px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-						<i data-feather="clock" class="text-warning" style="width: 24px; height: 24px;"></i>
+						<i data-feather="map-pin" class="text-warning" style="width: 24px; height: 24px;"></i>
 					</div>
-					<h6>Office Hours</h6>
-					<p class="text-muted mb-0">Mon - Fri: 8:00 AM - 4:00 PM</p>
+					<h6>Address</h6>
+					<p class="text-muted mb-0">{{ $schoolAddress }}</p>
 				</div>
 			</div>
 		</div>
+		@endif
 	</div>
+	@endif
 </div>
 @endsection
