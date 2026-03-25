@@ -127,6 +127,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Super Admin,Ad
         Route::get('/templates/{template}/edit', [SmsSettingController::class, 'editTemplate'])->name('templates.edit');
         Route::put('/templates/{template}', [SmsSettingController::class, 'updateTemplate'])->name('templates.update');
         Route::delete('/templates/{template}', [SmsSettingController::class, 'destroyTemplate'])->name('templates.destroy');
+        Route::post('/templates/bulk-delete', [SmsSettingController::class, 'bulkDeleteTemplates'])->name('templates.bulk-delete');
         Route::get('/logs', [SmsSettingController::class, 'logs'])->name('logs');
     });
 
@@ -166,6 +167,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Super Admin,Ad
     Route::post('classes/{class}/assign-teacher', [ClassController::class, 'assignTeacher'])->name('classes.assign-teacher');
 
     // Sections
+    Route::get('sections/assigned-teachers', [SectionController::class, 'getAssignedTeachers'])->name('sections.assigned-teachers');
     Route::resource('sections', SectionController::class);
 
     // Subjects

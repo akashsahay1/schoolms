@@ -68,6 +68,19 @@
 			</div>
 		</div>
 
+		<!-- Signature -->
+		@if($teacher->signature_image)
+		<div class="card">
+			<div class="card-header">
+				<h5>Signature</h5>
+			</div>
+			<div class="card-body text-center">
+				<img src="{{ asset('storage/' . $teacher->signature_image) }}" alt="Signature" style="max-height: 60px; border: 1px solid #dee2e6; padding: 8px; border-radius: 4px;">
+				<p class="text-muted mt-2 mb-0" style="font-size: 12px;">Used on certificates when assigned as class teacher</p>
+			</div>
+		</div>
+		@endif
+
 		<!-- Portal Login Credentials -->
 		<div class="card border-primary">
 			<div class="card-header bg-primary">

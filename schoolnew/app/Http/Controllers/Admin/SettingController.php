@@ -15,6 +15,7 @@ class SettingController extends Controller
             'school_name', 'school_address', 'school_phone', 'school_email',
             'school_website', 'school_tagline', 'school_map_embed', 'school_logo',
             'principal_name', 'principal_signature_image', 'school_stamp',
+            'exam_controller_name', 'exam_controller_signature_image',
         ];
 
         $settings = [];
@@ -39,6 +40,8 @@ class SettingController extends Controller
             'principal_name' => 'nullable|string|max:255',
             'principal_signature_image' => 'nullable|image|mimes:jpeg,png,jpg|max:1024',
             'school_stamp' => 'nullable|image|mimes:jpeg,png,jpg|max:1024',
+            'exam_controller_name' => 'nullable|string|max:255',
+            'exam_controller_signature_image' => 'nullable|image|mimes:jpeg,png,jpg|max:1024',
         ]);
 
         // Update text settings
@@ -105,6 +108,24 @@ class SettingController extends Controller
                 Storage::disk('public')->delete($old);
             }
             Setting::set('school_stamp', null);
+        }
+
+        // Exam Controller settings
+        Setting::set('exam_controller_name', $request->exam_controller_name);
+
+        if ($request->hasFile('exam_controller_signature_image')) {
+            $old = Setting::get('exam_controller_signature_image');
+            if ($old && Storage::disk('public')->exists($old)) {
+                Storage::disk('public')->delete($old);
+            }
+            Setting::set('exam_controller_signature_image', $request->file('exam_controller_signature_image')->store('certificates', 'public'));
+        }
+        if ($request->has('remove_exam_controller_signature')) {
+            $old = Setting::get('exam_controller_signature_image');
+            if ($old && Storage::disk('public')->exists($old)) {
+                Storage::disk('public')->delete($old);
+            }
+            Setting::set('exam_controller_signature_image', null);
         }
 
         return redirect()->route('admin.settings.school')

@@ -213,7 +213,7 @@ jQuery(document).ready(function() {
                     type: 'POST',
                     data: {
                         _token: '{{ csrf_token() }}',
-                        department_ids: selectedIds
+                        ids: selectedIds
                     },
                     beforeSend: function() {
                         Swal.fire({

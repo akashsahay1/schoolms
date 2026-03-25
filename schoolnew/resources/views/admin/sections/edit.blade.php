@@ -83,11 +83,18 @@
 							<select class="form-select @error('class_teacher_id') is-invalid @enderror" id="class_teacher_id" name="class_teacher_id">
 								<option value="">Select Teacher (Optional)</option>
 								@foreach($teachers as $teacher)
-									<option value="{{ $teacher->id }}" {{ old('class_teacher_id', $section->class_teacher_id) == $teacher->id ? 'selected' : '' }}>
-										{{ $teacher->name }}
+									@php
+										$isAssigned = isset($assignedTeachers[$teacher->id]);
+										$assignedClass = $isAssigned ? $assignedTeachers[$teacher->id] : '';
+									@endphp
+									<option value="{{ $teacher->id }}" {{ old('class_teacher_id', $section->class_teacher_id) == $teacher->id ? 'selected' : '' }} {{ $isAssigned ? 'disabled' : '' }} data-assigned="{{ $isAssigned ? '1' : '0' }}" data-assigned-class="{{ $assignedClass }}">
+										{{ $teacher->name }}{{ $isAssigned ? ' (Already Class Teacher - ' . $assignedClass . ')' : '' }}
 									</option>
 								@endforeach
 							</select>
+							<div id="teacher-warning" class="text-warning mt-1 d-none" style="font-size: 12px;">
+								<i class="icon-alert me-1"></i> <span id="teacher-warning-text"></span>
+							</div>
 							@error('class_teacher_id')
 								<div class="invalid-feedback">{{ $message }}</div>
 							@enderror
@@ -162,3 +169,49 @@
 	</div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+jQuery(document).ready(function() {
+	// When class changes, refresh assigned teachers for that academic year
+	jQuery('#class_id').on('change', function() {
+		var classId = jQuery(this).val();
+		if (!classId) return;
+
+		jQuery.ajax({
+			url: '{{ route("admin.sections.assigned-teachers") }}',
+			type: 'GET',
+			data: {
+				class_id: classId,
+				exclude_section_id: '{{ $section->id }}'
+			},
+			success: function(assigned) {
+				jQuery('#class_teacher_id option').each(function() {
+					var teacherId = jQuery(this).val();
+					if (!teacherId) return;
+
+					var originalName = jQuery(this).text().split(' (Already')[0].trim();
+					if (assigned[teacherId]) {
+						jQuery(this).text(originalName + ' (Already Class Teacher - ' + assigned[teacherId] + ')');
+						jQuery(this).prop('disabled', true);
+						jQuery(this).data('assigned', '1');
+						jQuery(this).data('assigned-class', assigned[teacherId]);
+					} else {
+						jQuery(this).text(originalName);
+						jQuery(this).prop('disabled', false);
+						jQuery(this).data('assigned', '0');
+						jQuery(this).data('assigned-class', '');
+					}
+				});
+
+				// If currently selected teacher is now assigned elsewhere, reset
+				var selectedOption = jQuery('#class_teacher_id option:selected');
+				if (selectedOption.prop('disabled')) {
+					jQuery('#class_teacher_id').val('');
+				}
+			}
+		});
+	});
+});
+</script>
+@endpush

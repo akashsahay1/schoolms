@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Student;
+use App\Models\Staff;
 use App\Models\ExamMark;
 use App\Models\Exam;
 use App\Models\Setting;
@@ -22,9 +23,10 @@ class CertificateController extends Controller
             return back()->with('error', 'Transfer Certificate can only be generated for students who have left the school.');
         }
 
-        $student->load(['schoolClass', 'section', 'academicYear', 'parent']);
+        $student->load(['schoolClass', 'section.classTeacher', 'academicYear', 'parent']);
 
         $school = $this->getSchoolData();
+        $school = array_merge($school, $this->getClassTeacherData($student));
 
         // Dynamic TC number: TC/{year}/{student_id padded}
         $tcYear = $student->leaving_date ? $student->leaving_date->format('Y') : date('Y');
@@ -51,7 +53,7 @@ class CertificateController extends Controller
      */
     public function marksheet(Student $student, Request $request)
     {
-        $student->load(['schoolClass', 'section', 'academicYear']);
+        $student->load(['schoolClass', 'section.classTeacher', 'academicYear']);
 
         // Use session-aware result fetching
         $results = StudentLifecycleService::getSessionResults($student, $request->exam_id);
@@ -72,6 +74,7 @@ class CertificateController extends Controller
         $result = $results['result'];
 
         $school = $this->getSchoolData();
+        $school = array_merge($school, $this->getClassTeacherData($student));
 
         $data = compact('student', 'exam', 'marks', 'totalMarks', 'totalFullMarks', 'percentage', 'grade', 'result', 'school');
 
@@ -90,6 +93,7 @@ class CertificateController extends Controller
         $signaturePath = Setting::get('principal_signature_image');
         $stampPath = Setting::get('school_stamp');
         $logoPath = Setting::get('school_logo');
+        $examControllerSigPath = Setting::get('exam_controller_signature_image');
 
         return [
             'name' => Setting::get('school_name', config('app.name')),
@@ -102,6 +106,31 @@ class CertificateController extends Controller
             'principal' => Setting::get('principal_name', ''),
             'signature_url' => $signaturePath ? public_path('storage/' . $signaturePath) : null,
             'stamp_url' => $stampPath ? public_path('storage/' . $stampPath) : null,
+            'exam_controller' => Setting::get('exam_controller_name', ''),
+            'exam_controller_signature_url' => $examControllerSigPath ? public_path('storage/' . $examControllerSigPath) : null,
+        ];
+    }
+
+    /**
+     * Get the class teacher data from the student's section assignment.
+     */
+    private function getClassTeacherData(Student $student): array
+    {
+        $classTeacher = $student->section?->classTeacher;
+
+        if (!$classTeacher) {
+            return [
+                'class_teacher' => '',
+                'class_teacher_signature_url' => null,
+            ];
+        }
+
+        // Find the staff record linked to this user to get the signature
+        $staff = Staff::where('user_id', $classTeacher->id)->first();
+
+        return [
+            'class_teacher' => $classTeacher->full_name,
+            'class_teacher_signature_url' => $staff?->signature_url,
         ];
     }
 

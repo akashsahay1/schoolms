@@ -356,6 +356,24 @@
 			</div>
 			@endif
 
+			<!-- Signature Upload -->
+			<div class="card">
+				<div class="card-header">
+					<h5>Signature</h5>
+				</div>
+				<div class="card-body text-center">
+					<div class="border rounded p-3 bg-light mb-2">
+						<i class="icon-pencil text-muted" style="font-size: 24px;"></i>
+						<p class="text-muted mb-0" style="font-size: 12px;">Upload teacher's signature</p>
+					</div>
+					<input type="file" class="form-control @error('signature_image') is-invalid @enderror" name="signature_image" accept="image/*">
+					<small class="text-muted">Transparent PNG, 300x100px recommended. Used on certificates.</small>
+					@error('signature_image')
+						<div class="invalid-feedback">{{ $message }}</div>
+					@enderror
+				</div>
+			</div>
+
 			<!-- Login Credentials -->
 			<div class="card">
 				<div class="card-header">

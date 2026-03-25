@@ -307,17 +307,33 @@
         <!-- Signatures -->
         <div class="signatures">
             <div class="sig-block" style="text-align: left;">
-                <div class="sig-line"></div>
-                <div class="sig-label">Class Teacher</div>
-            </div>
-            <div class="sig-block">
-                @if($school['stamp_url'] && file_exists($school['stamp_url']))
-                    <img src="{{ $school['stamp_url'] }}" alt="Seal" style="max-height: 70px; max-width: 70px; margin-bottom: 5px;">
+                @if($school['class_teacher_signature_url'] && file_exists($school['class_teacher_signature_url']))
+                    <img src="{{ $school['class_teacher_signature_url'] }}" alt="Signature" style="max-height: 50px; margin-bottom: 5px;">
                     <br>
                 @else
                     <div class="sig-line"></div>
                 @endif
+                <div class="sig-label">Class Teacher</div>
+                @if($school['class_teacher'])
+                    <div class="sig-name">{{ $school['class_teacher'] }}</div>
+                @endif
+            </div>
+            <div class="sig-block">
+                @if($school['exam_controller_signature_url'] && file_exists($school['exam_controller_signature_url']))
+                    <img src="{{ $school['exam_controller_signature_url'] }}" alt="Signature" style="max-height: 50px; margin-bottom: 5px;">
+                    <br>
+                @else
+                    @if($school['stamp_url'] && file_exists($school['stamp_url']))
+                        <img src="{{ $school['stamp_url'] }}" alt="Seal" style="max-height: 70px; max-width: 70px; margin-bottom: 5px;">
+                        <br>
+                    @else
+                        <div class="sig-line"></div>
+                    @endif
+                @endif
                 <div class="sig-label">Exam Controller</div>
+                @if($school['exam_controller'])
+                    <div class="sig-name">{{ $school['exam_controller'] }}</div>
+                @endif
             </div>
             <div class="sig-block" style="text-align: right;">
                 @if($school['signature_url'] && file_exists($school['signature_url']))

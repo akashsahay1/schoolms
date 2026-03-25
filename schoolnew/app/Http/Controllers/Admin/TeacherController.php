@@ -91,8 +91,9 @@ class TeacherController extends Controller
 			'qualification' => ['nullable', 'string'],
 			'experience' => ['nullable', 'string'],
 
-			// Photo
+			// Photo & Signature
 			'photo' => ['nullable', 'image', 'max:2048'],
+			'signature_image' => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:1024'],
 
 			// Aadhaar & PAN Card
 			'aadhaar_number' => ['nullable', 'string', 'size:12', 'regex:/^[0-9]{12}$/'],
@@ -116,6 +117,12 @@ class TeacherController extends Controller
 			$photoPath = null;
 			if ($request->hasFile('photo')) {
 				$photoPath = $request->file('photo')->store('teachers', 'public');
+			}
+
+			// Handle signature upload
+			$signaturePath = null;
+			if ($request->hasFile('signature_image')) {
+				$signaturePath = $request->file('signature_image')->store('staff/signatures', 'public');
 			}
 
 			// Create user account for teacher login
@@ -154,6 +161,7 @@ class TeacherController extends Controller
 				'qualification' => $validated['qualification'] ?? null,
 				'experience' => $validated['experience'] ?? null,
 				'photo' => $photoPath,
+				'signature_image' => $signaturePath,
 				'aadhaar_number' => $validated['aadhaar_number'] ?? null,
 				'aadhaar_front' => $request->hasFile('aadhaar_front') ? $request->file('aadhaar_front')->store('staff/aadhaar', 'public') : null,
 				'aadhaar_back' => $request->hasFile('aadhaar_back') ? $request->file('aadhaar_back')->store('staff/aadhaar', 'public') : null,
@@ -224,8 +232,9 @@ class TeacherController extends Controller
 			'qualification' => ['nullable', 'string'],
 			'experience' => ['nullable', 'string'],
 
-			// Photo
+			// Photo & Signature
 			'photo' => ['nullable', 'image', 'max:2048'],
+			'signature_image' => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:1024'],
 
 			// Aadhaar & PAN Card
 			'aadhaar_number' => ['nullable', 'string', 'size:12', 'regex:/^[0-9]{12}$/'],
@@ -247,6 +256,20 @@ class TeacherController extends Controller
 					Storage::disk('public')->delete($teacher->photo);
 				}
 				$validated['photo'] = $request->file('photo')->store('teachers', 'public');
+			}
+
+			// Handle signature upload
+			if ($request->hasFile('signature_image')) {
+				if ($teacher->signature_image) {
+					Storage::disk('public')->delete($teacher->signature_image);
+				}
+				$validated['signature_image'] = $request->file('signature_image')->store('staff/signatures', 'public');
+			}
+			if ($request->has('remove_signature')) {
+				if ($teacher->signature_image) {
+					Storage::disk('public')->delete($teacher->signature_image);
+				}
+				$validated['signature_image'] = null;
 			}
 
 			// Handle Aadhaar/PAN file uploads
@@ -287,6 +310,7 @@ class TeacherController extends Controller
 				'qualification' => $validated['qualification'] ?? null,
 				'experience' => $validated['experience'] ?? null,
 				'photo' => $validated['photo'] ?? $teacher->photo,
+				'signature_image' => array_key_exists('signature_image', $validated) ? $validated['signature_image'] : $teacher->signature_image,
 				'aadhaar_number' => $validated['aadhaar_number'] ?? $teacher->aadhaar_number,
 				'aadhaar_front' => $validated['aadhaar_front'] ?? $teacher->aadhaar_front,
 				'aadhaar_back' => $validated['aadhaar_back'] ?? $teacher->aadhaar_back,
@@ -391,9 +415,12 @@ class TeacherController extends Controller
 		try {
 			$teacher = Staff::onlyTrashed()->findOrFail($id);
 
-			// Delete photo if exists
+			// Delete photo and signature if exists
 			if ($teacher->photo) {
 				Storage::disk('public')->delete($teacher->photo);
+			}
+			if ($teacher->signature_image) {
+				Storage::disk('public')->delete($teacher->signature_image);
 			}
 
 			$name = $teacher->full_name;
@@ -443,9 +470,11 @@ class TeacherController extends Controller
 			$count = $teachers->count();
 
 			foreach ($teachers as $teacher) {
-				// Delete photo if exists
 				if ($teacher->photo) {
 					Storage::disk('public')->delete($teacher->photo);
+				}
+				if ($teacher->signature_image) {
+					Storage::disk('public')->delete($teacher->signature_image);
 				}
 				$teacher->forceDelete();
 			}
@@ -477,6 +506,9 @@ class TeacherController extends Controller
 			foreach ($teachers as $teacher) {
 				if ($teacher->photo) {
 					Storage::disk('public')->delete($teacher->photo);
+				}
+				if ($teacher->signature_image) {
+					Storage::disk('public')->delete($teacher->signature_image);
 				}
 				$teacher->forceDelete();
 			}

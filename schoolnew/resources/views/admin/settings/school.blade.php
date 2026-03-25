@@ -182,17 +182,17 @@
                     <p class="text-muted mb-0" style="font-size: 13px;">Used in Transfer Certificates and Marksheets</p>
                 </div>
                 <div class="card-body">
+                    <!-- Principal -->
+                    <h6 class="fw-bold text-muted mb-3" style="font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Principal</h6>
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="mb-3">
                                 <label for="principal_name" class="form-label">Principal Name</label>
                                 <input type="text" class="form-control" id="principal_name" name="principal_name" value="{{ old('principal_name', $settings['principal_name'] ?? '') }}" placeholder="e.g., Dr. John Smith">
-                                <small class="text-muted">Shown under principal signature on certificates</small>
+                                <small class="text-muted">Shown under signature on certificates</small>
                             </div>
                         </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="mb-3">
                                 <label class="form-label">Principal Signature</label>
                                 @if($settings['principal_signature_image'] ?? null)
@@ -205,10 +205,10 @@
                                     </div>
                                 @endif
                                 <input type="file" class="form-control" name="principal_signature_image" accept="image/*">
-                                <small class="text-muted">Upload a transparent PNG of the signature (recommended: 300x100px)</small>
+                                <small class="text-muted">Transparent PNG, 300x100px</small>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="mb-3">
                                 <label class="form-label">School Stamp / Seal</label>
                                 @if($settings['school_stamp'] ?? null)
@@ -221,7 +221,44 @@
                                     </div>
                                 @endif
                                 <input type="file" class="form-control" name="school_stamp" accept="image/*">
-                                <small class="text-muted">Upload school seal/stamp image (recommended: 200x200px, transparent PNG)</small>
+                                <small class="text-muted">Transparent PNG, 200x200px</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-3">
+
+                    <!-- Class Teacher Info -->
+                    <div class="alert alert-info py-2 px-3" style="font-size: 13px; border-radius: 8px;">
+                        <i class="icon-info-alt me-1"></i> <strong>Class Teacher Signature:</strong> Each teacher uploads their own signature in their profile (<strong>Teachers &rarr; Edit &rarr; Signature</strong>). The class teacher's signature is automatically picked from the teacher assigned to the student's section.
+                    </div>
+
+                    <hr class="my-3">
+
+                    <!-- Exam Controller -->
+                    <h6 class="fw-bold text-muted mb-3" style="font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Exam Controller</h6>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="exam_controller_name" class="form-label">Exam Controller Name</label>
+                                <input type="text" class="form-control" id="exam_controller_name" name="exam_controller_name" value="{{ old('exam_controller_name', $settings['exam_controller_name'] ?? '') }}" placeholder="e.g., Mr. Robert Wilson">
+                                <small class="text-muted">Shown under signature on marksheets</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Exam Controller Signature</label>
+                                @if($settings['exam_controller_signature_image'] ?? null)
+                                    <div class="mb-2">
+                                        <img src="{{ asset('storage/' . $settings['exam_controller_signature_image']) }}" alt="Signature" style="max-height: 60px; border: 1px solid #dee2e6; padding: 5px; border-radius: 4px;">
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" name="remove_exam_controller_signature" value="1" id="remove_ec_sig">
+                                        <label class="form-check-label text-danger" for="remove_ec_sig">Remove signature</label>
+                                    </div>
+                                @endif
+                                <input type="file" class="form-control" name="exam_controller_signature_image" accept="image/*">
+                                <small class="text-muted">Transparent PNG, 300x100px</small>
                             </div>
                         </div>
                     </div>

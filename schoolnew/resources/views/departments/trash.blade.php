@@ -237,7 +237,7 @@ jQuery(document).ready(function() {
 					type: 'POST',
 					data: {
 						_token: '{{ csrf_token() }}',
-						department_ids: ids
+						ids: ids
 					},
 					beforeSend: function() {
 						Swal.fire({
@@ -299,7 +299,7 @@ jQuery(document).ready(function() {
 					type: 'POST',
 					data: {
 						_token: '{{ csrf_token() }}',
-						department_ids: ids
+						ids: ids
 					},
 					beforeSend: function() {
 						Swal.fire({

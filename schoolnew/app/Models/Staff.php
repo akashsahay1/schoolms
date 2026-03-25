@@ -41,8 +41,9 @@ class Staff extends Model
         'aadhaar_front',
         'aadhaar_back',
         'pan_front',
-        // Photo
+        // Photo & Signature
         'photo',
+        'signature_image',
         // Employment Information
         'joining_date',
         'contract_type',
@@ -128,7 +129,7 @@ class Staff extends Model
     public function scopeTeachers($query)
     {
         return $query->whereHas('designation', function ($q) {
-            $q->whereIn('name', ['Principal', 'Vice Principal', 'Class Teacher', 'Subject Teacher', 'Assistant Teacher']);
+            $q->whereIn('name', ['Principal', 'Vice Principal', 'Head Teacher', 'Senior Teacher', 'Teacher', 'Class Teacher', 'Subject Teacher', 'Assistant Teacher']);
         });
     }
 
@@ -155,6 +156,14 @@ class Staff extends Model
             return asset('storage/' . $this->photo);
         }
         return asset('assets/images/user/user.png');
+    }
+
+    public function getSignatureUrlAttribute(): ?string
+    {
+        if ($this->signature_image) {
+            return public_path('storage/' . $this->signature_image);
+        }
+        return null;
     }
 
     public function getExperienceYearsAttribute(): int

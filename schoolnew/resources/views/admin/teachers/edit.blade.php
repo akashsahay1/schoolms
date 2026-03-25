@@ -380,6 +380,34 @@
 			</div>
 			@endif
 
+			<!-- Signature Upload -->
+			<div class="card">
+				<div class="card-header">
+					<h5>Signature</h5>
+				</div>
+				<div class="card-body text-center">
+					@if($teacher->signature_image)
+						<div class="mb-2">
+							<img src="{{ asset('storage/' . $teacher->signature_image) }}" alt="Signature" style="max-height: 60px; border: 1px solid #dee2e6; padding: 5px; border-radius: 4px;">
+						</div>
+						<div class="form-check d-inline-block mb-2">
+							<input class="form-check-input" type="checkbox" name="remove_signature" value="1" id="remove_signature">
+							<label class="form-check-label text-danger" for="remove_signature">Remove signature</label>
+						</div>
+					@else
+						<div class="border rounded p-3 bg-light mb-2">
+							<i class="icon-pencil text-muted" style="font-size: 24px;"></i>
+							<p class="text-muted mb-0" style="font-size: 12px;">No signature uploaded</p>
+						</div>
+					@endif
+					<input type="file" class="form-control @error('signature_image') is-invalid @enderror" name="signature_image" accept="image/*">
+					<small class="text-muted">Transparent PNG, 300x100px recommended. Used on certificates.</small>
+					@error('signature_image')
+						<div class="invalid-feedback">{{ $message }}</div>
+					@enderror
+				</div>
+			</div>
+
 			<!-- Actions -->
 			<div class="card">
 				<div class="card-body">

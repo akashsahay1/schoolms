@@ -210,6 +210,25 @@ class SmsSettingController extends Controller
     }
 
     /**
+     * Bulk delete templates.
+     */
+    public function bulkDeleteTemplates(Request $request)
+    {
+        $ids = $request->input('ids', []);
+
+        if (empty($ids)) {
+            return response()->json(['message' => 'No templates selected.'], 422);
+        }
+
+        $count = SmsTemplate::whereIn('id', $ids)->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => "{$count} template(s) deleted successfully.",
+        ]);
+    }
+
+    /**
      * Display SMS logs.
      */
     public function logs(Request $request)
