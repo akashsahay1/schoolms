@@ -357,7 +357,9 @@ class WebsiteSettingController extends Controller
 
     public function editPage(WebsitePage $page)
     {
-        return view('admin.website.pages.edit', compact('page'));
+        $sections = WebsiteSection::where('page_id', $page->id)->ordered()->get();
+        $layouts = WebsiteSection::LAYOUTS;
+        return view('admin.website.pages.edit', compact('page', 'sections', 'layouts'));
     }
 
     public function updatePage(Request $request, WebsitePage $page)
@@ -392,7 +394,101 @@ class WebsiteSettingController extends Controller
 
         $page->update($validated);
 
-        return redirect()->route('admin.website.pages')->with('success', 'Page updated successfully.');
+        return redirect()->route('admin.website.pages.edit', $page)->with('success', 'Page updated successfully.');
+    }
+
+    // ==================== PAGE SECTIONS ====================
+
+    public function storeSection(Request $request, WebsitePage $page)
+    {
+        $validated = $request->validate([
+            'layout' => 'required|in:' . implode(',', array_keys(WebsiteSection::LAYOUTS)),
+            'title' => 'nullable|string|max:255',
+            'subtitle' => 'nullable|string|max:500',
+            'content' => 'nullable|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:3072',
+            'link' => 'nullable|string|max:255',
+            'link_text' => 'nullable|string|max:100',
+            'bg_color' => 'nullable|string|max:7',
+        ]);
+
+        $imagePath = null;
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('website/sections', 'public');
+        }
+
+        $maxOrder = WebsiteSection::where('page_id', $page->id)->max('sort_order') ?? 0;
+
+        WebsiteSection::create([
+            'page_id' => $page->id,
+            'section_key' => 'section_' . time(),
+            'layout' => $validated['layout'],
+            'title' => $validated['title'],
+            'subtitle' => $validated['subtitle'],
+            'content' => $validated['content'],
+            'image' => $imagePath,
+            'link' => $validated['link'],
+            'link_text' => $validated['link_text'],
+            'bg_color' => $validated['bg_color'],
+            'sort_order' => $maxOrder + 1,
+            'is_active' => true,
+        ]);
+
+        return redirect()->route('admin.website.pages.edit', $page)->with('success', 'Section added successfully.');
+    }
+
+    public function updateSection(Request $request, WebsiteSection $section)
+    {
+        $validated = $request->validate([
+            'layout' => 'required|in:' . implode(',', array_keys(WebsiteSection::LAYOUTS)),
+            'title' => 'nullable|string|max:255',
+            'subtitle' => 'nullable|string|max:500',
+            'content' => 'nullable|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:3072',
+            'link' => 'nullable|string|max:255',
+            'link_text' => 'nullable|string|max:100',
+            'bg_color' => 'nullable|string|max:7',
+        ]);
+
+        if ($request->hasFile('image')) {
+            if ($section->image) {
+                Storage::disk('public')->delete($section->image);
+            }
+            $validated['image'] = $request->file('image')->store('website/sections', 'public');
+        }
+
+        if ($request->has('remove_image') && $request->remove_image == '1') {
+            if ($section->image) {
+                Storage::disk('public')->delete($section->image);
+            }
+            $validated['image'] = null;
+        }
+
+        $section->update($validated);
+
+        return redirect()->route('admin.website.pages.edit', $section->page_id)->with('success', 'Section updated successfully.');
+    }
+
+    public function destroySection(WebsiteSection $section)
+    {
+        $pageId = $section->page_id;
+
+        if ($section->image) {
+            Storage::disk('public')->delete($section->image);
+        }
+
+        $section->delete();
+
+        return redirect()->route('admin.website.pages.edit', $pageId)->with('success', 'Section deleted.');
+    }
+
+    public function reorderSections(Request $request)
+    {
+        $order = $request->input('order', []);
+        foreach ($order as $index => $id) {
+            WebsiteSection::where('id', $id)->update(['sort_order' => $index]);
+        }
+        return response()->json(['success' => true]);
     }
 
     // ==================== CONTACT MESSAGES ====================

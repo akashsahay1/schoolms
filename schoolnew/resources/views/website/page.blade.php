@@ -159,6 +159,7 @@
 		<div class="row">
 			<!-- Main Content -->
 			<div class="col-lg-9">
+				@if($page->content)
 				<div class="legal-card">
 					<div class="legal-header">
 						<h1>{{ $page->title }}</h1>
@@ -167,6 +168,81 @@
 						{!! $page->content !!}
 					</div>
 				</div>
+				@endif
+
+				<!-- Dynamic Sections -->
+				@foreach($sections ?? [] as $section)
+				<div class="legal-card mt-4" style="{{ $section->bg_color && $section->bg_color !== '#ffffff' ? 'background-color: ' . $section->bg_color . ';' : '' }}">
+					<div class="legal-body">
+						@if($section->layout === 'image-left')
+						<div class="row align-items-center">
+							<div class="col-md-6 mb-3 mb-md-0">
+								@if($section->image)
+									<img src="{{ asset('storage/' . $section->image) }}" alt="{{ $section->title }}" class="img-fluid" style="border-radius: 12px; width: 100%;">
+								@endif
+							</div>
+							<div class="col-md-6">
+								@if($section->title)<h2>{{ $section->title }}</h2>@endif
+								@if($section->subtitle)<p class="text-muted" style="font-size: 15px;">{{ $section->subtitle }}</p>@endif
+								@if($section->content){!! $section->content !!}@endif
+								@if($section->link_text && $section->link)
+									<a href="{{ $section->link }}" class="btn btn-primary mt-2">{{ $section->link_text }}</a>
+								@endif
+							</div>
+						</div>
+
+						@elseif($section->layout === 'image-right')
+						<div class="row align-items-center">
+							<div class="col-md-6 mb-3 mb-md-0">
+								@if($section->title)<h2>{{ $section->title }}</h2>@endif
+								@if($section->subtitle)<p class="text-muted" style="font-size: 15px;">{{ $section->subtitle }}</p>@endif
+								@if($section->content){!! $section->content !!}@endif
+								@if($section->link_text && $section->link)
+									<a href="{{ $section->link }}" class="btn btn-primary mt-2">{{ $section->link_text }}</a>
+								@endif
+							</div>
+							<div class="col-md-6">
+								@if($section->image)
+									<img src="{{ asset('storage/' . $section->image) }}" alt="{{ $section->title }}" class="img-fluid" style="border-radius: 12px; width: 100%;">
+								@endif
+							</div>
+						</div>
+
+						@elseif($section->layout === 'full-image')
+						<div class="position-relative" style="border-radius: 12px; overflow: hidden; margin: -30px -50px;">
+							@if($section->image)
+								<img src="{{ asset('storage/' . $section->image) }}" alt="{{ $section->title }}" class="w-100" style="max-height: 400px; object-fit: cover;">
+								<div class="position-absolute bottom-0 start-0 end-0 p-4 p-md-5" style="background: linear-gradient(transparent, rgba(0,0,0,0.7));">
+									@if($section->title)<h2 class="text-white mb-1">{{ $section->title }}</h2>@endif
+									@if($section->subtitle)<p class="text-white mb-0" style="opacity: 0.9;">{{ $section->subtitle }}</p>@endif
+									@if($section->link_text && $section->link)
+										<a href="{{ $section->link }}" class="btn btn-primary mt-2">{{ $section->link_text }}</a>
+									@endif
+								</div>
+							@endif
+						</div>
+
+						@elseif($section->layout === 'content-center')
+						<div class="text-center py-3">
+							@if($section->title)<h2>{{ $section->title }}</h2>@endif
+							@if($section->subtitle)<p class="text-muted" style="font-size: 15px;">{{ $section->subtitle }}</p>@endif
+							@if($section->content)<div class="mx-auto" style="max-width: 700px;">{!! $section->content !!}</div>@endif
+							@if($section->link_text && $section->link)
+								<a href="{{ $section->link }}" class="btn btn-primary mt-3">{{ $section->link_text }}</a>
+							@endif
+						</div>
+
+						@else{{-- full-width --}}
+						@if($section->title)<h2>{{ $section->title }}</h2>@endif
+						@if($section->subtitle)<p class="text-muted" style="font-size: 15px;">{{ $section->subtitle }}</p>@endif
+						@if($section->content){!! $section->content !!}@endif
+						@if($section->link_text && $section->link)
+							<a href="{{ $section->link }}" class="btn btn-primary mt-2">{{ $section->link_text }}</a>
+						@endif
+						@endif
+					</div>
+				</div>
+				@endforeach
 			</div>
 
 			<!-- Sidebar -->

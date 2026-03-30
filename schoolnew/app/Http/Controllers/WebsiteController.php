@@ -9,6 +9,7 @@ use App\Models\WebsiteContact;
 use App\Models\WebsiteFacility;
 use App\Models\WebsiteGallery;
 use App\Models\WebsitePage;
+use App\Models\WebsiteSection;
 use App\Models\WebsiteSlider;
 use App\Models\WebsiteTestimonial;
 use App\Models\User;
@@ -196,7 +197,8 @@ class WebsiteController extends Controller
     public function page(string $slug)
     {
         $page = WebsitePage::where('slug', $slug)->where('is_active', true)->firstOrFail();
+        $sections = WebsiteSection::where('page_id', $page->id)->active()->ordered()->get();
 
-        return view('website.page', compact('page'));
+        return view('website.page', compact('page', 'sections'));
     }
 }

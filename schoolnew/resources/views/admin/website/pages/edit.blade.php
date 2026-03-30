@@ -398,7 +398,7 @@
 
 		<!-- Content Section -->
 		<div class="editable-section" id="contentSection">
-			<span class="section-label-tag">Content</span>
+			<span class="section-label-tag">Main Content</span>
 			<button type="button" class="edit-btn" data-target="contentDrawer"><i class="icon-pencil-alt"></i> Edit Content</button>
 
 			<div class="preview-body" id="previewContent">
@@ -421,6 +421,206 @@
 				<p class="text-muted mt-2 mb-0" style="font-size: 11px;"><i class="icon-info-alt me-1"></i> Changes appear above when you close this editor.</p>
 			</div>
 		</div>
+	</div>
+</form>
+
+<!-- ==================== CUSTOM SECTIONS ==================== -->
+<div class="content-editor-wrapper">
+	<!-- Existing Sections -->
+	@foreach($sections ?? [] as $section)
+	<div class="card mt-3 mb-0" style="border-left: 4px solid {{ $section->bg_color ?? '#7366ff' }}; border-radius: 8px;">
+		<div class="card-body p-0">
+			<!-- Section Preview -->
+			<div class="p-3" style="background: {{ $section->bg_color ? $section->bg_color . '10' : '#f8f9fa' }};">
+				@if($section->layout === 'image-left' || $section->layout === 'image-right')
+				<div class="row align-items-center g-0">
+					@if($section->layout === 'image-left')
+					<div class="col-md-5">
+						@if($section->image)
+							<img src="{{ asset('storage/' . $section->image) }}" alt="" class="w-100" style="max-height: 200px; object-fit: cover; border-radius: 8px;">
+						@else
+							<div class="bg-light d-flex align-items-center justify-content-center" style="height: 150px; border-radius: 8px;"><i class="icon-image" style="font-size: 30px; color: #ccc;"></i></div>
+						@endif
+					</div>
+					<div class="col-md-7 ps-3">
+						@if($section->title)<h5 class="mb-1">{{ $section->title }}</h5>@endif
+						@if($section->subtitle)<p class="text-muted mb-1" style="font-size: 13px;">{{ $section->subtitle }}</p>@endif
+						@if($section->content)<div style="font-size: 13px; color: #555;">{!! Str::limit(strip_tags($section->content), 200) !!}</div>@endif
+					</div>
+					@else
+					<div class="col-md-7 pe-3">
+						@if($section->title)<h5 class="mb-1">{{ $section->title }}</h5>@endif
+						@if($section->subtitle)<p class="text-muted mb-1" style="font-size: 13px;">{{ $section->subtitle }}</p>@endif
+						@if($section->content)<div style="font-size: 13px; color: #555;">{!! Str::limit(strip_tags($section->content), 200) !!}</div>@endif
+					</div>
+					<div class="col-md-5">
+						@if($section->image)
+							<img src="{{ asset('storage/' . $section->image) }}" alt="" class="w-100" style="max-height: 200px; object-fit: cover; border-radius: 8px;">
+						@else
+							<div class="bg-light d-flex align-items-center justify-content-center" style="height: 150px; border-radius: 8px;"><i class="icon-image" style="font-size: 30px; color: #ccc;"></i></div>
+						@endif
+					</div>
+					@endif
+				</div>
+				@elseif($section->layout === 'full-image')
+				<div class="position-relative" style="border-radius: 8px; overflow: hidden;">
+					@if($section->image)
+						<img src="{{ asset('storage/' . $section->image) }}" alt="" class="w-100" style="max-height: 200px; object-fit: cover;">
+						<div class="position-absolute bottom-0 start-0 end-0 p-3" style="background: linear-gradient(transparent, rgba(0,0,0,0.7));">
+							@if($section->title)<h5 class="text-white mb-0">{{ $section->title }}</h5>@endif
+						</div>
+					@endif
+				</div>
+				@else
+				<div class="{{ $section->layout === 'content-center' ? 'text-center' : '' }}">
+					@if($section->title)<h5 class="mb-1">{{ $section->title }}</h5>@endif
+					@if($section->subtitle)<p class="text-muted mb-1" style="font-size: 13px;">{{ $section->subtitle }}</p>@endif
+					@if($section->content)<div style="font-size: 13px; color: #555;">{!! Str::limit(strip_tags($section->content), 300) !!}</div>@endif
+				</div>
+				@endif
+			</div>
+
+			<!-- Section Actions -->
+			<div class="d-flex justify-content-between align-items-center px-3 py-2" style="border-top: 1px solid #eee;">
+				<div class="d-flex align-items-center gap-2">
+					<span class="badge badge-light-primary" style="font-size: 10px;">{{ \App\Models\WebsiteSection::LAYOUTS[$section->layout] ?? $section->layout }}</span>
+					<span class="text-muted" style="font-size: 11px;">Order: {{ $section->sort_order }}</span>
+				</div>
+				<div class="d-flex gap-2">
+					<button type="button" class="btn btn-outline-primary btn-sm edit-section-btn" data-id="{{ $section->id }}" style="font-size: 11px;"><i class="icon-pencil-alt me-1"></i> Edit</button>
+					<form action="{{ route('admin.website.sections.destroy', $section) }}" method="POST" class="d-inline delete-section-form">
+						@csrf
+						@method('DELETE')
+						<button type="button" class="btn btn-outline-danger btn-sm delete-section-btn" data-name="{{ $section->title ?? 'this section' }}" style="font-size: 11px;"><i class="icon-trash me-1"></i> Delete</button>
+					</form>
+				</div>
+			</div>
+
+			<!-- Edit Form (hidden, shown on click) -->
+			<div class="section-edit-form d-none p-3" id="editForm-{{ $section->id }}" style="border-top: 2px solid var(--theme-default); background: #fafbff;">
+				<form action="{{ route('admin.website.sections.update', $section) }}" method="POST" enctype="multipart/form-data">
+					@csrf
+					@method('PUT')
+					<div class="row g-3">
+						<div class="col-md-4">
+							<label class="form-label fw-bold">Layout</label>
+							<select name="layout" class="form-select form-select-sm">
+								@foreach(\App\Models\WebsiteSection::LAYOUTS as $key => $label)
+									<option value="{{ $key }}" {{ $section->layout === $key ? 'selected' : '' }}>{{ $label }}</option>
+								@endforeach
+							</select>
+						</div>
+						<div class="col-md-4">
+							<label class="form-label fw-bold">Title</label>
+							<input type="text" name="title" class="form-control form-control-sm" value="{{ $section->title }}">
+						</div>
+						<div class="col-md-4">
+							<label class="form-label fw-bold">Subtitle</label>
+							<input type="text" name="subtitle" class="form-control form-control-sm" value="{{ $section->subtitle }}">
+						</div>
+						<div class="col-md-8">
+							<label class="form-label fw-bold">Content</label>
+							<textarea name="content" class="form-control form-control-sm" rows="3">{{ $section->content }}</textarea>
+						</div>
+						<div class="col-md-4">
+							<label class="form-label fw-bold">Image</label>
+							@if($section->image)
+								<div class="mb-1"><img src="{{ asset('storage/' . $section->image) }}" class="rounded" style="max-height: 60px;"></div>
+								<div class="form-check mb-1"><input type="checkbox" name="remove_image" value="1" class="form-check-input"><label class="form-check-label text-danger" style="font-size: 11px;">Remove</label></div>
+							@endif
+							<input type="file" name="image" class="form-control form-control-sm" accept="image/*">
+						</div>
+						<div class="col-md-4">
+							<label class="form-label fw-bold">Button Text</label>
+							<input type="text" name="link_text" class="form-control form-control-sm" value="{{ $section->link_text }}" placeholder="e.g. Learn More">
+						</div>
+						<div class="col-md-4">
+							<label class="form-label fw-bold">Button Link</label>
+							<input type="text" name="link" class="form-control form-control-sm" value="{{ $section->link }}" placeholder="e.g. /about">
+						</div>
+						<div class="col-md-4">
+							<label class="form-label fw-bold">Background Color</label>
+							<input type="color" name="bg_color" class="form-control form-control-color" value="{{ $section->bg_color ?? '#ffffff' }}" style="width: 50px; height: 34px;">
+						</div>
+					</div>
+					<div class="d-flex justify-content-end gap-2 mt-3">
+						<button type="button" class="btn btn-secondary btn-sm cancel-edit-btn" data-id="{{ $section->id }}">Cancel</button>
+						<button type="submit" class="btn btn-primary btn-sm"><i class="icon-check me-1"></i> Update Section</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+	@endforeach
+
+	<!-- Add New Section -->
+	<div class="card mt-3" style="border: 2px dashed #dee2e6; border-radius: 8px;">
+		<div class="card-header py-2" style="cursor: pointer; background: #f8f9fa;" id="addSectionToggle">
+			<div class="d-flex justify-content-between align-items-center">
+				<h6 class="mb-0" style="font-size: 14px;"><i class="icon-plus me-2" style="color: var(--theme-default);"></i> Add New Section</h6>
+				<i class="icon-angle-down" id="addSectionArrow"></i>
+			</div>
+		</div>
+		<div class="card-body d-none" id="addSectionForm">
+			<form action="{{ route('admin.website.pages.sections.store', $page) }}" method="POST" enctype="multipart/form-data">
+				@csrf
+				<div class="row g-3">
+					<div class="col-md-6">
+						<label class="form-label fw-bold">Layout <span class="text-danger">*</span></label>
+						<select name="layout" class="form-select" required>
+							@foreach($layouts as $key => $label)
+								<option value="{{ $key }}">{{ $label }}</option>
+							@endforeach
+						</select>
+					</div>
+					<div class="col-md-6">
+						<label class="form-label fw-bold">Section Title</label>
+						<input type="text" name="title" class="form-control" placeholder="e.g. Our Mission">
+					</div>
+					<div class="col-md-12">
+						<label class="form-label fw-bold">Subtitle</label>
+						<input type="text" name="subtitle" class="form-control" placeholder="Short description line (optional)">
+					</div>
+					<div class="col-md-8">
+						<label class="form-label fw-bold">Content</label>
+						<textarea name="content" class="form-control" rows="4" placeholder="Write your section content here..."></textarea>
+					</div>
+					<div class="col-md-4">
+						<label class="form-label fw-bold">Image</label>
+						<input type="file" name="image" class="form-control" accept="image/*">
+						<small class="text-muted">Used in image-left, image-right, full-image layouts</small>
+					</div>
+					<div class="col-md-4">
+						<label class="form-label fw-bold">Button Text</label>
+						<input type="text" name="link_text" class="form-control" placeholder="e.g. Read More">
+					</div>
+					<div class="col-md-4">
+						<label class="form-label fw-bold">Button Link</label>
+						<input type="text" name="link" class="form-control" placeholder="e.g. /about or full URL">
+					</div>
+					<div class="col-md-4">
+						<label class="form-label fw-bold">Background Color</label>
+						<div class="d-flex gap-2 align-items-center">
+							<input type="color" name="bg_color" class="form-control form-control-color" value="#ffffff" style="width: 50px; height: 38px;">
+							<small class="text-muted">Optional</small>
+						</div>
+					</div>
+				</div>
+				<div class="d-flex justify-content-end mt-3">
+					<button type="submit" class="btn btn-success"><i class="icon-plus me-1"></i> Add Section</button>
+				</div>
+			</form>
+		</div>
+	</div>
+
+	<!-- SEO & Settings -->
+	<form action="{{ route('admin.website.pages.update', $page) }}" method="POST" enctype="multipart/form-data" id="seoForm">
+		@csrf
+		@method('PUT')
+		<input type="hidden" name="title" value="{{ $page->title }}">
+		<input type="hidden" name="content" value="{{ $page->content }}">
+		<input type="hidden" name="is_active" value="{{ $page->is_active ? '1' : '0' }}">
+		<div class="row mt-4 g-3">
 
 		<!-- SEO & Settings -->
 		<div class="row mt-4 g-3">
@@ -465,10 +665,10 @@
 		<!-- Save -->
 		<div class="d-flex justify-content-between align-items-center mt-3 mb-4">
 			<a href="{{ route('admin.website.pages') }}" class="btn btn-outline-secondary"><i class="icon-arrow-left me-1"></i> Back</a>
-			<button type="submit" class="btn btn-primary btn-lg px-5"><i class="icon-check me-1"></i> Save Changes</button>
+			<button type="submit" form="seoForm" class="btn btn-primary px-4"><i class="icon-check me-1"></i> Save SEO & Settings</button>
 		</div>
-	</div>
-</form>
+	</form>
+</div>
 @endif
 @endsection
 
@@ -551,6 +751,41 @@ jQuery(document).ready(function() {
 			r.onload = function(e) { jQuery('#previewBanner').css('background-image', 'url(' + e.target.result + ')'); };
 			r.readAsDataURL(this.files[0]);
 		}
+	});
+
+	// Add Section toggle
+	jQuery('#addSectionToggle').on('click', function() {
+		jQuery('#addSectionForm').toggleClass('d-none');
+		jQuery('#addSectionArrow').toggleClass('icon-angle-down icon-angle-up');
+	});
+
+	// Edit Section toggle
+	jQuery(document).on('click', '.edit-section-btn', function() {
+		var id = jQuery(this).data('id');
+		jQuery('#editForm-' + id).toggleClass('d-none');
+	});
+	jQuery(document).on('click', '.cancel-edit-btn', function() {
+		var id = jQuery(this).data('id');
+		jQuery('#editForm-' + id).addClass('d-none');
+	});
+
+	// Delete Section
+	jQuery(document).on('click', '.delete-section-btn', function(e) {
+		e.preventDefault();
+		var form = jQuery(this).closest('form');
+		var name = jQuery(this).data('name');
+		Swal.fire({
+			title: 'Delete Section?',
+			html: 'Delete <strong>' + name + '</strong>? This cannot be undone.',
+			icon: 'warning',
+			showCancelButton: true,
+			confirmButtonColor: '#FC4438',
+			confirmButtonText: 'Yes, delete',
+			cancelButtonText: 'Cancel',
+			reverseButtons: true
+		}).then(function(result) {
+			if (result.isConfirmed) form.submit();
+		});
 	});
 
 	@if(session('success'))

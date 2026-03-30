@@ -10,6 +10,7 @@ class WebsiteSection extends Model
     protected $fillable = [
         'page_id',
         'section_key',
+        'layout',
         'title',
         'subtitle',
         'content',
@@ -17,9 +18,28 @@ class WebsiteSection extends Model
         'icon',
         'link',
         'link_text',
+        'bg_color',
         'sort_order',
         'is_active',
     ];
+
+    public const LAYOUTS = [
+        'image-left' => 'Image Left + Content Right (50/50)',
+        'image-right' => 'Content Left + Image Right (50/50)',
+        'full-width' => 'Full Width Content (no image)',
+        'full-image' => 'Full Width Image with Text Overlay',
+        'content-center' => 'Centered Content (no image)',
+    ];
+
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('sort_order')->orderBy('id');
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
 
     protected $casts = [
         'is_active' => 'boolean',

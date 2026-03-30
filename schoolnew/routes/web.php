@@ -766,6 +766,12 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Super Admin,Ad
         Route::get('/pages/{page}/edit', [App\Http\Controllers\Admin\WebsiteSettingController::class, 'editPage'])->name('pages.edit');
         Route::put('/pages/{page}', [App\Http\Controllers\Admin\WebsiteSettingController::class, 'updatePage'])->name('pages.update');
 
+        // Page Sections
+        Route::post('/pages/{page}/sections', [App\Http\Controllers\Admin\WebsiteSettingController::class, 'storeSection'])->name('pages.sections.store');
+        Route::put('/sections/{section}', [App\Http\Controllers\Admin\WebsiteSettingController::class, 'updateSection'])->name('sections.update');
+        Route::delete('/sections/{section}', [App\Http\Controllers\Admin\WebsiteSettingController::class, 'destroySection'])->name('sections.destroy');
+        Route::post('/sections/reorder', [App\Http\Controllers\Admin\WebsiteSettingController::class, 'reorderSections'])->name('sections.reorder');
+
         // Contact Messages
         Route::get('/contacts', [App\Http\Controllers\Admin\WebsiteSettingController::class, 'contacts'])->name('contacts');
         Route::get('/contacts/{contact}', [App\Http\Controllers\Admin\WebsiteSettingController::class, 'showContact'])->name('contacts.show');
