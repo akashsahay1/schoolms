@@ -163,6 +163,7 @@
 							@enderror
 						</div>
 						@endif
+						@include('admin.custom-fields._section-fields', ['sectionKey' => 'basic_information', 'customFieldValues' => $customFieldValues ?? []])
 					</div>
 				</div>
 			</div>
@@ -219,6 +220,7 @@
 							@enderror
 						</div>
 						@endif
+						@include('admin.custom-fields._section-fields', ['sectionKey' => 'contact_information', 'customFieldValues' => $customFieldValues ?? []])
 					</div>
 				</div>
 			</div>
@@ -305,6 +307,7 @@
 								<div class="invalid-feedback">{{ $message }}</div>
 							@enderror
 						</div>
+						@include('admin.custom-fields._section-fields', ['sectionKey' => 'employment_information', 'customFieldValues' => $customFieldValues ?? []])
 					</div>
 				</div>
 			</div>
@@ -337,11 +340,12 @@
 							@enderror
 						</div>
 						@endif
+						@include('admin.custom-fields._section-fields', ['sectionKey' => 'qualifications', 'customFieldValues' => $customFieldValues ?? []])
 					</div>
 				</div>
 			</div>
 
-			<!-- Custom Fields -->
+			<!-- Custom Fields (Additional Information) -->
 			@include('admin.custom-fields._form-fields', [
 				'customFields' => $customFields ?? [],
 				'customFieldValues' => $customFieldValues ?? [],

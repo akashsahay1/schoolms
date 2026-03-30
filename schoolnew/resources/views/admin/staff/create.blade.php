@@ -141,6 +141,7 @@
 							<label for="nationality" class="form-label">Nationality</label>
 							<input type="text" class="form-control @error('nationality') is-invalid @enderror" id="nationality" name="nationality" value="{{ old('nationality', 'Indian') }}">
 						</div>
+						@include('admin.custom-fields._section-fields', ['sectionKey' => 'basic_information', 'customFieldValues' => []])
 					</div>
 				</div>
 			</div>
@@ -195,6 +196,7 @@
 							@enderror
 						</div>
 						@endif
+						@include('admin.custom-fields._section-fields', ['sectionKey' => 'contact_information', 'customFieldValues' => []])
 					</div>
 				</div>
 			</div>
@@ -256,6 +258,7 @@
 							@enderror
 						</div>
 						@endif
+						@include('admin.custom-fields._section-fields', ['sectionKey' => 'job_details', 'customFieldValues' => []])
 					</div>
 				</div>
 			</div>
@@ -295,12 +298,13 @@
 							@enderror
 						</div>
 						@endif
+						@include('admin.custom-fields._section-fields', ['sectionKey' => 'documents', 'customFieldValues' => []])
 					</div>
 				</div>
 			</div>
 			@endif
 
-			<!-- Custom Fields -->
+			<!-- Custom Fields (Additional Information) -->
 			@include('admin.custom-fields._form-fields', [
 				'customFields' => $customFields,
 				'customFieldValues' => [],

@@ -1,242 +1,562 @@
 @extends('layouts.app')
 
-@section('title', 'Edit Page - ' . $page->title)
+@section('title', 'Edit - ' . $page->title)
 
 @section('page-title', 'Edit Page')
 
 @section('breadcrumb')
 	<li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
-	<li class="breadcrumb-item"><a href="{{ route('admin.website.index') }}">Website</a></li>
 	<li class="breadcrumb-item"><a href="{{ route('admin.website.pages') }}">Pages</a></li>
 	<li class="breadcrumb-item active">{{ $page->title }}</li>
 @endsection
 
+@push('styles')
+<style>
+.page-editor-container {
+	margin: -15px -15px 0;
+}
+/* Top toolbar */
+.editor-toolbar {
+	background: #1e1e2d;
+	padding: 10px 20px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	position: sticky;
+	top: 60px;
+	z-index: 100;
+	border-radius: 0;
+}
+.editor-toolbar .page-info {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	color: #fff;
+}
+.editor-toolbar .page-info h6 {
+	margin: 0;
+	font-size: 14px;
+	color: #fff;
+}
+.editor-toolbar .toolbar-actions {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+}
+.toolbar-btn {
+	padding: 6px 14px;
+	border-radius: 6px;
+	font-size: 12px;
+	font-weight: 600;
+	border: none;
+	cursor: pointer;
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	text-decoration: none;
+	transition: all 0.2s;
+}
+.toolbar-btn-outline {
+	background: transparent;
+	border: 1px solid rgba(255,255,255,0.3);
+	color: #fff;
+}
+.toolbar-btn-outline:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.toolbar-btn-primary { background: var(--theme-default); color: #fff; }
+.toolbar-btn-primary:hover { background: #5a4fd4; color: #fff; }
+
+/* Section edit strips */
+.section-edit-strip {
+	background: rgba(115, 102, 255, 0.95);
+	padding: 6px 16px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	color: #fff;
+	font-size: 12px;
+	font-weight: 600;
+}
+.section-edit-strip .section-name {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+.section-edit-strip .section-name .num {
+	background: rgba(255,255,255,0.25);
+	width: 22px;
+	height: 22px;
+	border-radius: 50%;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 11px;
+}
+.section-edit-strip a {
+	color: #fff;
+	background: rgba(255,255,255,0.2);
+	padding: 3px 12px;
+	border-radius: 4px;
+	font-size: 11px;
+	text-decoration: none;
+	transition: background 0.2s;
+}
+.section-edit-strip a:hover {
+	background: rgba(255,255,255,0.35);
+	color: #fff;
+}
+
+/* Website iframe */
+.website-frame {
+	width: 100%;
+	border: none;
+	min-height: 80vh;
+}
+
+/* Non-home page editor */
+.content-editor-wrapper {
+	max-width: 900px;
+	margin: 0 auto;
+	padding: 20px;
+}
+.editable-section {
+	position: relative;
+	transition: box-shadow 0.2s;
+}
+.editable-section:hover {
+	box-shadow: 0 0 0 3px var(--theme-default);
+	border-radius: 8px;
+}
+.editable-section:hover .edit-btn { opacity: 1; }
+.edit-btn {
+	position: absolute;
+	top: 10px;
+	right: 10px;
+	z-index: 10;
+	opacity: 0;
+	transition: opacity 0.2s;
+	background: var(--theme-default);
+	color: #fff;
+	border: none;
+	border-radius: 6px;
+	padding: 6px 14px;
+	font-size: 12px;
+	font-weight: 600;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	gap: 5px;
+	box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+.edit-btn:hover { background: #5a4fd4; }
+.section-label-tag {
+	position: absolute;
+	top: 10px;
+	left: 10px;
+	z-index: 10;
+	background: rgba(0,0,0,0.6);
+	color: #fff;
+	padding: 3px 10px;
+	border-radius: 4px;
+	font-size: 10px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	opacity: 0;
+	transition: opacity 0.2s;
+}
+.editable-section:hover .section-label-tag { opacity: 1; }
+.preview-banner {
+	background: url('{{ $page->banner_image ? asset("storage/" . $page->banner_image) : asset("assets/images/banner/4.jpg") }}') center/cover no-repeat;
+	padding: 80px 30px 60px;
+	color: #fff;
+	text-align: center;
+	position: relative;
+	overflow: hidden;
+	border-radius: 8px 8px 0 0;
+}
+.preview-banner::before {
+	content: '';
+	position: absolute;
+	inset: 0;
+	background: {{ $page->banner_color ?? '#6065f2' }};
+	opacity: 0.85;
+}
+.preview-banner * { position: relative; z-index: 2; }
+.preview-banner h1 { font-size: 1.8rem; font-weight: 700; margin: 0 0 6px; }
+.preview-banner .breadcrumb-preview { font-size: 13px; opacity: 0.8; }
+.preview-body {
+	background: #fff;
+	padding: 40px;
+	border-radius: 0 0 8px 8px;
+	box-shadow: 0 2px 20px rgba(0,0,0,0.06);
+	min-height: 200px;
+	font-size: 14px;
+	line-height: 1.8;
+	color: #555;
+}
+.preview-body h1,.preview-body h2,.preview-body h3 { color: #2c323f; font-weight: 600; }
+.preview-body p { margin-bottom: 12px; }
+.preview-body blockquote { border-left: 4px solid #7366ff; padding: 14px 20px; background: #f5f4ff; border-radius: 0 8px 8px 0; margin: 16px 0; }
+.preview-body img { max-width: 100%; border-radius: 8px; }
+.preview-body table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+.preview-body table th,.preview-body table td { border: 1px solid #e9ecef; padding: 10px 14px; }
+.preview-body table th { background: #f5f4ff; font-weight: 600; }
+.edit-drawer { display: none; background: #fff; border: 2px solid var(--theme-default); border-radius: 10px; padding: 20px; margin: 12px 0; box-shadow: 0 4px 20px rgba(115,102,255,0.15); }
+.edit-drawer.open { display: block; }
+.edit-drawer-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid #eee; }
+.edit-drawer-header h6 { margin: 0; font-weight: 700; color: var(--theme-default); }
+.close-drawer { background: none; border: none; font-size: 18px; color: #999; cursor: pointer; }
+.close-drawer:hover { color: #333; }
+.empty-content { text-align: center; padding: 60px 20px; color: #aaa; }
+</style>
+@endpush
+
 @section('content')
 @if(session('success'))
-	<div class="alert alert-success alert-dismissible fade show" role="alert">
-		<i class="icon-check me-2"></i> {{ session('success') }}
-		<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+	<div class="alert alert-success alert-dismissible fade show py-2 px-3 mb-3" role="alert" style="font-size: 13px; border-radius: 8px;">
+		<i class="icon-check me-1"></i> {{ session('success') }}
+		<button type="button" class="btn-close btn-close-sm" data-bs-dismiss="alert" style="padding: 10px;"></button>
 	</div>
 @endif
 
-@if($errors->any())
-	<div class="alert alert-danger alert-dismissible fade show" role="alert">
-		<ul class="mb-0">
-			@foreach($errors->all() as $error)
-				<li>{{ $error }}</li>
-			@endforeach
-		</ul>
-		<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+@php
+	$isHomePage = $page->slug === 'home';
+	$knownRoutes = ['home','about','academics','facilities','gallery','news','events','contact'];
+	$viewUrl = in_array($page->slug, $knownRoutes)
+		? route('website.' . ($page->slug === 'home' ? 'home' : $page->slug))
+		: route('website.page', $page->slug);
+@endphp
+
+@if($isHomePage)
+{{-- ==================== HOME PAGE EDITOR ==================== --}}
+<div class="page-editor-container">
+	<!-- Top Toolbar -->
+	<div class="editor-toolbar">
+		<div class="page-info">
+			<a href="{{ route('admin.website.pages') }}" class="toolbar-btn toolbar-btn-outline"><i class="icon-arrow-left"></i></a>
+			<h6>Editing: {{ $page->title }}</h6>
+			<span class="badge bg-success" style="font-size: 10px;">LIVE</span>
+		</div>
+		<div class="toolbar-actions">
+			<a href="{{ route('admin.website.homepage-sections') }}" class="toolbar-btn toolbar-btn-outline"><i class="icon-settings"></i> Homepage Sections</a>
+			<a href="{{ $viewUrl }}" target="_blank" class="toolbar-btn toolbar-btn-outline"><i class="icon-eye"></i> View Live</a>
+		</div>
 	</div>
-@endif
+
+	<!-- Section: Hero Slider -->
+	<div class="section-edit-strip">
+		<div class="section-name"><span class="num">1</span> Hero Slider</div>
+		<a href="{{ route('admin.website.sliders') }}"><i class="icon-pencil-alt me-1"></i> Edit Sliders</a>
+	</div>
+
+	<!-- Section: Why Choose Us -->
+	<div class="section-edit-strip" style="background: rgba(84, 186, 74, 0.9);">
+		<div class="section-name"><span class="num">2</span> Why Choose Us</div>
+		<a href="{{ route('admin.website.homepage-sections') }}#section-why"><i class="icon-pencil-alt me-1"></i> Edit Section</a>
+	</div>
+
+	<!-- Section: About Us -->
+	<div class="section-edit-strip" style="background: rgba(255, 170, 5, 0.9);">
+		<div class="section-name"><span class="num">3</span> About Us</div>
+		<a href="{{ route('admin.website.homepage-sections') }}#section-about"><i class="icon-pencil-alt me-1"></i> Edit Section</a>
+	</div>
+
+	<!-- Section: Statistics -->
+	<div class="section-edit-strip" style="background: rgba(255, 51, 100, 0.9);">
+		<div class="section-name"><span class="num">4</span> Statistics Counters</div>
+		<a href="{{ route('admin.website.homepage-sections') }}#section-stats"><i class="icon-pencil-alt me-1"></i> Edit Section</a>
+	</div>
+
+	<!-- Section: Facilities -->
+	<div class="section-edit-strip" style="background: rgba(0, 176, 155, 0.9);">
+		<div class="section-name"><span class="num">5</span> Facilities</div>
+		<a href="{{ route('admin.website.facilities') }}"><i class="icon-pencil-alt me-1"></i> Edit Facilities</a>
+	</div>
+
+	<!-- Section: Events & News -->
+	<div class="section-edit-strip" style="background: rgba(108, 117, 125, 0.9);">
+		<div class="section-name"><span class="num">6</span> Events & News</div>
+		<div class="d-flex gap-2">
+			<a href="{{ route('admin.events.index') }}"><i class="icon-pencil-alt me-1"></i> Events</a>
+			<a href="{{ route('admin.notices.index') }}"><i class="icon-pencil-alt me-1"></i> Notices</a>
+		</div>
+	</div>
+
+	<!-- Section: Gallery -->
+	<div class="section-edit-strip" style="background: rgba(23, 162, 184, 0.9);">
+		<div class="section-name"><span class="num">7</span> Photo Gallery</div>
+		<a href="{{ route('admin.website.gallery') }}"><i class="icon-pencil-alt me-1"></i> Edit Gallery</a>
+	</div>
+
+	<!-- Section: Testimonials -->
+	<div class="section-edit-strip" style="background: rgba(220, 53, 69, 0.9);">
+		<div class="section-name"><span class="num">8</span> Testimonials</div>
+		<a href="{{ route('admin.website.testimonials') }}"><i class="icon-pencil-alt me-1"></i> Edit Testimonials</a>
+	</div>
+
+	<!-- Section: CTA -->
+	<div class="section-edit-strip" style="background: rgba(115, 102, 255, 0.9);">
+		<div class="section-name"><span class="num">9</span> Call to Action Banner</div>
+		<a href="{{ route('admin.website.homepage-sections') }}#section-cta"><i class="icon-pencil-alt me-1"></i> Edit Section</a>
+	</div>
+
+	<!-- Actual Website Page in iframe -->
+	<iframe src="{{ $viewUrl }}" class="website-frame" id="websiteFrame"></iframe>
+
+	<!-- Bottom bar: SEO & Settings -->
+	<div style="padding: 20px; background: #f8f9fa;">
+		<form action="{{ route('admin.website.pages.update', $page) }}" method="POST" enctype="multipart/form-data">
+			@csrf
+			@method('PUT')
+			<input type="hidden" name="title" value="{{ $page->title }}">
+			<input type="hidden" name="is_active" value="{{ $page->is_active ? '1' : '0' }}">
+
+			<div class="row g-3" style="max-width: 900px; margin: 0 auto;">
+				<div class="col-md-4">
+					<label class="form-label fw-bold">Browser Tab Title</label>
+					<input type="text" name="title" class="form-control" value="{{ $page->title }}">
+				</div>
+				<div class="col-md-4">
+					<label class="form-label fw-bold">SEO Description</label>
+					<input type="text" name="meta_description" class="form-control" value="{{ $page->meta_description }}" maxlength="160" placeholder="For Google search results">
+				</div>
+				<div class="col-md-4">
+					<label class="form-label fw-bold">SEO Keywords</label>
+					<input type="text" name="meta_keywords" class="form-control" value="{{ $page->meta_keywords }}" placeholder="school, education">
+				</div>
+				<div class="col-12 text-end">
+					<button type="submit" class="btn btn-primary"><i class="icon-check me-1"></i> Save SEO Settings</button>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+
+@else
+{{-- ==================== REGULAR PAGE EDITOR (Privacy, About, etc.) ==================== --}}
+
+<!-- Top Toolbar -->
+<div class="page-editor-container">
+	<div class="editor-toolbar">
+		<div class="page-info">
+			<a href="{{ route('admin.website.pages') }}" class="toolbar-btn toolbar-btn-outline"><i class="icon-arrow-left"></i></a>
+			<h6>Editing: {{ $page->title }}</h6>
+			<span class="badge {{ $page->is_active ? 'bg-success' : 'bg-danger' }}" style="font-size: 10px;">{{ $page->is_active ? 'LIVE' : 'HIDDEN' }}</span>
+		</div>
+		<div class="toolbar-actions">
+			<a href="{{ $viewUrl }}" target="_blank" class="toolbar-btn toolbar-btn-outline"><i class="icon-eye"></i> View Live</a>
+			<button type="submit" form="pageForm" class="toolbar-btn toolbar-btn-primary"><i class="icon-check"></i> Save Changes</button>
+		</div>
+	</div>
+</div>
 
 <form action="{{ route('admin.website.pages.update', $page) }}" method="POST" enctype="multipart/form-data" id="pageForm">
 	@csrf
 	@method('PUT')
 
-	<div class="row">
-		<!-- Main Content -->
-		<div class="col-lg-8">
-			<div class="card">
-				<div class="card-header">
-					<h5>Page Content</h5>
-				</div>
-				<div class="card-body">
-					<div class="mb-3">
-						<label class="form-label">Page Title <span class="text-danger">*</span></label>
-						<input type="text" name="title" class="form-control form-control-lg" value="{{ old('title', $page->title) }}" required placeholder="Enter page title">
-					</div>
+	<div class="content-editor-wrapper">
+		<!-- Banner Section -->
+		<div class="editable-section" id="bannerSection">
+			<span class="section-label-tag">Banner</span>
+			<button type="button" class="edit-btn" data-target="bannerDrawer"><i class="icon-pencil-alt"></i> Edit Banner</button>
 
-					<div class="mb-3">
-						<label class="form-label">Page Content</label>
-						<textarea name="content" id="pageEditor">{{ old('content', $page->content) }}</textarea>
+			<div class="preview-banner" id="previewBanner">
+				<h1 id="previewTitle">{{ $page->title }}</h1>
+				<div class="breadcrumb-preview">Home / <strong>{{ $page->title }}</strong></div>
+			</div>
+
+			<div class="edit-drawer" id="bannerDrawer">
+				<div class="edit-drawer-header">
+					<h6><i class="icon-image me-2"></i> Edit Banner</h6>
+					<button type="button" class="close-drawer" data-close="bannerDrawer">&times;</button>
+				</div>
+				<div class="row g-3">
+					<div class="col-md-6">
+						<label class="form-label fw-bold">Page Title</label>
+						<input type="text" name="title" id="titleInput" class="form-control" value="{{ old('title', $page->title) }}" required>
+					</div>
+					<div class="col-md-3">
+						<label class="form-label fw-bold">Overlay Color</label>
+						<div class="d-flex gap-2">
+							<input type="color" name="banner_color" id="bannerColor" class="form-control form-control-color" value="{{ old('banner_color', $page->banner_color ?? '#6065f2') }}" style="width: 50px;">
+							<input type="text" id="bannerColorText" class="form-control" value="{{ old('banner_color', $page->banner_color ?? '#6065f2') }}" maxlength="7" style="max-width: 90px; font-family: monospace;">
+						</div>
+					</div>
+					<div class="col-md-3">
+						<label class="form-label fw-bold">Banner Image</label>
+						<input type="file" name="banner_image" class="form-control form-control-sm" accept="image/*" id="bannerFileInput">
+						@if($page->banner_image)
+							<div class="form-check mt-1">
+								<input type="checkbox" name="remove_banner_image" value="1" class="form-check-input" id="removeBanner">
+								<label class="form-check-label text-danger" for="removeBanner" style="font-size: 11px;">Remove</label>
+							</div>
+						@endif
 					</div>
 				</div>
 			</div>
 		</div>
 
-		<!-- Sidebar -->
-		<div class="col-lg-4">
-			<!-- Actions -->
-			<div class="card">
-				<div class="card-header">
-					<h5>Publish</h5>
+		<!-- Content Section -->
+		<div class="editable-section" id="contentSection">
+			<span class="section-label-tag">Content</span>
+			<button type="button" class="edit-btn" data-target="contentDrawer"><i class="icon-pencil-alt"></i> Edit Content</button>
+
+			<div class="preview-body" id="previewContent">
+				@if($page->content)
+					{!! $page->content !!}
+				@else
+					<div class="empty-content">
+						<i class="icon-note" style="font-size: 40px;"></i>
+						<p>No content yet. Click <strong>"Edit Content"</strong> to start writing.</p>
+					</div>
+				@endif
+			</div>
+
+			<div class="edit-drawer" id="contentDrawer">
+				<div class="edit-drawer-header">
+					<h6><i class="icon-pencil-alt me-2"></i> Edit Content</h6>
+					<button type="button" class="close-drawer" data-close="contentDrawer">&times;</button>
 				</div>
-				<div class="card-body">
-					<div class="d-flex justify-content-between align-items-center mb-3">
-						<span class="text-muted">Status</span>
-						<div class="form-check form-switch">
-							<input type="checkbox" name="is_active" class="form-check-input" id="is_active" value="1" {{ old('is_active', $page->is_active) ? 'checked' : '' }}>
-							<label class="form-check-label" for="is_active">Visible</label>
+				<textarea name="content" id="pageEditor">{{ old('content', $page->content) }}</textarea>
+				<p class="text-muted mt-2 mb-0" style="font-size: 11px;"><i class="icon-info-alt me-1"></i> Changes appear above when you close this editor.</p>
+			</div>
+		</div>
+
+		<!-- SEO & Settings -->
+		<div class="row mt-4 g-3">
+			<div class="col-md-6">
+				<div class="card mb-0">
+					<div class="card-header py-2"><h6 class="mb-0"><i class="icon-search me-2"></i> SEO</h6></div>
+					<div class="card-body">
+						<div class="mb-2">
+							<label class="form-label" style="font-size: 12px;">Meta Description <small class="text-muted">(max 160)</small></label>
+							<textarea name="meta_description" class="form-control form-control-sm" rows="2" maxlength="160">{{ old('meta_description', $page->meta_description) }}</textarea>
 						</div>
-					</div>
-					<div class="d-flex justify-content-between align-items-center mb-3">
-						<span class="text-muted">Last Updated</span>
-						<span>{{ $page->updated_at->format('d M Y, h:i A') }}</span>
-					</div>
-					<div class="d-grid gap-2">
-						<button type="submit" class="btn btn-primary">
-							<i class="icon-save me-1"></i> Update Page
-						</button>
-						<button type="button" class="btn btn-outline-info" id="previewBtn">
-							<i class="icon-eye me-1"></i> Preview
-						</button>
-						@php
-							$knownRoutes = ['home','about','academics','facilities','gallery','news','events','contact'];
-							$viewUrl = in_array($page->slug, $knownRoutes)
-								? route('website.' . ($page->slug === 'home' ? 'home' : $page->slug))
-								: route('website.page', $page->slug);
-						@endphp
-						<a href="{{ $viewUrl }}" target="_blank" class="btn btn-outline-secondary">
-							<i class="icon-link me-1"></i> View Live Page
-						</a>
+						<div>
+							<label class="form-label" style="font-size: 12px;">Keywords</label>
+							<input type="text" name="meta_keywords" class="form-control form-control-sm" value="{{ old('meta_keywords', $page->meta_keywords) }}" placeholder="school, education">
+						</div>
 					</div>
 				</div>
 			</div>
-
-			<!-- Banner Image -->
-			<div class="card">
-				<div class="card-header">
-					<h5>Banner Image</h5>
-				</div>
-				<div class="card-body">
-					<div class="mb-3">
-						@if($page->banner_image)
-							<div class="mb-2 position-relative">
-								<img src="{{ asset('storage/' . $page->banner_image) }}" alt="{{ $page->title }}" class="img-thumbnail w-100" style="max-height: 150px; object-fit: cover;">
-								<label class="text-danger small mt-1 d-block" style="cursor: pointer;">
-									<input type="checkbox" name="remove_banner_image" value="1" class="me-1"> Remove image
-								</label>
+			<div class="col-md-6">
+				<div class="card mb-0">
+					<div class="card-header py-2"><h6 class="mb-0"><i class="icon-settings me-2"></i> Settings</h6></div>
+					<div class="card-body">
+						<div class="d-flex justify-content-between align-items-center mb-2">
+							<span style="font-size: 13px;">Visibility</span>
+							<div class="form-check form-switch mb-0">
+								<input type="checkbox" name="is_active" class="form-check-input" value="1" {{ $page->is_active ? 'checked' : '' }}>
 							</div>
-						@endif
-						<input type="file" name="banner_image" class="form-control" accept="image/*">
-						<small class="text-muted">1920 x 400px recommended</small>
-					</div>
-
-					<div class="mb-0">
-						<label class="form-label">Overlay Color</label>
-						<div class="d-flex align-items-center gap-2">
-							<input type="color" name="banner_color" class="form-control form-control-color" id="bannerColor" value="{{ old('banner_color', $page->banner_color ?? '#6065f2') }}" style="width: 50px; height: 38px;">
-							<input type="text" class="form-control" id="bannerColorText" value="{{ old('banner_color', $page->banner_color ?? '#6065f2') }}" maxlength="7" style="max-width: 100px;">
-							<button type="button" class="btn btn-sm btn-outline-secondary" id="resetBannerColor">Reset</button>
+						</div>
+						<div class="d-flex justify-content-between align-items-center mb-2">
+							<span class="text-muted" style="font-size: 13px;">URL</span>
+							<code style="font-size: 11px;">{{ url('/') }}/{{ $page->slug }}</code>
+						</div>
+						<div class="d-flex justify-content-between align-items-center">
+							<span class="text-muted" style="font-size: 13px;">Updated</span>
+							<span style="font-size: 12px;">{{ $page->updated_at->format('d M Y, h:i A') }}</span>
 						</div>
 					</div>
 				</div>
 			</div>
+		</div>
 
-			<!-- SEO -->
-			<div class="card">
-				<div class="card-header">
-					<h5>SEO Settings</h5>
-				</div>
-				<div class="card-body">
-					<div class="mb-3">
-						<label class="form-label">Meta Description</label>
-						<textarea name="meta_description" class="form-control" rows="3" maxlength="160">{{ old('meta_description', $page->meta_description) }}</textarea>
-						<small class="text-muted">Max 160 characters</small>
-					</div>
-					<div class="mb-0">
-						<label class="form-label">Meta Keywords</label>
-						<input type="text" name="meta_keywords" class="form-control" value="{{ old('meta_keywords', $page->meta_keywords) }}" placeholder="keyword1, keyword2">
-					</div>
-				</div>
-			</div>
+		<!-- Save -->
+		<div class="d-flex justify-content-between align-items-center mt-3 mb-4">
+			<a href="{{ route('admin.website.pages') }}" class="btn btn-outline-secondary"><i class="icon-arrow-left me-1"></i> Back</a>
+			<button type="submit" class="btn btn-primary btn-lg px-5"><i class="icon-check me-1"></i> Save Changes</button>
 		</div>
 	</div>
 </form>
-
-<!-- Preview Modal -->
-<div class="modal fade" id="previewModal" tabindex="-1">
-	<div class="modal-dialog modal-xl modal-dialog-scrollable">
-		<div class="modal-content">
-			<div class="modal-header">
-				<h5 class="modal-title">Page Preview</h5>
-				<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-			</div>
-			<div class="modal-body p-0">
-				<div style="background: #7366ff; color: #fff; text-align: center; padding: 40px 20px;">
-					<h2 id="previewTitle" style="margin: 0;">{{ $page->title }}</h2>
-				</div>
-				<div class="p-4 p-md-5" id="previewContent" style="min-height: 300px;">
-				</div>
-			</div>
-			<div class="modal-footer">
-				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-			</div>
-		</div>
-	</div>
-</div>
+@endif
 @endsection
 
 @push('scripts')
+@if($isHomePage ?? false)
+<script>
+jQuery(document).ready(function() {
+	// Auto-resize iframe to content height
+	jQuery('#websiteFrame').on('load', function() {
+		try {
+			this.style.height = this.contentWindow.document.body.scrollHeight + 'px';
+		} catch(e) {
+			this.style.height = '3000px';
+		}
+	});
+});
+</script>
+@else
 <script src="{{ asset('assets/js/editor/ckeditor/ckeditor.js') }}"></script>
 <script>
 jQuery(document).ready(function() {
-	// Initialize CKEditor
+	// Edit drawer toggle
+	jQuery(document).on('click', '.edit-btn', function(e) {
+		e.preventDefault();
+		var id = jQuery(this).data('target');
+		jQuery('.edit-drawer.open').not('#' + id).removeClass('open');
+		jQuery('#' + id).toggleClass('open');
+		if (jQuery('#' + id).hasClass('open')) {
+			jQuery('html, body').animate({ scrollTop: jQuery('#' + id).offset().top - 100 }, 300);
+		}
+	});
+	jQuery(document).on('click', '.close-drawer', function() {
+		var id = jQuery(this).data('close');
+		jQuery('#' + id).removeClass('open');
+		if (id === 'contentDrawer' && CKEDITOR.instances.pageEditor) {
+			var content = CKEDITOR.instances.pageEditor.getData();
+			jQuery('#previewContent').html(content || '<div class="empty-content"><i class="icon-note" style="font-size:40px;"></i><p>No content yet.</p></div>');
+		}
+	});
+
+	// CKEditor
 	CKEDITOR.replace('pageEditor', {
-		height: 400,
+		height: 350,
 		removeButtons: 'Save,NewPage,Preview,Print,Templates,PasteFromWord,Scayt,Form,Checkbox,Radio,TextField,Textarea,Select,Button,ImageButton,HiddenField,CreateDiv,BidiLtr,BidiRtl,Language,Flash,Smiley,SpecialChar,PageBreak,Iframe,About',
 		toolbar: [
 			{ name: 'clipboard', items: ['Undo', 'Redo', '-', 'Cut', 'Copy', 'Paste', 'PasteText'] },
-			{ name: 'basicstyles', items: ['Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript', '-', 'RemoveFormat'] },
+			{ name: 'basicstyles', items: ['Bold', 'Italic', 'Underline', 'Strike', '-', 'RemoveFormat'] },
 			{ name: 'paragraph', items: ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'Blockquote'] },
 			{ name: 'alignment', items: ['JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'] },
-			{ name: 'links', items: ['Link', 'Unlink', 'Anchor'] },
+			{ name: 'links', items: ['Link', 'Unlink'] },
 			{ name: 'insert', items: ['Image', 'Table', 'HorizontalRule'] },
 			'/',
-			{ name: 'styles', items: ['Styles', 'Format', 'Font', 'FontSize'] },
+			{ name: 'styles', items: ['Format', 'Font', 'FontSize'] },
 			{ name: 'colors', items: ['TextColor', 'BGColor'] },
 			{ name: 'tools', items: ['Maximize', 'Source'] }
 		],
-		contentsCss: [
-			'https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap'
-		],
-		font_names: 'Poppins/Poppins, sans-serif;Arial/Arial, Helvetica, sans-serif;Times New Roman/Times New Roman, Times, serif;Verdana/Verdana, Geneva, sans-serif',
-		font_defaultLabel: 'Poppins',
-		fontSize_sizes: '12/12px;14/14px;16/16px;18/18px;20/20px;24/24px;28/28px;32/32px;36/36px',
-		bodyClass: 'page-content',
+		contentsCss: ['https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap'],
 		allowedContent: true
 	});
 
-	// Preview button
-	jQuery('#previewBtn').on('click', function() {
-		var title = jQuery('input[name="title"]').val();
-		var content = CKEDITOR.instances.pageEditor.getData();
-
-		jQuery('#previewTitle').text(title || 'Untitled Page');
-		jQuery('#previewContent').html(content || '<p class="text-muted text-center py-5">No content yet.</p>');
-
-		var modal = new bootstrap.Modal(document.getElementById('previewModal'));
-		modal.show();
+	// Live title
+	jQuery('#titleInput').on('input', function() {
+		jQuery('#previewTitle').text(jQuery(this).val() || 'Untitled');
 	});
-
-	// Banner color sync
+	// Live color
 	jQuery('#bannerColor').on('input', function() {
 		jQuery('#bannerColorText').val(jQuery(this).val());
+		jQuery('<style>#previewBanner::before{background:' + jQuery(this).val() + '!important}</style>').appendTo('head');
 	});
 	jQuery('#bannerColorText').on('input', function() {
-		var val = jQuery(this).val();
-		if (/^#[0-9A-Fa-f]{6}$/.test(val)) {
-			jQuery('#bannerColor').val(val);
+		if (/^#[0-9A-Fa-f]{6}$/.test(jQuery(this).val())) {
+			jQuery('#bannerColor').val(jQuery(this).val());
+			jQuery('<style>#previewBanner::before{background:' + jQuery(this).val() + '!important}</style>').appendTo('head');
 		}
 	});
-	jQuery('#resetBannerColor').on('click', function() {
-		jQuery('#bannerColor').val('#6065f2');
-		jQuery('#bannerColorText').val('#6065f2');
+	// Live banner image
+	jQuery('#bannerFileInput').on('change', function() {
+		if (this.files[0]) {
+			var r = new FileReader();
+			r.onload = function(e) { jQuery('#previewBanner').css('background-image', 'url(' + e.target.result + ')'); };
+			r.readAsDataURL(this.files[0]);
+		}
 	});
 
-	// Success toast
 	@if(session('success'))
-		Swal.fire({
-			toast: true,
-			position: 'top-end',
-			icon: 'success',
-			title: '{{ session('success') }}',
-			showConfirmButton: false,
-			timer: 3000,
-			timerProgressBar: true
-		});
+		Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: '{{ session("success") }}', showConfirmButton: false, timer: 3000, timerProgressBar: true });
 	@endif
 });
 </script>
+@endif
 @endpush

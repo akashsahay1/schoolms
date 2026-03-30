@@ -15,9 +15,39 @@ class CustomField extends Model
         'field_type',
         'options',
         'applies_to',
+        'section',
         'is_required',
         'sort_order',
         'is_active',
+    ];
+
+    /**
+     * Available form sections per scope.
+     */
+    public const SECTIONS = [
+        'student' => [
+            'student_information' => 'Student Information',
+            'academic_information' => 'Academic Information',
+            'contact_information' => 'Contact Information',
+            'parent_information' => 'Parent/Guardian Information',
+            'aadhaar_details' => 'Aadhaar Card Details',
+            'additional_information' => 'Additional Information',
+        ],
+        'teacher' => [
+            'basic_information' => 'Basic Information',
+            'contact_information' => 'Contact Information',
+            'employment_information' => 'Employment Information',
+            'qualifications' => 'Qualifications',
+            'aadhaar_pan' => 'Aadhaar & PAN Card',
+            'additional_information' => 'Additional Information',
+        ],
+        'staff' => [
+            'basic_information' => 'Basic Information',
+            'contact_information' => 'Contact Information',
+            'job_details' => 'Job Details',
+            'documents' => 'Documents',
+            'additional_information' => 'Additional Information',
+        ],
     ];
 
     protected $casts = [

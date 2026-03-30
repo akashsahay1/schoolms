@@ -18,6 +18,8 @@ use App\Models\Attendance;
 use App\Models\LeaveApplication;
 use App\Models\ExamMark;
 use App\Models\FeeStructure;
+use App\Models\Homework;
+use App\Models\HomeworkSubmission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -46,13 +48,14 @@ class DashboardController extends Controller
         $classWiseStudents = collect([]);
         $topStudents = collect([]);
         $topPerformers = collect([]);
+        $subjectPerformance = [];
         $unpaidFees = collect([]);
         $notices = collect([]);
         $upcomingEvents = collect([]);
         $tasks = collect([]);
         $totalTasks = 0;
         $completedTasks = 0;
-        $attendanceStats = ['present' => 85, 'absent' => 10, 'late' => 5, 'present_count' => 0, 'absent_count' => 0];
+        $attendanceStats = ['present' => 0, 'absent' => 0, 'late' => 0, 'present_count' => 0, 'absent_count' => 0];
         $pendingLeaves = collect([]);
         $pendingLeavesCount = 0;
         $libraryStats = [];
@@ -63,7 +66,7 @@ class DashboardController extends Controller
             $this->loadFullDashboardData(
                 $currentAcademicYear, $totalStudents,
                 $stats, $genderStats, $recentStudents, $classWiseStudents,
-                $topStudents, $topPerformers, $unpaidFees, $notices, $upcomingEvents,
+                $topStudents, $topPerformers, $subjectPerformance, $unpaidFees, $notices, $upcomingEvents,
                 $tasks, $totalTasks, $completedTasks, $attendanceStats,
                 $pendingLeaves, $pendingLeavesCount
             );
@@ -92,6 +95,7 @@ class DashboardController extends Controller
             'currentAcademicYear',
             'topStudents',
             'topPerformers',
+            'subjectPerformance',
             'unpaidFees',
             'notices',
             'upcomingEvents',
@@ -126,13 +130,18 @@ class DashboardController extends Controller
     protected function loadFullDashboardData(
         $currentAcademicYear, $totalStudents,
         &$stats, &$genderStats, &$recentStudents, &$classWiseStudents,
-        &$topStudents, &$topPerformers, &$unpaidFees, &$notices, &$upcomingEvents,
+        &$topStudents, &$topPerformers, &$subjectPerformance, &$unpaidFees, &$notices, &$upcomingEvents,
         &$tasks, &$totalTasks, &$completedTasks, &$attendanceStats,
         &$pendingLeaves, &$pendingLeavesCount
     ) {
         $totalTeachers = Staff::where('status', 'active')->teachers()->count() ?: Staff::teachers()->count();
         $totalFeeCollected = class_exists(FeeCollection::class) ? (FeeCollection::sum('paid_amount') ?? 0) : 0;
         $totalStaff = Staff::where('status', 'active')->count() ?: Staff::count();
+
+        // Calculate real homework completion rate
+        $homeworkStats = $this->calculateHomeworkStats($currentAcademicYear);
+        $testStats = $this->calculateTestStats($currentAcademicYear);
+        $attendanceRateStats = $this->calculateAttendanceRateStats();
 
         $stats = [
             'total_students' => $totalStudents,
@@ -145,9 +154,15 @@ class DashboardController extends Controller
             'total_income' => $totalFeeCollected,
             'total_expense' => 0,
             'total_revenue' => $totalFeeCollected,
-            'homework_completion' => 89,
-            'test_average' => 95,
-            'attendance_rate' => 92,
+            'homework_completion' => $homeworkStats['rate'],
+            'homework_growth' => $homeworkStats['growth'],
+            'homework_description' => $homeworkStats['description'],
+            'test_average' => $testStats['average'],
+            'test_growth' => $testStats['growth'],
+            'test_description' => $testStats['description'],
+            'attendance_rate' => $attendanceRateStats['rate'],
+            'attendance_growth' => $attendanceRateStats['growth'],
+            'attendance_description' => $attendanceRateStats['description'],
         ];
 
         // Gender distribution
@@ -164,6 +179,35 @@ class DashboardController extends Controller
         $recentStudents = Student::with(['schoolClass', 'section'])->latest()->take(5)->get();
         $classWiseStudents = SchoolClass::with('sections')->withCount('students')->orderBy('order')->get();
         $topStudents = collect([]);
+
+        // Subject-wise performance for polar chart
+        $subjectPerformance = [];
+        try {
+            $subjectData = DB::table('exam_marks')
+                ->join('subjects', 'exam_marks.subject_id', '=', 'subjects.id')
+                ->where('exam_marks.full_marks', '>', 0)
+                ->when($currentAcademicYear, function($q) use ($currentAcademicYear) {
+                    $q->join('exams', 'exam_marks.exam_id', '=', 'exams.id')
+                      ->where('exams.academic_year_id', $currentAcademicYear->id);
+                })
+                ->select(
+                    'subjects.name',
+                    DB::raw('ROUND(AVG(exam_marks.marks_obtained / exam_marks.full_marks * 100)) as avg_pct')
+                )
+                ->groupBy('subjects.name')
+                ->orderByDesc('avg_pct')
+                ->limit(6)
+                ->get();
+
+            foreach ($subjectData as $row) {
+                $subjectPerformance[] = [
+                    'name' => $row->name,
+                    'value' => (int) $row->avg_pct,
+                ];
+            }
+        } catch (\Exception $e) {
+            // Table may not exist
+        }
 
         // Top performers from exam marks
         $topPerformers = collect([]);
@@ -770,6 +814,156 @@ class DashboardController extends Controller
         }
 
         return response()->json($result);
+    }
+
+    /**
+     * Calculate homework submission/completion stats.
+     */
+    private function calculateHomeworkStats($currentAcademicYear): array
+    {
+        $default = ['rate' => 0, 'growth' => 0, 'description' => 'No homework assigned yet'];
+
+        try {
+            $query = Homework::where('is_active', true);
+            if ($currentAcademicYear) {
+                $query->where('academic_year_id', $currentAcademicYear->id);
+            }
+
+            $totalHomework = $query->count();
+            if ($totalHomework === 0) return $default;
+
+            $homeworkIds = $query->pluck('id');
+
+            // Total expected submissions = homework count × average students per class
+            $totalSubmissions = HomeworkSubmission::whereIn('homework_id', $homeworkIds)->count();
+            $submittedCount = HomeworkSubmission::whereIn('homework_id', $homeworkIds)->submitted()->count();
+
+            $rate = $totalSubmissions > 0 ? round(($submittedCount / $totalSubmissions) * 100) : 0;
+
+            // Growth: compare this month vs last month
+            $thisMonthSubmitted = HomeworkSubmission::whereIn('homework_id', $homeworkIds)
+                ->submitted()
+                ->whereMonth('created_at', now()->month)
+                ->whereYear('created_at', now()->year)
+                ->count();
+            $thisMonthTotal = HomeworkSubmission::whereIn('homework_id', $homeworkIds)
+                ->whereMonth('created_at', now()->month)
+                ->whereYear('created_at', now()->year)
+                ->count();
+
+            $lastMonthSubmitted = HomeworkSubmission::whereIn('homework_id', $homeworkIds)
+                ->submitted()
+                ->whereMonth('created_at', now()->subMonth()->month)
+                ->whereYear('created_at', now()->subMonth()->year)
+                ->count();
+            $lastMonthTotal = HomeworkSubmission::whereIn('homework_id', $homeworkIds)
+                ->whereMonth('created_at', now()->subMonth()->month)
+                ->whereYear('created_at', now()->subMonth()->year)
+                ->count();
+
+            $thisMonthRate = $thisMonthTotal > 0 ? ($thisMonthSubmitted / $thisMonthTotal) * 100 : 0;
+            $lastMonthRate = $lastMonthTotal > 0 ? ($lastMonthSubmitted / $lastMonthTotal) * 100 : 0;
+            $growth = $lastMonthRate > 0 ? round($thisMonthRate - $lastMonthRate) : 0;
+
+            // Latest homework title as description
+            $latest = Homework::where('is_active', true)
+                ->when($currentAcademicYear, fn($q) => $q->where('academic_year_id', $currentAcademicYear->id))
+                ->latest('homework_date')
+                ->first();
+            $description = $latest ? $latest->title : "{$totalHomework} homework assigned";
+
+            return ['rate' => $rate, 'growth' => $growth, 'description' => $description];
+        } catch (\Exception $e) {
+            return $default;
+        }
+    }
+
+    /**
+     * Calculate test/exam average stats.
+     */
+    private function calculateTestStats($currentAcademicYear): array
+    {
+        $default = ['average' => 0, 'growth' => 0, 'description' => 'No exam data available'];
+
+        try {
+            $query = ExamMark::where('full_marks', '>', 0);
+            if ($currentAcademicYear) {
+                $hasData = (clone $query)
+                    ->whereHas('exam', fn($q) => $q->where('academic_year_id', $currentAcademicYear->id))
+                    ->exists();
+                if ($hasData) {
+                    $query->whereHas('exam', fn($q) => $q->where('academic_year_id', $currentAcademicYear->id));
+                }
+            }
+
+            $avgPercentage = $query->selectRaw('AVG(marks_obtained / full_marks * 100) as avg_pct')->value('avg_pct');
+            $average = $avgPercentage ? round($avgPercentage) : 0;
+
+            if ($average === 0) return $default;
+
+            // Growth: this month vs last month
+            $thisMonthAvg = ExamMark::where('full_marks', '>', 0)
+                ->whereMonth('created_at', now()->month)
+                ->whereYear('created_at', now()->year)
+                ->selectRaw('AVG(marks_obtained / full_marks * 100) as avg_pct')
+                ->value('avg_pct') ?? 0;
+
+            $lastMonthAvg = ExamMark::where('full_marks', '>', 0)
+                ->whereMonth('created_at', now()->subMonth()->month)
+                ->whereYear('created_at', now()->subMonth()->year)
+                ->selectRaw('AVG(marks_obtained / full_marks * 100) as avg_pct')
+                ->value('avg_pct') ?? 0;
+
+            $growth = $lastMonthAvg > 0 ? round($thisMonthAvg - $lastMonthAvg) : 0;
+
+            $totalExams = ExamMark::when($currentAcademicYear, function($q) use ($currentAcademicYear) {
+                $q->whereHas('exam', fn($eq) => $eq->where('academic_year_id', $currentAcademicYear->id));
+            })->distinct('exam_id')->count('exam_id');
+
+            $description = "Average across {$totalExams} exam(s)";
+
+            return ['average' => $average, 'growth' => $growth, 'description' => $description];
+        } catch (\Exception $e) {
+            return $default;
+        }
+    }
+
+    /**
+     * Calculate attendance rate stats.
+     */
+    private function calculateAttendanceRateStats(): array
+    {
+        $default = ['rate' => 0, 'growth' => 0, 'description' => 'No attendance data available'];
+
+        try {
+            $thisMonth = now()->startOfMonth();
+            $thisMonthEnd = now()->endOfMonth();
+
+            $totalThisMonth = Attendance::whereBetween('attendance_date', [$thisMonth, $thisMonthEnd])->count();
+            $presentThisMonth = Attendance::whereBetween('attendance_date', [$thisMonth, $thisMonthEnd])
+                ->where('status', 'present')->count();
+
+            $rate = $totalThisMonth > 0 ? round(($presentThisMonth / $totalThisMonth) * 100) : 0;
+
+            // Growth: compare with last month
+            $lastMonth = now()->subMonth()->startOfMonth();
+            $lastMonthEnd = now()->subMonth()->endOfMonth();
+
+            $totalLastMonth = Attendance::whereBetween('attendance_date', [$lastMonth, $lastMonthEnd])->count();
+            $presentLastMonth = Attendance::whereBetween('attendance_date', [$lastMonth, $lastMonthEnd])
+                ->where('status', 'present')->count();
+
+            $lastMonthRate = $totalLastMonth > 0 ? ($presentLastMonth / $totalLastMonth) * 100 : 0;
+            $growth = $lastMonthRate > 0 ? round($rate - $lastMonthRate) : 0;
+
+            $description = $totalThisMonth > 0
+                ? "{$presentThisMonth} present out of {$totalThisMonth} this month"
+                : 'No attendance recorded this month';
+
+            return ['rate' => $rate, 'growth' => $growth, 'description' => $description];
+        } catch (\Exception $e) {
+            return $default;
+        }
     }
 
     /**

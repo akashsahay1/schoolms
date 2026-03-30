@@ -135,6 +135,9 @@ class FeeCollectionController extends Controller
 				->exists();
 
 			if ($exists) {
+				if ($request->ajax()) {
+					return response()->json(['message' => 'Fee already collected for this fee type.'], 422);
+				}
 				return back()->with('error', 'Fee already collected for this student.')->withInput();
 			}
 
@@ -180,11 +183,22 @@ class FeeCollectionController extends Controller
 				}
 			}
 
+			if ($request->ajax()) {
+				return response()->json([
+					'success' => true,
+					'message' => 'Fee collected successfully.',
+					'receipt_no' => $collection->receipt_no,
+				]);
+			}
+
 			return redirect()->route('admin.fees.receipt', $collection->id)
 				->with('success', 'Fee collected successfully.');
 
 		} catch (\Exception $e) {
 			DB::rollBack();
+			if ($request->ajax()) {
+				return response()->json(['message' => 'An error occurred: ' . $e->getMessage()], 500);
+			}
 			return back()->with('error', 'An error occurred: ' . $e->getMessage())->withInput();
 		}
 	}

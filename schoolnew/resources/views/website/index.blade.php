@@ -1,6 +1,8 @@
 @extends('layouts.website')
 
-@section('title', 'Welcome')
+@section('title', $page->title ?? 'Welcome')
+
+@section('meta_description', $page->meta_description ?? '')
 
 @section('content')
 <!-- Hero Slider -->

@@ -33,7 +33,8 @@ class CustomFieldController extends Controller
 
     public function create()
     {
-        return view('admin.custom-fields.create');
+        $sections = CustomField::SECTIONS;
+        return view('admin.custom-fields.create', compact('sections'));
     }
 
     public function store(Request $request)
@@ -44,6 +45,7 @@ class CustomFieldController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'field_type' => ['required', 'in:text,textarea,number,date,select,checkbox,radio,file'],
             'applies_to' => ['required', 'in:student,teacher,all'],
+            'section' => ['nullable', 'string', 'max:100'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
         ];
 
@@ -66,6 +68,7 @@ class CustomFieldController extends Controller
         $validated['is_required'] = $request->boolean('is_required');
         $validated['is_active'] = $request->boolean('is_active', true);
         $validated['sort_order'] = $validated['sort_order'] ?? 0;
+        $validated['section'] = $validated['section'] ?? 'additional_information';
 
         CustomField::create($validated);
 
@@ -75,7 +78,8 @@ class CustomFieldController extends Controller
 
     public function edit(CustomField $customField)
     {
-        return view('admin.custom-fields.edit', compact('customField'));
+        $sections = CustomField::SECTIONS;
+        return view('admin.custom-fields.edit', compact('customField', 'sections'));
     }
 
     public function update(Request $request, CustomField $customField)
@@ -86,6 +90,7 @@ class CustomFieldController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'field_type' => ['required', 'in:text,textarea,number,date,select,checkbox,radio,file'],
             'applies_to' => ['required', 'in:student,teacher,all'],
+            'section' => ['nullable', 'string', 'max:100'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
         ];
 
@@ -108,11 +113,29 @@ class CustomFieldController extends Controller
         $validated['is_required'] = $request->boolean('is_required');
         $validated['is_active'] = $request->boolean('is_active', true);
         $validated['sort_order'] = $validated['sort_order'] ?? 0;
+        $validated['section'] = $validated['section'] ?? 'additional_information';
 
         $customField->update($validated);
 
         return redirect()->route('admin.custom-fields.index')
             ->with('success', 'Custom field updated successfully.');
+    }
+
+    public function bulkDelete(Request $request)
+    {
+        $ids = $request->input('ids', []);
+
+        if (empty($ids)) {
+            return response()->json(['message' => 'No fields selected.'], 422);
+        }
+
+        $count = CustomField::whereIn('id', $ids)->count();
+        CustomField::whereIn('id', $ids)->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => "{$count} custom field(s) moved to trash.",
+        ]);
     }
 
     public function destroy(CustomField $customField)

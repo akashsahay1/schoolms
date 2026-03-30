@@ -711,13 +711,19 @@
                                                 <div class="right-overview-content">
                                                     <div>
                                                         <h6>Homework</h6>
-                                                        <span class="text-muted text-ellipsis">Bring Something into the Classroom...</span>
+                                                        <span class="text-muted text-ellipsis">{{ Str::limit($stats['homework_description'] ?? 'No homework data', 40) }}</span>
                                                     </div>
                                                     <div class="d-flex marks-count">
-                                                        <h5>{{ $stats['homework_completion'] ?? 89 }}/<sub class="text-muted">100</sub></h5>
+                                                        <h5>{{ $stats['homework_completion'] ?? 0 }}/<sub class="text-muted">100</sub></h5>
+                                                        @php $hwGrowth = $stats['homework_growth'] ?? 0; @endphp
                                                         <div class="d-flex justify-content-center align-items-center">
-                                                            <i class="icon-arrow-up txt-success pe-2 f-w-600"></i>
-                                                            <span class="txt-success f-w-500">+80%</span>
+                                                            @if($hwGrowth >= 0)
+                                                                <i class="icon-arrow-up txt-success pe-2 f-w-600"></i>
+                                                                <span class="txt-success f-w-500">+{{ $hwGrowth }}%</span>
+                                                            @else
+                                                                <i class="icon-arrow-down txt-danger pe-2 f-w-600"></i>
+                                                                <span class="txt-danger f-w-500">{{ $hwGrowth }}%</span>
+                                                            @endif
                                                         </div>
                                                     </div>
                                                 </div>
@@ -733,13 +739,19 @@
                                                 <div class="right-overview-content">
                                                     <div>
                                                         <h6>Tests</h6>
-                                                        <span class="text-muted text-ellipsis">These 5 study tips can help you take...</span>
+                                                        <span class="text-muted text-ellipsis">{{ Str::limit($stats['test_description'] ?? 'No exam data', 40) }}</span>
                                                     </div>
                                                     <div class="d-flex marks-count">
-                                                        <h5>{{ $stats['test_average'] ?? 95 }}/<sub class="text-muted">100</sub></h5>
+                                                        <h5>{{ $stats['test_average'] ?? 0 }}/<sub class="text-muted">100</sub></h5>
+                                                        @php $testGrowth = $stats['test_growth'] ?? 0; @endphp
                                                         <div class="d-flex justify-content-center align-items-center">
-                                                            <i class="icon-arrow-up txt-success pe-2 f-w-600"></i>
-                                                            <span class="txt-success f-w-500">+97%</span>
+                                                            @if($testGrowth >= 0)
+                                                                <i class="icon-arrow-up txt-success pe-2 f-w-600"></i>
+                                                                <span class="txt-success f-w-500">+{{ $testGrowth }}%</span>
+                                                            @else
+                                                                <i class="icon-arrow-down txt-danger pe-2 f-w-600"></i>
+                                                                <span class="txt-danger f-w-500">{{ $testGrowth }}%</span>
+                                                            @endif
                                                         </div>
                                                     </div>
                                                 </div>
@@ -755,13 +767,19 @@
                                                 <div class="right-overview-content">
                                                     <div>
                                                         <h6>Attendance</h6>
-                                                        <span class="text-muted text-ellipsis">Student absence reduces even best...</span>
+                                                        <span class="text-muted text-ellipsis">{{ Str::limit($stats['attendance_description'] ?? 'No attendance data', 40) }}</span>
                                                     </div>
                                                     <div class="d-flex marks-count">
-                                                        <h5>{{ $stats['attendance_rate'] ?? 92 }}/<sub class="text-muted">100</sub></h5>
+                                                        <h5>{{ $stats['attendance_rate'] ?? 0 }}/<sub class="text-muted">100</sub></h5>
+                                                        @php $attGrowth = $stats['attendance_growth'] ?? 0; @endphp
                                                         <div class="d-flex justify-content-center align-items-center">
-                                                            <i class="icon-arrow-up txt-success pe-2 f-w-600"></i>
-                                                            <span class="txt-success f-w-500">+94%</span>
+                                                            @if($attGrowth >= 0)
+                                                                <i class="icon-arrow-up txt-success pe-2 f-w-600"></i>
+                                                                <span class="txt-success f-w-500">+{{ $attGrowth }}%</span>
+                                                            @else
+                                                                <i class="icon-arrow-down txt-danger pe-2 f-w-600"></i>
+                                                                <span class="txt-danger f-w-500">{{ $attGrowth }}%</span>
+                                                            @endif
                                                         </div>
                                                     </div>
                                                 </div>
@@ -1010,24 +1028,30 @@
                         </div>
                         <div class="card-body pt-0">
                             <div class="student-leader-wrapper">
-                                @forelse($topStudents ?? [] as $index => $student)
+                                @forelse($topPerformers ?? [] as $index => $performer)
                                 <div class="student-leader-content {{ $index < 3 ? 'light-card' : '' }}">
                                     <div class="d-flex align-items-center gap-2">
                                         @if($index < 3)
                                         <img src="{{ asset('assets/images/dashboard-7/attendance/student-leader/rank-' . ($index + 1) . '.svg') }}" alt="rank-{{ $index + 1 }}">
                                         @else
-                                        <h5>{{ $index + 1 }}<sup>{{ $index == 3 ? 'th' : 'th' }}</sup></h5>
+                                        <h5>{{ $index + 1 }}<sup>th</sup></h5>
                                         @endif
-                                        <img class="leader-img" src="{{ $student->photo_url ?? asset('assets/images/dashboard/profile.png') }}" alt="user">
+                                        @if($performer->photo)
+                                            <img class="leader-img" src="{{ asset('storage/' . $performer->photo) }}" alt="user">
+                                        @else
+                                            <div class="leader-img rounded-circle bg-primary d-flex align-items-center justify-content-center text-white" style="width: 40px; height: 40px; min-width: 40px; font-size: 14px;">
+                                                {{ strtoupper(substr($performer->first_name, 0, 1)) }}
+                                            </div>
+                                        @endif
                                         <div class="leader-content-height">
-                                            <h6>{{ $student->first_name ?? 'Student' }}<span class="c-o-light f-14 f-w-400 ps-1">({{ $student->schoolClass->name ?? 'Grade' }})</span></h6>
+                                            <h6>{{ $performer->first_name }}<span class="c-o-light f-14 f-w-400 ps-1">({{ $performer->class_name ?? 'N/A' }})</span></h6>
                                         </div>
                                     </div>
-                                    <span class="f-14 txt-primary">{{ $student->percentage ?? '0' }}%</span>
+                                    <span class="f-14 txt-primary">{{ $performer->percentage ?? '0' }}%</span>
                                 </div>
                                 @empty
                                 <div class="text-center py-3">
-                                    <p class="text-muted">No data available</p>
+                                    <p class="text-muted">No exam data available yet</p>
                                 </div>
                                 @endforelse
                             </div>
@@ -1335,6 +1359,7 @@
 			present: {{ $attendanceStats['present'] ?? 0 }},
 			absent: {{ $attendanceStats['absent'] ?? 0 }}
 		},
+		subjectPerformance: {!! json_encode($subjectPerformance ?? []) !!},
 		classes: {!! json_encode($classWiseStudents->map(function($class) {
 			return [
 				'id' => $class->id,

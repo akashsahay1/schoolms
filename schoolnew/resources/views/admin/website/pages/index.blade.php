@@ -55,8 +55,8 @@
                                         @endif
                                     </td>
                                     <td>
-                                        <a href="{{ route('admin.website.pages.edit', $page) }}" class="btn btn-sm btn-outline-primary">
-                                            <i data-feather="edit-2" style="width: 14px;"></i> Edit
+                                        <a href="{{ route('admin.website.pages.edit', $page) }}" class="btn btn-sm btn-primary" style="color: #fff;">
+                                            Edit
                                         </a>
                                     </td>
                                 </tr>

@@ -163,6 +163,7 @@
                             <input type="text" class="form-control @error('mother_tongue') is-invalid @enderror" name="mother_tongue" value="{{ old('mother_tongue', $student->mother_tongue) }}" {{ $isRequired('mother_tongue') ? 'required' : '' }}>
                         </div>
                         @endif
+                        @include('admin.custom-fields._section-fields', ['sectionKey' => 'student_information', 'customFieldValues' => $customFieldValues ?? []])
                     </div>
                 </div>
             </div>
@@ -269,6 +270,7 @@
                             <input type="text" class="form-control @error('previous_school') is-invalid @enderror" name="previous_school" value="{{ old('previous_school', $student->previous_school) }}" {{ $isRequired('previous_school') ? 'required' : '' }}>
                         </div>
                     </div>
+                    @include('admin.custom-fields._section-fields', ['sectionKey' => 'academic_information', 'customFieldValues' => $customFieldValues ?? []])
                     @endif
                 </div>
             </div>
@@ -308,6 +310,7 @@
                             <textarea class="form-control @error('permanent_address') is-invalid @enderror" name="permanent_address" rows="3" {{ $isRequired('permanent_address') ? 'required' : '' }}>{{ old('permanent_address', $student->permanent_address) }}</textarea>
                         </div>
                         @endif
+                        @include('admin.custom-fields._section-fields', ['sectionKey' => 'contact_information', 'customFieldValues' => $customFieldValues ?? []])
                     </div>
                 </div>
             </div>
@@ -358,6 +361,7 @@
                             @endif
                         </div>
                         @endif
+                        @include('admin.custom-fields._section-fields', ['sectionKey' => 'aadhaar_details', 'customFieldValues' => $customFieldValues ?? []])
                     </div>
                 </div>
             </div>
@@ -434,11 +438,12 @@
                         </div>
                         @endif
                     </div>
+                    @include('admin.custom-fields._section-fields', ['sectionKey' => 'parent_information', 'customFieldValues' => $customFieldValues ?? []])
                     @endif
                 </div>
             </div>
 
-            <!-- Custom Fields -->
+            <!-- Custom Fields (Additional Information - fields not assigned to a specific section) -->
             @include('admin.custom-fields._form-fields', [
                 'customFields' => $customFields,
                 'customFieldValues' => $customFieldValues,

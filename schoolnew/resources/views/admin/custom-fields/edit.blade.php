@@ -60,7 +60,7 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Applies To <span class="text-danger">*</span></label>
-                            <select name="applies_to" class="form-select @error('applies_to') is-invalid @enderror" required>
+                            <select name="applies_to" id="applies_to" class="form-select @error('applies_to') is-invalid @enderror" required>
                                 <option value="student" {{ old('applies_to', $customField->applies_to) == 'student' ? 'selected' : '' }}>Student Only</option>
                                 <option value="teacher" {{ old('applies_to', $customField->applies_to) == 'teacher' ? 'selected' : '' }}>Teacher Only</option>
                                 <option value="all" {{ old('applies_to', $customField->applies_to) == 'all' ? 'selected' : '' }}>Both (Student & Teacher)</option>
@@ -71,12 +71,25 @@
                         </div>
 
                         <div class="col-md-6 mb-3">
+                            <label class="form-label">Place in Section <span class="text-danger">*</span></label>
+                            <select name="section" id="section_select" class="form-select @error('section') is-invalid @enderror">
+                                <!-- Populated by JS -->
+                            </select>
+                            @error('section')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                            <small class="text-muted">Choose which form section this field appears in</small>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
                             <label class="form-label">Sort Order</label>
                             <input type="number" name="sort_order" class="form-control @error('sort_order') is-invalid @enderror" value="{{ old('sort_order', $customField->sort_order) }}" min="0">
                             @error('sort_order')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
-                            <small class="text-muted">Lower numbers appear first</small>
+                            <small class="text-muted">Lower numbers appear first within the section</small>
                         </div>
                     </div>
 
@@ -182,6 +195,28 @@
 @push('scripts')
 <script>
 jQuery(document).ready(function() {
+    // Section options per scope
+    var sectionOptions = {!! json_encode($sections) !!};
+    var oldSection = '{{ old('section', $customField->section ?? 'additional_information') }}';
+
+    function updateSections() {
+        var appliesTo = jQuery('#applies_to').val();
+        var select = jQuery('#section_select');
+        select.empty();
+
+        var scope = (appliesTo === 'all') ? 'student' : appliesTo;
+        var options = sectionOptions[scope] || {};
+
+        jQuery.each(options, function(key, label) {
+            var option = jQuery('<option>').val(key).text(label);
+            if (key === oldSection) option.prop('selected', true);
+            select.append(option);
+        });
+    }
+
+    jQuery('#applies_to').on('change', updateSections);
+    updateSections();
+
     var optionTypes = ['select', 'radio', 'checkbox'];
 
     function toggleOptions() {

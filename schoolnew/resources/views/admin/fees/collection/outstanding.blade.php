@@ -107,11 +107,11 @@
 									</td>
 									<td class="text-center">
 										@if($data['outstanding'] > 0)
-											<a href="{{ route('admin.fees.collect', $data['student']) }}" class="btn btn-sm btn-outline-primary">
-												View
+											<a href="{{ route('admin.fees.collect', $data['student']) }}" class="btn btn-sm btn-primary" style="color: #fff;">
+												<i class="icon-money me-1" style="color: #fff;"></i> Collect
 											</a>
 										@else
-											<span class="text-muted">-</span>
+											<span class="badge badge-light-success">Paid</span>
 										@endif
 									</td>
 								</tr>

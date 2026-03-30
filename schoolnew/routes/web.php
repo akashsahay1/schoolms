@@ -71,7 +71,7 @@ Route::name('website.')->group(function () {
     Route::get('/events/{event}', [WebsiteController::class, 'eventShow'])->name('events.show');
     Route::get('/contact', [WebsiteController::class, 'contact'])->name('contact');
     Route::post('/contact', [WebsiteController::class, 'contactStore'])->name('contact.store');
-    Route::get('/page/{slug}', [WebsiteController::class, 'page'])->name('page');
+    Route::get('/{slug}', [WebsiteController::class, 'page'])->name('page');
 });
 
 // Authentication Routes
@@ -134,6 +134,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Super Admin,Ad
     // Custom Fields
     Route::get('custom-fields/form-settings', [CustomFieldController::class, 'formSettings'])->name('custom-fields.form-settings');
     Route::put('custom-fields/form-settings', [CustomFieldController::class, 'updateFormSettings'])->name('custom-fields.update-form-settings');
+    Route::post('custom-fields/bulk-delete', [CustomFieldController::class, 'bulkDelete'])->name('custom-fields.bulk-delete');
     Route::post('custom-fields/bulk-restore', [CustomFieldController::class, 'bulkRestore'])->name('custom-fields.bulk-restore');
     Route::post('custom-fields/bulk-force-delete', [CustomFieldController::class, 'bulkForceDelete'])->name('custom-fields.bulk-force-delete');
     Route::resource('custom-fields', CustomFieldController::class)->except('show');

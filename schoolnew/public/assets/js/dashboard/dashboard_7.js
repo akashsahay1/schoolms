@@ -423,15 +423,33 @@
     chart_income.render();
     window._financeChart = chart_income;
   }
-  //4. Performance pie chart
+  //4. Performance pie chart — dynamic from subject performance data
+  var subjectData = window.dashboardData ? window.dashboardData.subjectPerformance : [];
+  var polarSeries = [];
+  var polarLabels = [];
+  var polarColors = ["#7366FF", "#FFAA05", "#54BA4A", "#FF3364", "#1B998B", "#E84855"];
+
+  if (subjectData && subjectData.length > 0) {
+    for (var i = 0; i < subjectData.length; i++) {
+      polarSeries.push(subjectData[i].value);
+      polarLabels.push(subjectData[i].name);
+    }
+  } else {
+    // Fallback when no exam data
+    polarSeries = [0, 0, 0, 0];
+    polarLabels = ["No Data", "", "", ""];
+  }
+
+  var usedColors = polarColors.slice(0, polarSeries.length);
+
   var options_current_academic = {
-    series: [55, 55, 58, 45],
+    series: polarSeries,
     chart: {
       width: 270,
       type: "polarArea",
       height: 270,
     },
-    labels: ["Science", "Maths", "Economics", "History"],
+    labels: polarLabels,
     fill: {
       opacity: 1,
       type: ["solid"],
@@ -442,7 +460,7 @@
         opacityTo: 0,
         stops: [0, 100],
       },
-      colors: ["#7366FF", "#FFAA05", "#54BA4A", "#FF3364"],
+      colors: usedColors,
     },
 
     stroke: {
@@ -462,7 +480,7 @@
         useSeriesColors: false,
       },
       markers: {
-        fillColors: ["#7366FF", "#FFAA05", "#54BA4A", "#FF3364"],
+        fillColors: usedColors,
         radius: 10,
         width: 14,
         height: 14,

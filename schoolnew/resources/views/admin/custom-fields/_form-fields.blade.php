@@ -7,14 +7,21 @@
     - $formContext: 'create' or 'edit'
 --}}
 
-@if($customFields->count() > 0)
+@php
+    // Only show fields assigned to "Additional Information" section (or legacy fields with no section)
+    $additionalFields = $customFields->filter(function($field) {
+        return in_array($field->section ?? 'additional_information', ['additional_information', '']);
+    });
+@endphp
+
+@if($additionalFields->count() > 0)
 <div class="card">
     <div class="card-header">
         <h5>Additional Information</h5>
     </div>
     <div class="card-body">
         <div class="row">
-            @foreach($customFields as $field)
+            @foreach($additionalFields as $field)
                 @php
                     $fieldName = 'custom_fields[' . $field->id . ']';
                     $fieldId = 'custom_field_' . $field->id;

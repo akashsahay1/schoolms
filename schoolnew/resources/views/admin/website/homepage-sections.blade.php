@@ -1,283 +1,334 @@
 @extends('layouts.app')
 
-@section('title', 'Homepage Sections')
+@section('title', 'Edit Homepage')
 
-@section('page-title', 'Homepage Sections')
+@section('page-title', 'Edit Homepage')
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
     <li class="breadcrumb-item"><a href="{{ route('admin.website.index') }}">Website</a></li>
-    <li class="breadcrumb-item active">Homepage Sections</li>
+    <li class="breadcrumb-item active">Homepage</li>
 @endsection
 
+@push('styles')
+<style>
+.section-accordion .acc-header {
+    padding: 14px 20px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+    transition: background 0.2s;
+    user-select: none;
+}
+.section-accordion .acc-header:hover { background: #f8f9fa; }
+.section-accordion .acc-header .left { display: flex; align-items: center; gap: 12px; }
+.section-accordion .acc-header .num {
+    width: 30px; height: 30px; border-radius: 50%; color: #fff;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px; flex-shrink: 0;
+}
+.section-accordion .acc-header h6 { margin: 0; font-size: 14px; font-weight: 600; }
+.section-accordion .acc-header small { color: #999; font-size: 11px; }
+.section-accordion .acc-header .toggle-icon { font-size: 18px; color: #aaa; transition: transform 0.3s; }
+.section-accordion .acc-header.open .toggle-icon { transform: rotate(180deg); }
+.section-accordion .acc-body { display: none; padding: 20px; border-bottom: 1px solid #eee; }
+.section-accordion .acc-body.open { display: block; }
+.other-section-link {
+    padding: 12px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+    transition: background 0.2s;
+    text-decoration: none;
+    color: inherit;
+}
+.other-section-link:hover { background: #f0efff; color: var(--theme-default); }
+.other-section-link .left { display: flex; align-items: center; gap: 12px; }
+.other-section-link .num {
+    width: 30px; height: 30px; border-radius: 50%; background: #e9ecef; color: #666;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px; flex-shrink: 0;
+}
+.other-section-link .go-arrow { color: #aaa; font-size: 16px; }
+.other-section-link:hover .go-arrow { color: var(--theme-default); }
+</style>
+@endpush
+
 @section('content')
+@if(session('success'))
+    <div class="alert alert-success alert-dismissible fade show py-2 px-3" role="alert" style="font-size: 13px; border-radius: 8px;">
+        <i class="icon-check me-1"></i> {{ session('success') }}
+        <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="alert" style="padding: 10px;"></button>
+    </div>
+@endif
+
+<!-- Top bar -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <p class="text-muted mb-0" style="font-size: 13px;">Click on a section below to expand and edit it. Grayed sections are managed on their own page.</p>
+    </div>
+    <a href="{{ route('website.home') }}" target="_blank" class="btn btn-outline-primary btn-sm"><i class="icon-eye me-1"></i> View Live Homepage</a>
+</div>
+
 <form action="{{ route('admin.website.update-homepage-sections') }}" method="POST" enctype="multipart/form-data">
     @csrf
     @method('PUT')
 
-    @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="icon-check me-2"></i> {{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    @endif
+    <div class="card section-accordion mb-0" style="border-radius: 10px; overflow: hidden;">
 
-    <div class="row">
-        <div class="col-12">
-            <!-- Why Choose Us Section -->
-            <div class="card">
-                <div class="card-header">
-                    <h5><i data-feather="star" class="me-2"></i> "Why Choose Us" Section</h5>
-                    <p class="text-muted mb-0 mt-1">Edit the feature cards shown on the homepage</p>
+        <!-- 1. Hero Slider (link only) -->
+        <a href="{{ route('admin.website.sliders') }}" class="other-section-link">
+            <div class="left">
+                <span class="num" style="background: #6c757d; color: #fff;">1</span>
+                <div>
+                    <h6 style="font-size: 14px; margin: 0; font-weight: 600;">Hero Slider</h6>
+                    <small style="color: #999; font-size: 11px;">Big banner images at top of page</small>
                 </div>
-                <div class="card-body">
-                    <div class="row g-3 mb-4">
-                        <div class="col-md-6">
-                            <label class="form-label">Section Title</label>
-                            <input type="text" name="homepage_why_title" class="form-control" value="{{ \App\Models\Setting::get('homepage_why_title', 'Why Choose Us') }}" placeholder="Why Choose Us">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Section Subtitle</label>
-                            <input type="text" name="homepage_why_subtitle" class="form-control" value="{{ \App\Models\Setting::get('homepage_why_subtitle', 'Discover what makes our school the perfect place for your child\'s education') }}" placeholder="Subtitle text">
-                        </div>
+            </div>
+            <span class="go-arrow"><i class="icon-arrow-right"></i></span>
+        </a>
+
+        <!-- 2. Why Choose Us (editable) -->
+        <div class="acc-header" data-target="acc-why">
+            <div class="left">
+                <span class="num" style="background: #7366ff;">2</span>
+                <div>
+                    <h6>Why Choose Us</h6>
+                    <small>4 feature cards with icons</small>
+                </div>
+            </div>
+            <i class="icon-angle-down toggle-icon"></i>
+        </div>
+        <div class="acc-body" id="acc-why">
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Section Title</label>
+                    <input type="text" name="homepage_why_title" class="form-control" value="{{ \App\Models\Setting::get('homepage_why_title', 'Why Choose Us') }}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Subtitle</label>
+                    <input type="text" name="homepage_why_subtitle" class="form-control" value="{{ \App\Models\Setting::get('homepage_why_subtitle', 'Discover what makes our school the perfect place for your child\'s education') }}">
+                </div>
+            </div>
+            @for($i = 1; $i <= 4; $i++)
+            <div class="p-3 bg-light rounded mb-2">
+                <div class="row g-2 align-items-center">
+                    <div class="col-auto"><span class="badge bg-primary rounded-pill">Card {{ $i }}</span></div>
+                    <div class="col-md-2">
+                        <input type="text" name="homepage_why_{{ $i }}_icon" class="form-control form-control-sm" value="{{ \App\Models\Setting::get('homepage_why_'.$i.'_icon', ['book-open','users','award','heart'][$i-1]) }}" placeholder="Icon name">
                     </div>
-
-                    <hr class="my-4">
-
-                    <!-- Feature 1 -->
-                    <h6 class="text-primary mb-3">Feature Card 1</h6>
-                    <div class="row g-3 mb-4">
-                        <div class="col-md-3">
-                            <label class="form-label">Icon</label>
-                            <input type="text" name="homepage_why_1_icon" class="form-control" value="{{ \App\Models\Setting::get('homepage_why_1_icon', 'book-open') }}" placeholder="e.g. book-open">
-                            <small class="text-muted">Feather icon name (see feathericons.com)</small>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Title</label>
-                            <input type="text" name="homepage_why_1_title" class="form-control" value="{{ \App\Models\Setting::get('homepage_why_1_title', 'Quality Education') }}" placeholder="Feature title">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Description</label>
-                            <input type="text" name="homepage_why_1_desc" class="form-control" value="{{ \App\Models\Setting::get('homepage_why_1_desc', 'Comprehensive curriculum designed to nurture young minds and develop critical thinking skills.') }}" placeholder="Feature description">
-                        </div>
+                    <div class="col-md-3">
+                        <input type="text" name="homepage_why_{{ $i }}_title" class="form-control form-control-sm" value="{{ \App\Models\Setting::get('homepage_why_'.$i.'_title', ['Quality Education','Expert Faculty','Modern Facilities','Safe Environment'][$i-1]) }}" placeholder="Title">
                     </div>
-
-                    <!-- Feature 2 -->
-                    <h6 class="text-primary mb-3">Feature Card 2</h6>
-                    <div class="row g-3 mb-4">
-                        <div class="col-md-3">
-                            <label class="form-label">Icon</label>
-                            <input type="text" name="homepage_why_2_icon" class="form-control" value="{{ \App\Models\Setting::get('homepage_why_2_icon', 'users') }}" placeholder="e.g. users">
-                            <small class="text-muted">Feather icon name (see feathericons.com)</small>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Title</label>
-                            <input type="text" name="homepage_why_2_title" class="form-control" value="{{ \App\Models\Setting::get('homepage_why_2_title', 'Expert Faculty') }}" placeholder="Feature title">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Description</label>
-                            <input type="text" name="homepage_why_2_desc" class="form-control" value="{{ \App\Models\Setting::get('homepage_why_2_desc', 'Dedicated teachers with years of experience in education and child development.') }}" placeholder="Feature description">
-                        </div>
-                    </div>
-
-                    <!-- Feature 3 -->
-                    <h6 class="text-primary mb-3">Feature Card 3</h6>
-                    <div class="row g-3 mb-4">
-                        <div class="col-md-3">
-                            <label class="form-label">Icon</label>
-                            <input type="text" name="homepage_why_3_icon" class="form-control" value="{{ \App\Models\Setting::get('homepage_why_3_icon', 'award') }}" placeholder="e.g. award">
-                            <small class="text-muted">Feather icon name (see feathericons.com)</small>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Title</label>
-                            <input type="text" name="homepage_why_3_title" class="form-control" value="{{ \App\Models\Setting::get('homepage_why_3_title', 'Modern Facilities') }}" placeholder="Feature title">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Description</label>
-                            <input type="text" name="homepage_why_3_desc" class="form-control" value="{{ \App\Models\Setting::get('homepage_why_3_desc', 'State-of-the-art classrooms, labs, and recreational areas for holistic development.') }}" placeholder="Feature description">
-                        </div>
-                    </div>
-
-                    <!-- Feature 4 -->
-                    <h6 class="text-primary mb-3">Feature Card 4</h6>
-                    <div class="row g-3 mb-4">
-                        <div class="col-md-3">
-                            <label class="form-label">Icon</label>
-                            <input type="text" name="homepage_why_4_icon" class="form-control" value="{{ \App\Models\Setting::get('homepage_why_4_icon', 'heart') }}" placeholder="e.g. heart">
-                            <small class="text-muted">Feather icon name (see feathericons.com)</small>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Title</label>
-                            <input type="text" name="homepage_why_4_title" class="form-control" value="{{ \App\Models\Setting::get('homepage_why_4_title', 'Safe Environment') }}" placeholder="Feature title">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Description</label>
-                            <input type="text" name="homepage_why_4_desc" class="form-control" value="{{ \App\Models\Setting::get('homepage_why_4_desc', 'Secure campus with caring staff ensuring your child\'s safety and well-being.') }}" placeholder="Feature description">
-                        </div>
+                    <div class="col">
+                        <input type="text" name="homepage_why_{{ $i }}_desc" class="form-control form-control-sm" value="{{ \App\Models\Setting::get('homepage_why_'.$i.'_desc', '') }}" placeholder="Short description">
                     </div>
                 </div>
             </div>
+            @endfor
+            <small class="text-muted"><i class="icon-info-alt me-1"></i> Icon names from <a href="https://feathericons.com" target="_blank">feathericons.com</a></small>
+        </div>
 
-            <!-- About Us Section -->
-            <div class="card">
-                <div class="card-header">
-                    <h5><i data-feather="info" class="me-2"></i> "About Us" Section</h5>
-                    <p class="text-muted mb-0 mt-1">Edit the about section displayed on the homepage</p>
+        <!-- 3. About Us (editable) -->
+        <div class="acc-header" data-target="acc-about">
+            <div class="left">
+                <span class="num" style="background: #54BA4A;">3</span>
+                <div>
+                    <h6>About Us</h6>
+                    <small>Image, description & checklist</small>
                 </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Section Image</label>
-                            <input type="file" name="homepage_about_image" class="form-control" accept="image/*">
-                            <small class="text-muted">Recommended size: 600x450px. Leave empty to keep current image.</small>
-                            @php $aboutImage = \App\Models\Setting::get('homepage_about_image'); @endphp
-                            @if($aboutImage)
-                                <div class="mt-2">
-                                    <img src="{{ asset('storage/' . $aboutImage) }}" alt="About Image" class="img-thumbnail" style="max-height: 150px;">
-                                </div>
-                            @endif
+            </div>
+            <i class="icon-angle-down toggle-icon"></i>
+        </div>
+        <div class="acc-body" id="acc-about">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Section Image</label>
+                    @php $aboutImage = \App\Models\Setting::get('homepage_about_image'); @endphp
+                    @if($aboutImage)
+                        <div class="mb-2"><img src="{{ asset('storage/' . $aboutImage) }}" class="img-thumbnail" style="max-height: 100px;"></div>
+                    @endif
+                    <input type="file" name="homepage_about_image" class="form-control form-control-sm" accept="image/*">
+                    <small class="text-muted">600 x 450px recommended</small>
+                </div>
+                <div class="col-md-8">
+                    <div class="row g-2">
+                        <div class="col-4">
+                            <label class="form-label fw-bold">Subtitle</label>
+                            <input type="text" name="homepage_about_subtitle" class="form-control form-control-sm" value="{{ \App\Models\Setting::get('homepage_about_subtitle', 'ABOUT US') }}">
                         </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Subtitle</label>
-                            <input type="text" name="homepage_about_subtitle" class="form-control" value="{{ \App\Models\Setting::get('homepage_about_subtitle', 'ABOUT US') }}" placeholder="e.g. ABOUT US">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Title</label>
-                            <input type="text" name="homepage_about_title" class="form-control" value="{{ \App\Models\Setting::get('homepage_about_title', 'A Legacy of Educational Excellence') }}" placeholder="Section title">
+                        <div class="col-8">
+                            <label class="form-label fw-bold">Title</label>
+                            <input type="text" name="homepage_about_title" class="form-control form-control-sm" value="{{ \App\Models\Setting::get('homepage_about_title', 'A Legacy of Educational Excellence') }}">
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Description</label>
-                            <textarea name="homepage_about_description" class="form-control" rows="4" placeholder="About us description text">{{ \App\Models\Setting::get('homepage_about_description', 'Our school has been a beacon of educational excellence for over two decades. We are committed to providing quality education that shapes young minds and prepares them for the challenges of tomorrow.') }}</textarea>
-                        </div>
-                    </div>
-
-                    <hr class="my-4">
-                    <h6 class="text-primary mb-3">Checklist Items</h6>
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label">Checklist Item 1</label>
-                            <input type="text" name="homepage_about_check_1" class="form-control" value="{{ \App\Models\Setting::get('homepage_about_check_1', 'Experienced Teachers') }}" placeholder="e.g. Experienced Teachers">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Checklist Item 2</label>
-                            <input type="text" name="homepage_about_check_2" class="form-control" value="{{ \App\Models\Setting::get('homepage_about_check_2', 'Modern Curriculum') }}" placeholder="e.g. Modern Curriculum">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Checklist Item 3</label>
-                            <input type="text" name="homepage_about_check_3" class="form-control" value="{{ \App\Models\Setting::get('homepage_about_check_3', 'Character Building') }}" placeholder="e.g. Character Building">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Checklist Item 4</label>
-                            <input type="text" name="homepage_about_check_4" class="form-control" value="{{ \App\Models\Setting::get('homepage_about_check_4', 'Sports Activities') }}" placeholder="e.g. Sports Activities">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Checklist Item 5</label>
-                            <input type="text" name="homepage_about_check_5" class="form-control" value="{{ \App\Models\Setting::get('homepage_about_check_5', 'Smart Classes') }}" placeholder="e.g. Smart Classes">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Checklist Item 6</label>
-                            <input type="text" name="homepage_about_check_6" class="form-control" value="{{ \App\Models\Setting::get('homepage_about_check_6', 'Safe Environment') }}" placeholder="e.g. Safe Environment">
+                            <label class="form-label fw-bold">Description</label>
+                            <textarea name="homepage_about_description" class="form-control form-control-sm" rows="3">{{ \App\Models\Setting::get('homepage_about_description', 'Our school has been a beacon of educational excellence for over two decades.') }}</textarea>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <!-- Statistics Section -->
-            <div class="card">
-                <div class="card-header">
-                    <h5><i data-feather="bar-chart-2" class="me-2"></i> "Statistics" Section</h5>
-                    <p class="text-muted mb-0 mt-1">Edit the statistics counters displayed on the homepage</p>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-3">
-                            <label class="form-label">Stat 1 - Number</label>
-                            <input type="text" name="total_students" class="form-control" value="{{ \App\Models\Setting::get('total_students', '1500') }}" placeholder="e.g. 1500">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Stat 1 - Label</label>
-                            <input type="text" name="stat_1_label" class="form-control" value="{{ \App\Models\Setting::get('stat_1_label', 'Students') }}" placeholder="e.g. Students">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Stat 2 - Number</label>
-                            <input type="text" name="total_teachers" class="form-control" value="{{ \App\Models\Setting::get('total_teachers', '100') }}" placeholder="e.g. 100">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Stat 2 - Label</label>
-                            <input type="text" name="stat_2_label" class="form-control" value="{{ \App\Models\Setting::get('stat_2_label', 'Teachers') }}" placeholder="e.g. Teachers">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Stat 3 - Number</label>
-                            <input type="text" name="school_years" class="form-control" value="{{ \App\Models\Setting::get('school_years', '25') }}" placeholder="e.g. 25">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Stat 3 - Label</label>
-                            <input type="text" name="stat_3_label" class="form-control" value="{{ \App\Models\Setting::get('stat_3_label', 'Years') }}" placeholder="e.g. Years">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Stat 4 - Number</label>
-                            <input type="text" name="awards_count" class="form-control" value="{{ \App\Models\Setting::get('awards_count', '50') }}" placeholder="e.g. 50">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Stat 4 - Label</label>
-                            <input type="text" name="stat_4_label" class="form-control" value="{{ \App\Models\Setting::get('stat_4_label', 'Awards') }}" placeholder="e.g. Awards">
-                        </div>
+            <hr class="my-3">
+            <label class="form-label fw-bold">Checklist Items</label>
+            <div class="row g-2">
+                @for($i = 1; $i <= 6; $i++)
+                <div class="col-md-4">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-success text-white"><i class="icon-check" style="color: #fff;"></i></span>
+                        <input type="text" name="homepage_about_check_{{ $i }}" class="form-control" value="{{ \App\Models\Setting::get('homepage_about_check_'.$i, ['Experienced Teachers','Modern Curriculum','Character Building','Sports Activities','Smart Classes','Safe Environment'][$i-1]) }}">
                     </div>
+                </div>
+                @endfor
+            </div>
+        </div>
+
+        <!-- 4. Statistics (editable) -->
+        <div class="acc-header" data-target="acc-stats">
+            <div class="left">
+                <span class="num" style="background: #FFAA05;">4</span>
+                <div>
+                    <h6>Statistics Counters</h6>
+                    <small>Students, Teachers, Years, Awards numbers</small>
                 </div>
             </div>
-
-            <!-- CTA Section ("Ready to Join") -->
-            <div class="card">
-                <div class="card-header">
-                    <h5>"Ready to Join" Section</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Heading</label>
-                            <input type="text" name="cta_heading" class="form-control" value="{{ \App\Models\Setting::get('cta_heading', 'Ready to Join Our School?') }}" placeholder="e.g. Ready to Join Our School?">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Subtitle</label>
-                            <input type="text" name="cta_subtitle" class="form-control" value="{{ \App\Models\Setting::get('cta_subtitle', 'Take the first step towards your child\'s bright future') }}" placeholder="e.g. Take the first step...">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Button Text</label>
-                            <input type="text" name="cta_button_text" class="form-control" value="{{ \App\Models\Setting::get('cta_button_text', 'Contact Us Today') }}" placeholder="e.g. Contact Us Today">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Button Link</label>
-                            <input type="text" name="cta_button_link" class="form-control" value="{{ \App\Models\Setting::get('cta_button_link', '') }}" placeholder="Leave empty for Contact page">
-                            <small class="text-muted">Leave empty to link to Contact Us page</small>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Background Image</label>
-                            <input type="file" name="cta_bg_image" class="form-control" accept="image/*">
-                            @php $ctaBg = \App\Models\Setting::get('cta_bg_image'); @endphp
-                            @if($ctaBg)
-                                <small class="text-success">Current: <a href="{{ asset('storage/' . $ctaBg) }}" target="_blank">View</a></small>
-                            @else
-                                <small class="text-muted">Optional. 1920 x 400px recommended</small>
-                            @endif
-                        </div>
+            <i class="icon-angle-down toggle-icon"></i>
+        </div>
+        <div class="acc-body" id="acc-stats">
+            <div class="row g-3">
+                @php
+                    $stats = [
+                        ['key' => 'total_students', 'lkey' => 'stat_1_label', 'num' => '1500', 'label' => 'Students'],
+                        ['key' => 'total_teachers', 'lkey' => 'stat_2_label', 'num' => '100', 'label' => 'Teachers'],
+                        ['key' => 'school_years', 'lkey' => 'stat_3_label', 'num' => '25', 'label' => 'Years'],
+                        ['key' => 'awards_count', 'lkey' => 'stat_4_label', 'num' => '50', 'label' => 'Awards'],
+                    ];
+                @endphp
+                @foreach($stats as $stat)
+                <div class="col-md-3">
+                    <div class="text-center p-3 bg-light rounded">
+                        <label class="form-label fw-bold" style="font-size: 12px;">Number</label>
+                        <input type="text" name="{{ $stat['key'] }}" class="form-control text-center fw-bold mb-2" value="{{ \App\Models\Setting::get($stat['key'], $stat['num']) }}" style="font-size: 20px;">
+                        <label class="form-label" style="font-size: 12px;">Label</label>
+                        <input type="text" name="{{ $stat['lkey'] }}" class="form-control form-control-sm text-center" value="{{ \App\Models\Setting::get($stat['lkey'], $stat['label']) }}">
                     </div>
+                </div>
+                @endforeach
+            </div>
+        </div>
+
+        <!-- 5. Facilities (link only) -->
+        <a href="{{ route('admin.website.facilities') }}" class="other-section-link">
+            <div class="left">
+                <span class="num">5</span>
+                <div>
+                    <h6 style="font-size: 14px; margin: 0; font-weight: 600;">Facilities</h6>
+                    <small style="color: #999; font-size: 11px;">6 facility cards with icons</small>
                 </div>
             </div>
+            <span class="go-arrow"><i class="icon-arrow-right"></i></span>
+        </a>
 
-            <!-- Submit Button -->
-            <div class="card">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <a href="{{ route('admin.website.index') }}" class="btn btn-light">
-                            <i data-feather="arrow-left" class="me-1"></i> Back to Website Management
-                        </a>
-                        <button type="submit" class="btn btn-primary">
-                            <i data-feather="save" class="me-1"></i> Save Changes
-                        </button>
-                    </div>
+        <!-- 6. Events & News (link only) -->
+        <div style="padding: 12px 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+            <div class="d-flex align-items-center gap-3">
+                <span style="width: 30px; height: 30px; border-radius: 50%; background: #e9ecef; color: #666; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px;">6</span>
+                <div>
+                    <h6 style="font-size: 14px; margin: 0; font-weight: 600;">Events & News</h6>
+                    <small style="color: #999; font-size: 11px;">Auto-pulled from Events and Notices</small>
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{{ route('admin.events.index') }}" class="btn btn-outline-secondary btn-sm" style="font-size: 11px;">Events</a>
+                <a href="{{ route('admin.notices.index') }}" class="btn btn-outline-secondary btn-sm" style="font-size: 11px;">Notices</a>
+            </div>
+        </div>
+
+        <!-- 7. Gallery (link only) -->
+        <a href="{{ route('admin.website.gallery') }}" class="other-section-link">
+            <div class="left">
+                <span class="num">7</span>
+                <div>
+                    <h6 style="font-size: 14px; margin: 0; font-weight: 600;">Photo Gallery</h6>
+                    <small style="color: #999; font-size: 11px;">8 photos in a grid</small>
+                </div>
+            </div>
+            <span class="go-arrow"><i class="icon-arrow-right"></i></span>
+        </a>
+
+        <!-- 8. Testimonials (link only) -->
+        <a href="{{ route('admin.website.testimonials') }}" class="other-section-link">
+            <div class="left">
+                <span class="num">8</span>
+                <div>
+                    <h6 style="font-size: 14px; margin: 0; font-weight: 600;">Testimonials</h6>
+                    <small style="color: #999; font-size: 11px;">Parent & student reviews</small>
+                </div>
+            </div>
+            <span class="go-arrow"><i class="icon-arrow-right"></i></span>
+        </a>
+
+        <!-- 9. Call to Action (editable) -->
+        <div class="acc-header" data-target="acc-cta">
+            <div class="left">
+                <span class="num" style="background: #FC4438;">9</span>
+                <div>
+                    <h6>Call to Action</h6>
+                    <small>"Ready to Join" banner at bottom</small>
+                </div>
+            </div>
+            <i class="icon-angle-down toggle-icon"></i>
+        </div>
+        <div class="acc-body" id="acc-cta">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Heading</label>
+                    <input type="text" name="cta_heading" class="form-control" value="{{ \App\Models\Setting::get('cta_heading', 'Ready to Join Our School?') }}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Subtitle</label>
+                    <input type="text" name="cta_subtitle" class="form-control" value="{{ \App\Models\Setting::get('cta_subtitle', 'Take the first step towards your child\'s bright future') }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Button Text</label>
+                    <input type="text" name="cta_button_text" class="form-control" value="{{ \App\Models\Setting::get('cta_button_text', 'Contact Us Today') }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Button Link</label>
+                    <input type="text" name="cta_button_link" class="form-control" value="{{ \App\Models\Setting::get('cta_button_link', '') }}" placeholder="Leave empty = Contact page">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Background Image</label>
+                    <input type="file" name="cta_bg_image" class="form-control form-control-sm" accept="image/*">
+                    @php $ctaBg = \App\Models\Setting::get('cta_bg_image'); @endphp
+                    @if($ctaBg)
+                        <small class="text-success">Current: <a href="{{ asset('storage/' . $ctaBg) }}" target="_blank">View</a></small>
+                    @else
+                        <small class="text-muted">1920 x 400px recommended</small>
+                    @endif
                 </div>
             </div>
         </div>
+
+        <!-- Footer (link) -->
+        <a href="{{ route('admin.settings.school') }}" class="other-section-link" style="border-bottom: none;">
+            <div class="left">
+                <span class="num">10</span>
+                <div>
+                    <h6 style="font-size: 14px; margin: 0; font-weight: 600;">Footer</h6>
+                    <small style="color: #999; font-size: 11px;">School name, address, phone, email</small>
+                </div>
+            </div>
+            <span class="go-arrow"><i class="icon-arrow-right"></i></span>
+        </a>
+    </div>
+
+    <!-- Save -->
+    <div class="d-flex justify-content-between align-items-center mt-3 mb-4">
+        <a href="{{ route('admin.website.index') }}" class="btn btn-outline-secondary"><i class="icon-arrow-left me-1"></i> Back</a>
+        <button type="submit" class="btn btn-primary px-5"><i class="icon-check me-1"></i> Save Changes</button>
     </div>
 </form>
 @endsection
@@ -285,18 +336,25 @@
 @push('scripts')
 <script>
 jQuery(document).ready(function() {
-    if (typeof feather !== 'undefined') feather.replace();
+    // Accordion toggle
+    jQuery('.acc-header').on('click', function() {
+        var target = jQuery('#' + jQuery(this).data('target'));
+        var isOpen = target.hasClass('open');
+
+        // Close all
+        jQuery('.acc-body').removeClass('open');
+        jQuery('.acc-header').removeClass('open');
+
+        // Toggle clicked
+        if (!isOpen) {
+            target.addClass('open');
+            jQuery(this).addClass('open');
+            jQuery('html, body').animate({ scrollTop: jQuery(this).offset().top - 80 }, 300);
+        }
+    });
 
     @if(session('success'))
-        Swal.fire({
-            toast: true,
-            position: 'top-end',
-            icon: 'success',
-            title: '{{ session('success') }}',
-            showConfirmButton: false,
-            timer: 3000,
-            timerProgressBar: true
-        });
+        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: '{{ session("success") }}', showConfirmButton: false, timer: 3000, timerProgressBar: true });
     @endif
 });
 </script>

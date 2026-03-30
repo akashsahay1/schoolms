@@ -94,7 +94,7 @@
                             <tbody>
                                 @foreach($students as $student)
                                     <tr>
-                                        <td>{{ $student->roll_no }}</td>
+                                        <td>{{ $student->roll_no ?? '-' }}</td>
                                         <td>{{ $student->full_name }}</td>
                                         <td>{{ $student->schoolClass->name }}</td>
                                         <td>{{ $student->section->name }}</td>
