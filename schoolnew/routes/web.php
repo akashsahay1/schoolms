@@ -71,7 +71,7 @@ Route::name('website.')->group(function () {
     Route::get('/events/{event}', [WebsiteController::class, 'eventShow'])->name('events.show');
     Route::get('/contact', [WebsiteController::class, 'contact'])->name('contact');
     Route::post('/contact', [WebsiteController::class, 'contactStore'])->name('contact.store');
-    Route::get('/{slug}', [WebsiteController::class, 'page'])->name('page');
+    Route::get('/{slug}', [WebsiteController::class, 'page'])->name('page')->where('slug', '^(?!login|logout|admin|portal|register|password|sanctum|api).*$');
 });
 
 // Authentication Routes
