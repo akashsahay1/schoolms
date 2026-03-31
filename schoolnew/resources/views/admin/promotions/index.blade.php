@@ -112,7 +112,7 @@
         <!-- Recent Batches -->
         <div class="col-12">
             <div class="card">
-                <div class="card-header pb-0">
+                <div class="card-header">
                     <div class="d-flex justify-content-between align-items-center">
                         <h5>Recent Promotion Batches</h5>
                         <a href="{{ route('admin.promotions.history') }}" class="btn btn-outline-primary btn-sm">View All</a>
