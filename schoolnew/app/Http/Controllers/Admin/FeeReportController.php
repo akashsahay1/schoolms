@@ -123,6 +123,16 @@ class FeeReportController extends Controller
             $baseQuery->whereHas('student', fn($q) => $q->where('class_id', $request->class_id));
         }
 
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $baseQuery->whereHas('student', function ($q) use ($search) {
+                $q->where('first_name', 'like', "%{$search}%")
+                  ->orWhere('last_name', 'like', "%{$search}%")
+                  ->orWhere('admission_no', 'like', "%{$search}%")
+                  ->orWhere('roll_no', 'like', "%{$search}%");
+            });
+        }
+
         if ($request->filled('fee_type_id')) {
             $baseQuery->whereHas('feeStructure', fn($q) => $q->where('fee_type_id', $request->fee_type_id));
         }
@@ -177,6 +187,15 @@ class FeeReportController extends Controller
 
         if ($request->filled('class_id')) {
             $dailyQuery->whereHas('student', fn($q) => $q->where('class_id', $request->class_id));
+        }
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $dailyQuery->whereHas('student', function ($q) use ($search) {
+                $q->where('first_name', 'like', "%{$search}%")
+                  ->orWhere('last_name', 'like', "%{$search}%")
+                  ->orWhere('admission_no', 'like', "%{$search}%")
+                  ->orWhere('roll_no', 'like', "%{$search}%");
+            });
         }
         if ($request->filled('fee_type_id')) {
             $dailyQuery->whereHas('feeStructure', fn($q) => $q->where('fee_type_id', $request->fee_type_id));

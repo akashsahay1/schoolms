@@ -204,14 +204,26 @@ class FeeCollectionController extends Controller
         $totalOutstanding = 0;
 
         if ($activeYear) {
-            $query = Student::with(['schoolClass', 'section']);
+            $query = Student::with(['schoolClass', 'section'])
+                ->where('status', 'active')
+                ->where('academic_year_id', $activeYear->id);
 
             if ($request->filled('class_id')) {
                 $query->where('class_id', $request->class_id);
                 $selectedClass = SchoolClass::find($request->class_id);
             }
 
-            $students = $query->get();
+            if ($request->filled('search')) {
+                $search = $request->search;
+                $query->where(function ($q) use ($search) {
+                    $q->where('first_name', 'like', "%{$search}%")
+                      ->orWhere('last_name', 'like', "%{$search}%")
+                      ->orWhere('admission_no', 'like', "%{$search}%")
+                      ->orWhere('roll_no', 'like', "%{$search}%");
+                });
+            }
+
+            $students = $query->orderBy('first_name')->get();
 
             foreach ($students as $student) {
                 // Get fee structures for student's class

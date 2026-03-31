@@ -452,10 +452,9 @@
 					@endcan
 
 					<!-- Website -->
-					@php $websiteOpen = request()->routeIs('admin.website.*'); @endphp
 					@can('manage settings')
-					<li class="sidebar-list {{ $websiteOpen ? 'active' : '' }}">
-						<a class="sidebar-link sidebar-title" href="#">
+					<li class="sidebar-list {{ request()->routeIs('admin.website.*') ? 'active' : '' }}">
+						<a class="sidebar-link sidebar-title {{ request()->routeIs('admin.website.*') ? 'active' : '' }}" href="{{ route('admin.website.index') }}">
 							<svg class="stroke-icon">
 								<use href="{{ asset('assets/svg/icon-sprite.svg#stroke-blog') }}"></use>
 							</svg>
@@ -464,15 +463,6 @@
 							</svg>
 							<span>Website</span>
 						</a>
-						<ul class="sidebar-submenu" style="{{ $websiteOpen ? 'display: block;' : '' }}">
-							<li><a class="{{ request()->routeIs('admin.website.index') ? 'active' : '' }}" href="{{ route('admin.website.index') }}">Dashboard</a></li>
-							<li><a class="{{ request()->routeIs('admin.website.sliders*') ? 'active' : '' }}" href="{{ route('admin.website.sliders') }}">Sliders</a></li>
-							<li><a class="{{ request()->routeIs('admin.website.facilities*') ? 'active' : '' }}" href="{{ route('admin.website.facilities') }}">Facilities</a></li>
-							<li><a class="{{ request()->routeIs('admin.website.testimonials*') ? 'active' : '' }}" href="{{ route('admin.website.testimonials') }}">Testimonials</a></li>
-							<li><a class="{{ request()->routeIs('admin.website.gallery*') ? 'active' : '' }}" href="{{ route('admin.website.gallery') }}">Gallery</a></li>
-							<li><a class="{{ request()->routeIs('admin.website.pages*') ? 'active' : '' }}" href="{{ route('admin.website.pages') }}">Pages</a></li>
-							<li><a class="{{ request()->routeIs('admin.website.contacts*') ? 'active' : '' }}" href="{{ route('admin.website.contacts') }}">Messages</a></li>
-						</ul>
 					</li>
 					@endcan
 

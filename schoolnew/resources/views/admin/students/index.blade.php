@@ -43,6 +43,9 @@
 								</span>
 							@endif
 						</a>
+						<button type="button" class="btn btn-outline-info" id="reorderRollBtn" title="Reorder Roll Numbers Alphabetically">
+							<i class="icon-exchange me-1"></i> Reorder Rolls
+						</button>
 						<a href="{{ route('admin.students.create') }}" class="btn btn-primary">Add New</a>
 					</div>
 				</div>
@@ -193,10 +196,7 @@
 					</table>
 				</div>
 
-				<!-- Pagination -->
-				<div class="d-flex justify-content-center mt-4">
-					{{ $students->withQueryString()->links() }}
-				</div>
+				@include('components.pagination-info', ['paginator' => $students])
 			</div>
 		</div>
 	</div>
@@ -380,6 +380,63 @@
 		if (typeof feather !== 'undefined') {
 			feather.replace();
 		}
+
+		// Reorder Roll Numbers
+		jQuery('#reorderRollBtn').on('click', function() {
+			// Get current filter values
+			var classId = jQuery('select[name="class_id"]').val();
+			var sectionId = jQuery('select[name="section_id"]').val();
+
+			if (!classId || !sectionId) {
+				Swal.fire({
+					icon: 'info',
+					title: 'Select Class & Section',
+					text: 'Please filter by a specific Class and Section first, then click Reorder.',
+					confirmButtonColor: '#7366ff'
+				});
+				return;
+			}
+
+			var className = jQuery('select[name="class_id"] option:selected').text();
+			var sectionName = jQuery('select[name="section_id"] option:selected').text();
+
+			Swal.fire({
+				title: 'Reorder Roll Numbers?',
+				html: 'This will reassign roll numbers <strong>1, 2, 3...</strong> alphabetically by student name for:<br><br><strong>' + className.trim() + ' - ' + sectionName.trim() + '</strong><br><br><small class="text-muted">Existing roll numbers will be replaced.</small>',
+				icon: 'question',
+				showCancelButton: true,
+				confirmButtonColor: '#7366ff',
+				cancelButtonColor: '#6c757d',
+				confirmButtonText: 'Yes, reorder',
+				cancelButtonText: 'Cancel'
+			}).then(function(result) {
+				if (result.isConfirmed) {
+					jQuery.ajax({
+						url: '{{ route("admin.students.reorder-roll-numbers") }}',
+						type: 'POST',
+						data: {
+							_token: '{{ csrf_token() }}',
+							class_id: classId,
+							section_id: sectionId
+						},
+						beforeSend: function() {
+							Swal.fire({ title: 'Reordering...', allowOutsideClick: false, didOpen: function() { Swal.showLoading(); } });
+						},
+						success: function(response) {
+							Swal.fire({
+								icon: 'success',
+								title: 'Done!',
+								text: response.message,
+								confirmButtonColor: '#7366ff'
+							}).then(function() { window.location.reload(); });
+						},
+						error: function(xhr) {
+							Swal.fire({ icon: 'error', title: 'Error', text: xhr.responseJSON?.message || 'Something went wrong.' });
+						}
+					});
+				}
+			});
+		});
 	});
 </script>
 @endpush

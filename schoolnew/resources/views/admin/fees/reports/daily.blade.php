@@ -102,76 +102,72 @@
     </div>
 
     <!-- Collection Table -->
-    <div class="card">
-        <div class="card-header">
-            <h6 class="mb-0">Collection Details</h6>
+    <div class="card" style="border-radius: 12px; border: 1px solid #eee;">
+        <div class="card-header d-flex justify-content-between align-items-center" style="background: #f8f9fc; border-bottom: 1px solid #eee; border-radius: 12px 12px 0 0; padding: 14px 20px;">
+            <h6 class="mb-0" style="font-weight: 700; color: #2c323f;"><i class="icon-list me-2" style="color: #7366ff;"></i>Collection Details</h6>
+            <span class="badge" style="font-size: 12px; background: #7366ff; color: #fff;">{{ $collections->count() }} entries</span>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="bg-light">
-                        <tr>
-                            <th>#</th>
-                            <th>Receipt No</th>
-                            <th>Time</th>
-                            <th>Student</th>
-                            <th>Class</th>
-                            <th>Fee Type</th>
-                            <th class="text-end">Amount</th>
-                            <th class="text-center">Mode</th>
-                            <th>Collected By</th>
-                            <th class="text-center">Action</th>
+                <table class="table mb-0" style="font-size: 13px;">
+                    <thead>
+                        <tr style="background: #f0efff;">
+                            <th style="padding: 10px 16px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #7366ff; font-weight: 700;">#</th>
+                            <th style="padding: 10px 16px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #7366ff; font-weight: 700;">Receipt</th>
+                            <th style="padding: 10px 16px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #7366ff; font-weight: 700;">Time</th>
+                            <th style="padding: 10px 16px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #7366ff; font-weight: 700;">Student</th>
+                            <th style="padding: 10px 16px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #7366ff; font-weight: 700;">Class</th>
+                            <th style="padding: 10px 16px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #7366ff; font-weight: 700;">Fee Type</th>
+                            <th style="padding: 10px 16px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #7366ff; font-weight: 700;" class="text-end">Amount</th>
+                            <th style="padding: 10px 16px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #7366ff; font-weight: 700;" class="text-center">Mode</th>
+                            <th style="padding: 10px 16px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #7366ff; font-weight: 700;">By</th>
+                            <th style="padding: 10px 16px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #7366ff; font-weight: 700;" class="text-center">Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($collections as $index => $collection)
-                            <tr>
-                                <td>{{ $index + 1 }}</td>
-                                <td>
-                                    <a href="{{ route('admin.fees.receipt', $collection) }}" class="fw-bold">
-                                        {{ $collection->receipt_no }}
-                                    </a>
+                            <tr style="border-bottom: 1px solid #f0f0f0;">
+                                <td style="padding: 12px 16px; color: #aaa;">{{ $index + 1 }}</td>
+                                <td style="padding: 12px 16px;">
+                                    <a href="{{ route('admin.fees.receipt', $collection) }}" style="color: #7366ff; font-weight: 600;">{{ $collection->receipt_no }}</a>
                                 </td>
-                                <td>{{ $collection->created_at->format('h:i A') }}</td>
-                                <td>{{ $collection->student->full_name ?? 'N/A' }}</td>
-                                <td>{{ $collection->student->schoolClass->name ?? 'N/A' }}</td>
-                                <td>{{ $collection->feeStructure->feeType->name ?? 'N/A' }}</td>
-                                <td class="text-end fw-bold">{{ number_format($collection->paid_amount, 2) }}</td>
-                                <td class="text-center">
+                                <td style="padding: 12px 16px; color: #888;">{{ $collection->created_at->format('h:i A') }}</td>
+                                <td style="padding: 12px 16px;">
+                                    <strong>{{ $collection->student->full_name ?? 'N/A' }}</strong>
+                                    <br><small style="color: #aaa;">{{ $collection->student->admission_no ?? '' }}</small>
+                                </td>
+                                <td style="padding: 12px 16px; color: #888;">{{ $collection->student->schoolClass->name ?? '-' }}</td>
+                                <td style="padding: 12px 16px;"><span class="badge badge-light-primary" style="font-size: 11px;">{{ $collection->feeStructure->feeType->name ?? '-' }}</span></td>
+                                <td style="padding: 12px 16px; font-weight: 700; color: #2c323f;" class="text-end">₹{{ number_format($collection->paid_amount, 2) }}</td>
+                                <td style="padding: 12px 16px;" class="text-center">
                                     @php
-                                        $modeColors = [
-                                            'cash' => 'success',
-                                            'online' => 'info',
-                                            'cheque' => 'warning',
-                                            'card' => 'secondary',
-                                            'bank_transfer' => 'dark'
-                                        ];
+                                        $modeColors = ['cash' => 'success', 'online' => 'info', 'cheque' => 'warning', 'card' => 'secondary', 'bank_transfer' => 'dark'];
                                     @endphp
-                                    <span class="badge bg-{{ $modeColors[$collection->payment_mode] ?? 'secondary' }}">
+                                    <span class="badge bg-{{ $modeColors[$collection->payment_mode] ?? 'secondary' }}" style="font-size: 10px;">
                                         {{ ucfirst(str_replace('_', ' ', $collection->payment_mode)) }}
                                     </span>
                                 </td>
-                                <td>{{ $collection->collectedBy->name ?? 'N/A' }}</td>
-                                <td class="text-center">
-                                    <a href="{{ route('admin.fees.receipt', $collection) }}" class="btn btn-sm btn-outline-primary" title="Print Receipt">
-                                        <i data-feather="printer" style="width: 14px; height: 14px;"></i>
+                                <td style="padding: 12px 16px; color: #888; font-size: 12px;">{{ $collection->collectedBy->name ?? 'System' }}</td>
+                                <td style="padding: 12px 16px;" class="text-center">
+                                    <a href="{{ route('admin.fees.receipt', $collection) }}" class="btn btn-primary btn-sm" style="color: #fff; border-radius: 6px; padding: 5px 12px; font-size: 12px;" title="View Receipt">
+                                        <i class="icon-eye me-1" style="color: #fff;"></i> View
                                     </a>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="10" class="text-center py-5 text-muted">
-                                    <i data-feather="inbox" style="width: 48px; height: 48px; opacity: 0.5;"></i>
-                                    <p class="mt-3 mb-0">No collections on this date</p>
+                                <td colspan="10" class="text-center py-5" style="color: #bbb;">
+                                    <i class="icon-info-alt d-block mb-2" style="font-size: 28px;"></i>
+                                    No collections on this date
                                 </td>
                             </tr>
                         @endforelse
                     </tbody>
                     @if($collections->count() > 0)
-                        <tfoot class="bg-light">
-                            <tr>
-                                <th colspan="6" class="text-end">Total:</th>
-                                <th class="text-end">{{ number_format($summary['total'], 2) }}</th>
+                        <tfoot>
+                            <tr style="background: #f8f9fc;">
+                                <th colspan="6" style="padding: 12px 16px; font-size: 12px; color: #888;" class="text-end">Total:</th>
+                                <th style="padding: 12px 16px; font-size: 15px; color: #54BA4A;" class="text-end">₹{{ number_format($summary['total'], 2) }}</th>
                                 <th colspan="3"></th>
                             </tr>
                         </tfoot>

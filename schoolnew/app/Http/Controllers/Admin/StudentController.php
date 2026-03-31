@@ -100,7 +100,7 @@ class StudentController extends Controller
             // Academic Information
             'class_id' => ['required', 'exists:classes,id'],
             'section_id' => ['required', 'exists:sections,id'],
-            'roll_no' => ['nullable', 'string', 'max:50', 'unique:students,roll_no,NULL,id,class_id,' . $request->class_id . ',section_id,' . $request->section_id],
+            'roll_no' => ['nullable', 'string', 'max:50'],
             'admission_date' => ['required', 'date_format:d-m-Y'],
             'previous_school' => ['nullable', 'string', 'max:255'],
 
@@ -211,6 +211,8 @@ class StudentController extends Controller
             $user->assignRole('Student');
 
             // Create student record
+            $rollNo = $this->assignRollNumber($validated['class_id'], $validated['section_id'], $validated['roll_no'] ?? null);
+
             $student = Student::create([
                 'user_id' => $user->id,
                 'parent_id' => $parent->id,
@@ -218,7 +220,7 @@ class StudentController extends Controller
                 'section_id' => $validated['section_id'],
                 'academic_year_id' => $academicYear->id,
                 'admission_no' => $admissionNo,
-                'roll_no' => $validated['roll_no'] ?? null,
+                'roll_no' => $rollNo,
                 'first_name' => $validated['first_name'],
                 'last_name' => $validated['last_name'] ?? null,
                 'gender' => $validated['gender'],
@@ -805,5 +807,110 @@ class StudentController extends Controller
 
         // Delete parent record
         $parent->forceDelete();
+    }
+
+    /**
+     * Auto-assign roll number for a student in a class+section.
+     * If admin provides a roll_no, validate it's not taken. Otherwise auto-assign next.
+     */
+    private function assignRollNumber(int $classId, int $sectionId, ?string $requestedRollNo = null): string
+    {
+        if ($requestedRollNo) {
+            // Check if already taken in same class+section
+            $taken = Student::where('class_id', $classId)
+                ->where('section_id', $sectionId)
+                ->where('roll_no', $requestedRollNo)
+                ->where('status', 'active')
+                ->exists();
+
+            if (!$taken) {
+                return $requestedRollNo;
+            }
+            // If taken, fall through to auto-assign
+        }
+
+        // Get the highest numeric roll_no in this class+section
+        $maxRoll = Student::where('class_id', $classId)
+            ->where('section_id', $sectionId)
+            ->where('status', 'active')
+            ->whereNotNull('roll_no')
+            ->get()
+            ->pluck('roll_no')
+            ->filter(fn($r) => is_numeric($r))
+            ->map(fn($r) => (int) $r)
+            ->max();
+
+        return (string) (($maxRoll ?? 0) + 1);
+    }
+
+    /**
+     * Reorder roll numbers alphabetically for a class+section.
+     */
+    public function reorderRollNumbers(Request $request)
+    {
+        $request->validate([
+            'class_id' => 'required|exists:classes,id',
+            'section_id' => 'required|exists:sections,id',
+        ]);
+
+        $students = Student::where('class_id', $request->class_id)
+            ->where('section_id', $request->section_id)
+            ->where('status', 'active')
+            ->orderBy('first_name')
+            ->orderBy('last_name')
+            ->get();
+
+        if ($students->isEmpty()) {
+            return response()->json(['message' => 'No active students found in this class/section.'], 422);
+        }
+
+        DB::beginTransaction();
+        try {
+            // First set all to null to avoid unique conflicts during reorder
+            Student::where('class_id', $request->class_id)
+                ->where('section_id', $request->section_id)
+                ->where('status', 'active')
+                ->update(['roll_no' => null]);
+
+            // Assign 1, 2, 3... alphabetically
+            foreach ($students as $index => $student) {
+                $student->update(['roll_no' => (string) ($index + 1)]);
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => $students->count() . ' students reordered alphabetically (1 to ' . $students->count() . ').',
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Error: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Get next available roll number for a class+section (AJAX).
+     */
+    public function getNextRollNumber(Request $request)
+    {
+        $classId = $request->input('class_id');
+        $sectionId = $request->input('section_id');
+
+        if (!$classId || !$sectionId) {
+            return response()->json(['roll_no' => '']);
+        }
+
+        $maxRoll = Student::where('class_id', $classId)
+            ->where('section_id', $sectionId)
+            ->where('status', 'active')
+            ->whereNotNull('roll_no')
+            ->get()
+            ->pluck('roll_no')
+            ->filter(fn($r) => is_numeric($r))
+            ->map(fn($r) => (int) $r)
+            ->max();
+
+        return response()->json(['roll_no' => (string) (($maxRoll ?? 0) + 1)]);
     }
 }

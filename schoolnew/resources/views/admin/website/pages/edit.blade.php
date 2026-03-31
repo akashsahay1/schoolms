@@ -226,12 +226,12 @@
 <div class="page-hero">
 	<div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
 		<div>
-			<h4>{{ $page->title }}</h4>
-			<p>{{ $isHomePage ? 'Edit homepage sections — slider, about, stats, facilities & more' : 'Edit page content, banner, sections & SEO settings' }}</p>
+			<h4 style="color: #fff;">{{ $page->title }}</h4>
+			<p style="color: rgba(255,255,255,0.85);">{{ $isHomePage ? 'Edit homepage sections — slider, about, stats, facilities & more' : 'Edit page content, banner, sections & SEO settings' }}</p>
 		</div>
 		<div class="d-flex gap-2">
-			<a href="{{ route('admin.website.pages') }}" class="btn btn-outline-light btn-sm" style="border-radius: 8px;"><i class="icon-arrow-left me-1"></i> All Pages</a>
-			<a href="{{ $viewUrl }}" target="_blank" class="btn btn-light btn-sm" style="font-weight: 600; border-radius: 8px;"><i class="icon-eye me-1"></i> View Live</a>
+			<a href="{{ route('admin.website.pages') }}" class="btn btn-sm" style="border-radius: 8px; color: #fff; border: 1px solid rgba(255,255,255,0.5); background: rgba(255,255,255,0.15);"><i class="icon-arrow-left me-1" style="color: #fff;"></i> All Pages</a>
+			<a href="{{ $viewUrl }}" target="_blank" class="btn btn-sm" style="font-weight: 600; border-radius: 8px; color: #fff; border: 1px solid rgba(255,255,255,0.5); background: rgba(255,255,255,0.15);"><i class="icon-eye me-1" style="color: #fff;"></i> View Live</a>
 		</div>
 	</div>
 </div>
@@ -239,76 +239,42 @@
 @if($isHomePage)
 {{-- ==================== HOME PAGE ==================== --}}
 
-<!-- 1. Hero Slider -->
-<div class="link-card">
-	<a href="{{ route('admin.website.sliders') }}">
-		<div class="left">
-			<span class="num" style="background: #6c757d; color: #fff;">1</span>
-			<div><h6>Hero Slider</h6><small>Big banner images at the top</small></div>
-		</div>
-		<span class="go-icon"><i class="icon-arrow-right"></i></span>
-	</a>
-</div>
+<!-- Visual Section Grid -->
+<div class="row g-3 mb-3">
+	@php
+		$homeCards = [
+			['url' => route('admin.website.sliders'), 'icon' => 'icon-gallery', 'color' => '#6c757d', 'title' => 'Hero Slider', 'desc' => 'Big banner images & slides at the top of the homepage', 'badge' => '1'],
+			['url' => route('admin.website.homepage-sections') . '#section-why', 'icon' => 'icon-star', 'color' => '#7366ff', 'title' => 'Why Choose Us', 'desc' => '4 feature cards with icons shown below the slider', 'badge' => '2'],
+			['url' => route('admin.website.homepage-sections') . '#section-about', 'icon' => 'icon-info-alt', 'color' => '#54BA4A', 'title' => 'About Us', 'desc' => 'School image, description text & checklist items', 'badge' => '3'],
+			['url' => route('admin.website.homepage-sections') . '#section-stats', 'icon' => 'icon-bar-chart', 'color' => '#FFAA05', 'title' => 'Statistics', 'desc' => 'Animated number counters — students, teachers, years', 'badge' => '4'],
+			['url' => route('admin.website.facilities'), 'icon' => 'icon-home', 'color' => '#00B09B', 'title' => 'Facilities', 'desc' => '6 facility cards with icons & descriptions', 'badge' => '5'],
+			['url' => route('admin.events.index'), 'icon' => 'icon-calendar', 'color' => '#17a2b8', 'title' => 'Events', 'desc' => 'Upcoming school events shown on the homepage', 'badge' => '6a'],
+			['url' => route('admin.notices.index'), 'icon' => 'icon-announcement', 'color' => '#6f42c1', 'title' => 'News / Notices', 'desc' => 'Latest published notices shown on homepage', 'badge' => '6b'],
+			['url' => route('admin.website.gallery'), 'icon' => 'icon-camera', 'color' => '#e83e8c', 'title' => 'Photo Gallery', 'desc' => '8 photos in a grid — school life & activities', 'badge' => '7'],
+			['url' => route('admin.website.testimonials'), 'icon' => 'icon-comments', 'color' => '#FC4438', 'title' => 'Testimonials', 'desc' => 'Parent & student reviews with photos', 'badge' => '8'],
+			['url' => route('admin.website.homepage-sections') . '#section-cta', 'icon' => 'icon-target', 'color' => '#fd7e14', 'title' => 'Call to Action', 'desc' => '"Ready to Join" banner with button', 'badge' => '9'],
+			['url' => route('admin.settings.school'), 'icon' => 'icon-panel', 'color' => '#343a40', 'title' => 'Footer', 'desc' => 'School name, address, phone, email & social links', 'badge' => '10'],
+		];
+	@endphp
 
-<!-- 2-4, 9 → Homepage Sections -->
-<div class="link-card">
-	<a href="{{ route('admin.website.homepage-sections') }}">
-		<div class="left">
-			<span class="num" style="background: #7366ff;">2-4</span>
-			<div><h6>Why Choose Us / About / Statistics / CTA</h6><small>Edit text, images, counters & call-to-action</small></div>
-		</div>
-		<span class="go-icon"><i class="icon-arrow-right"></i></span>
-	</a>
-</div>
-
-<!-- 5. Facilities -->
-<div class="link-card">
-	<a href="{{ route('admin.website.facilities') }}">
-		<div class="left">
-			<span class="num">5</span>
-			<div><h6>Facilities</h6><small>School facility cards with icons</small></div>
-		</div>
-		<span class="go-icon"><i class="icon-arrow-right"></i></span>
-	</a>
-</div>
-
-<!-- 6. Events & News -->
-<div class="link-card">
-	<div style="padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;">
-		<div class="d-flex align-items-center gap-3">
-			<span style="width: 38px; height: 38px; border-radius: 10px; background: #f3f3f8; color: #888; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 15px;">6</span>
-			<div>
-				<h6 style="font-size: 15px; margin: 0; font-weight: 600; color: #2c323f;">Events & News</h6>
-				<small style="color: #999; font-size: 12px;">Auto-pulled from Events & Notices</small>
+	@foreach($homeCards as $card)
+	<div class="col-md-4 col-sm-6">
+		<a href="{{ $card['url'] }}" class="text-decoration-none">
+			<div class="p-3 rounded-3 border bg-white h-100 position-relative" style="transition: all 0.25s; border-color: #eee !important;" onmouseover="this.style.boxShadow='0 6px 24px rgba(115,102,255,0.12)'; this.style.borderColor='#d0cef7 !important'; this.style.transform='translateY(-2px)'" onmouseout="this.style.boxShadow='none'; this.style.borderColor='#eee !important'; this.style.transform='none'">
+				<span class="position-absolute" style="top: 10px; right: 12px; background: {{ $card['color'] }}15; color: {{ $card['color'] }}; font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 6px;">{{ $card['badge'] }}</span>
+				<div class="d-flex align-items-center gap-3">
+					<div class="d-flex align-items-center justify-content-center rounded-3 flex-shrink-0" style="width: 48px; height: 48px; background: {{ $card['color'] }}15;">
+						<i class="{{ $card['icon'] }}" style="font-size: 22px; color: {{ $card['color'] }};"></i>
+					</div>
+					<div>
+						<h6 style="font-size: 14px; font-weight: 700; margin: 0 0 2px; color: #2c323f;">{{ $card['title'] }}</h6>
+						<p style="font-size: 11px; color: #999; margin: 0; line-height: 1.4;">{{ $card['desc'] }}</p>
+					</div>
+				</div>
 			</div>
-		</div>
-		<div class="d-flex gap-2">
-			<a href="{{ route('admin.events.index') }}" class="btn btn-outline-primary btn-sm" style="font-size: 11px; border-radius: 6px;">Events</a>
-			<a href="{{ route('admin.notices.index') }}" class="btn btn-outline-primary btn-sm" style="font-size: 11px; border-radius: 6px;">Notices</a>
-		</div>
+		</a>
 	</div>
-</div>
-
-<!-- 7. Gallery -->
-<div class="link-card">
-	<a href="{{ route('admin.website.gallery') }}">
-		<div class="left">
-			<span class="num">7</span>
-			<div><h6>Photo Gallery</h6><small>Photo grid layout</small></div>
-		</div>
-		<span class="go-icon"><i class="icon-arrow-right"></i></span>
-	</a>
-</div>
-
-<!-- 8. Testimonials -->
-<div class="link-card">
-	<a href="{{ route('admin.website.testimonials') }}">
-		<div class="left">
-			<span class="num">8</span>
-			<div><h6>Testimonials</h6><small>Parent & student reviews</small></div>
-		</div>
-		<span class="go-icon"><i class="icon-arrow-right"></i></span>
-	</a>
+	@endforeach
 </div>
 
 <!-- SEO for Home -->
@@ -316,7 +282,7 @@
 	<div class="card-top" data-target="body-home-seo">
 		<div class="left">
 			<span class="num" style="background: #54BA4A;"><i class="icon-search" style="font-size: 14px; color: #fff;"></i></span>
-			<div><h6>SEO & Browser Tab Settings</h6><small>Title shown in browser tab & Google results</small></div>
+			<div><h6>SEO & Browser Tab Settings</h6><small>Title shown in browser tab & Google search results</small></div>
 		</div>
 		<span class="chevron"><i class="icon-angle-down"></i></span>
 	</div>
@@ -349,8 +315,103 @@
 @else
 {{-- ==================== REGULAR PAGE ==================== --}}
 
-<!-- Banner -->
-<div class="section-card">
+<!-- Page-Specific Section Cards -->
+@php
+	$sectionCount = ($sections ?? collect())->count();
+	$slug = $page->slug;
+
+	// Build cards based on page type
+	$pageCards = [];
+
+	if ($slug === 'about') {
+		$pageCards = [
+			['url' => '#sec-banner', 'scroll' => true, 'icon' => 'icon-image', 'color' => '#7366ff', 'title' => 'Page Banner', 'desc' => 'Banner image, title & overlay color'],
+			['url' => route('admin.website.homepage-sections') . '#section-about', 'icon' => 'icon-info-alt', 'color' => '#54BA4A', 'title' => 'About Section', 'desc' => 'School image, description & checklist'],
+			['url' => '#sec-content', 'scroll' => true, 'icon' => 'icon-pencil-alt', 'color' => '#17a2b8', 'title' => 'Mission & Vision', 'desc' => 'Edit page content — mission, vision, values'],
+			['url' => route('admin.website.homepage-sections') . '#section-stats', 'icon' => 'icon-bar-chart', 'color' => '#FFAA05', 'title' => 'Statistics', 'desc' => 'Students, teachers, years counters'],
+			['url' => '#sec-sections', 'scroll' => true, 'icon' => 'icon-layers', 'color' => '#e83e8c', 'title' => 'Custom Sections (' . $sectionCount . ')', 'desc' => 'Add image+text blocks & more'],
+			['url' => '#sec-seo', 'scroll' => true, 'icon' => 'icon-search', 'color' => '#FC4438', 'title' => 'SEO & Settings', 'desc' => 'Meta description & visibility'],
+		];
+	} elseif ($slug === 'academics') {
+		$pageCards = [
+			['url' => '#sec-banner', 'scroll' => true, 'icon' => 'icon-image', 'color' => '#7366ff', 'title' => 'Page Banner', 'desc' => 'Banner image, title & overlay color'],
+			['url' => '#sec-content', 'scroll' => true, 'icon' => 'icon-pencil-alt', 'color' => '#54BA4A', 'title' => 'Academic Content', 'desc' => 'Programs, curriculum & approach text'],
+			['url' => route('admin.subjects.index'), 'icon' => 'icon-book-open', 'color' => '#17a2b8', 'title' => 'Subjects', 'desc' => 'Manage school subjects'],
+			['url' => route('admin.classes.index'), 'icon' => 'icon-blackboard', 'color' => '#FFAA05', 'title' => 'Classes', 'desc' => 'Manage classes & sections'],
+			['url' => '#sec-sections', 'scroll' => true, 'icon' => 'icon-layers', 'color' => '#e83e8c', 'title' => 'Custom Sections (' . $sectionCount . ')', 'desc' => 'Add image+text blocks'],
+			['url' => '#sec-seo', 'scroll' => true, 'icon' => 'icon-search', 'color' => '#FC4438', 'title' => 'SEO & Settings', 'desc' => 'Meta description & visibility'],
+		];
+	} elseif ($slug === 'facilities') {
+		$pageCards = [
+			['url' => '#sec-banner', 'scroll' => true, 'icon' => 'icon-image', 'color' => '#7366ff', 'title' => 'Page Banner', 'desc' => 'Banner image, title & overlay color'],
+			['url' => route('admin.website.facilities'), 'icon' => 'icon-home', 'color' => '#00B09B', 'title' => 'Facilities', 'desc' => 'Add, edit & delete facility cards'],
+			['url' => '#sec-content', 'scroll' => true, 'icon' => 'icon-pencil-alt', 'color' => '#54BA4A', 'title' => 'Page Content', 'desc' => 'Additional text content for this page'],
+			['url' => '#sec-sections', 'scroll' => true, 'icon' => 'icon-layers', 'color' => '#e83e8c', 'title' => 'Custom Sections (' . $sectionCount . ')', 'desc' => 'Add image+text blocks'],
+			['url' => '#sec-seo', 'scroll' => true, 'icon' => 'icon-search', 'color' => '#FC4438', 'title' => 'SEO & Settings', 'desc' => 'Meta description & visibility'],
+		];
+	} elseif ($slug === 'gallery') {
+		$pageCards = [
+			['url' => '#sec-banner', 'scroll' => true, 'icon' => 'icon-image', 'color' => '#7366ff', 'title' => 'Page Banner', 'desc' => 'Banner image, title & overlay color'],
+			['url' => route('admin.website.gallery'), 'icon' => 'icon-camera', 'color' => '#e83e8c', 'title' => 'Gallery Photos', 'desc' => 'Upload, organize & manage photos'],
+			['url' => '#sec-content', 'scroll' => true, 'icon' => 'icon-pencil-alt', 'color' => '#54BA4A', 'title' => 'Page Content', 'desc' => 'Additional text content'],
+			['url' => '#sec-seo', 'scroll' => true, 'icon' => 'icon-search', 'color' => '#FC4438', 'title' => 'SEO & Settings', 'desc' => 'Meta description & visibility'],
+		];
+	} elseif ($slug === 'news') {
+		$pageCards = [
+			['url' => '#sec-banner', 'scroll' => true, 'icon' => 'icon-image', 'color' => '#7366ff', 'title' => 'Page Banner', 'desc' => 'Banner image & title'],
+			['url' => route('admin.notices.index'), 'icon' => 'icon-announcement', 'color' => '#6f42c1', 'title' => 'Notices / News', 'desc' => 'Create & manage news articles'],
+			['url' => '#sec-seo', 'scroll' => true, 'icon' => 'icon-search', 'color' => '#FC4438', 'title' => 'SEO & Settings', 'desc' => 'Meta description & visibility'],
+		];
+	} elseif ($slug === 'events') {
+		$pageCards = [
+			['url' => '#sec-banner', 'scroll' => true, 'icon' => 'icon-image', 'color' => '#7366ff', 'title' => 'Page Banner', 'desc' => 'Banner image & title'],
+			['url' => route('admin.events.index'), 'icon' => 'icon-calendar', 'color' => '#FFAA05', 'title' => 'Events', 'desc' => 'Create & manage school events'],
+			['url' => '#sec-seo', 'scroll' => true, 'icon' => 'icon-search', 'color' => '#FC4438', 'title' => 'SEO & Settings', 'desc' => 'Meta description & visibility'],
+		];
+	} elseif ($slug === 'contact') {
+		$pageCards = [
+			['url' => '#sec-banner', 'scroll' => true, 'icon' => 'icon-image', 'color' => '#7366ff', 'title' => 'Page Banner', 'desc' => 'Banner image & title'],
+			['url' => route('admin.settings.school'), 'icon' => 'icon-email', 'color' => '#FC4438', 'title' => 'Contact Info', 'desc' => 'Phone, email, address & map embed'],
+			['url' => route('admin.website.contacts'), 'icon' => 'icon-comments', 'color' => '#54BA4A', 'title' => 'Messages', 'desc' => 'View & reply to contact form messages'],
+			['url' => '#sec-content', 'scroll' => true, 'icon' => 'icon-pencil-alt', 'color' => '#17a2b8', 'title' => 'Page Content', 'desc' => 'Additional content text'],
+			['url' => '#sec-sections', 'scroll' => true, 'icon' => 'icon-layers', 'color' => '#e83e8c', 'title' => 'Custom Sections (' . $sectionCount . ')', 'desc' => 'Add image+text blocks'],
+			['url' => '#sec-seo', 'scroll' => true, 'icon' => 'icon-search', 'color' => '#6c757d', 'title' => 'SEO & Settings', 'desc' => 'Meta description & visibility'],
+		];
+	} else {
+		// Legal / generic pages
+		$pageCards = [
+			['url' => '#sec-banner', 'scroll' => true, 'icon' => 'icon-image', 'color' => '#7366ff', 'title' => 'Page Banner', 'desc' => 'Title, background image & overlay color'],
+			['url' => '#sec-content', 'scroll' => true, 'icon' => 'icon-pencil-alt', 'color' => '#54BA4A', 'title' => 'Page Content', 'desc' => 'Main text, images, tables & formatting'],
+			['url' => '#sec-sections', 'scroll' => true, 'icon' => 'icon-layers', 'color' => '#FFAA05', 'title' => 'Custom Sections (' . $sectionCount . ')', 'desc' => 'Add image+text blocks, 50/50 layouts'],
+			['url' => '#sec-seo', 'scroll' => true, 'icon' => 'icon-search', 'color' => '#FC4438', 'title' => 'SEO & Settings', 'desc' => 'Meta description, keywords & visibility'],
+		];
+	}
+
+	$colSize = count($pageCards) <= 4 ? '3' : '4';
+@endphp
+
+<div class="row g-3 mb-4">
+	@foreach($pageCards as $pc)
+	<div class="col-md-{{ $colSize }} col-sm-6">
+		<a href="{{ $pc['url'] }}" class="text-decoration-none {{ ($pc['scroll'] ?? false) ? 'scroll-to-section' : '' }}" {{ ($pc['scroll'] ?? false) ? '' : 'target=_self' }}>
+			<div class="p-3 rounded-3 border bg-white h-100" style="transition: all 0.25s; border-color: #eee !important;" onmouseover="this.style.boxShadow='0 6px 24px rgba(115,102,255,0.12)'; this.style.borderColor='#d0cef7 !important'; this.style.transform='translateY(-2px)'" onmouseout="this.style.boxShadow='none'; this.style.borderColor='#eee !important'; this.style.transform='none'">
+				<div class="d-flex align-items-center gap-3">
+					<div class="d-flex align-items-center justify-content-center rounded-3 flex-shrink-0" style="width: 48px; height: 48px; background: {{ $pc['color'] }}15;">
+						<i class="{{ $pc['icon'] }}" style="font-size: 22px; color: {{ $pc['color'] }};"></i>
+					</div>
+					<div>
+						<h6 style="font-size: 14px; font-weight: 700; margin: 0 0 2px; color: #2c323f;">{{ $pc['title'] }}</h6>
+						<p style="font-size: 11px; color: #999; margin: 0; line-height: 1.4;">{{ $pc['desc'] }}</p>
+					</div>
+				</div>
+			</div>
+		</a>
+	</div>
+	@endforeach
+</div>
+
+<!-- ===== Banner Section ===== -->
+<div id="sec-banner" class="section-card">
 	<div class="card-top" data-target="body-banner">
 		<div class="left">
 			<span class="num" style="background: #7366ff;"><i class="icon-image" style="font-size: 14px; color: #fff;"></i></span>
@@ -359,13 +420,11 @@
 		<span class="chevron"><i class="icon-angle-down"></i></span>
 	</div>
 	<div class="card-body-inner" id="body-banner">
-		<!-- Banner Preview -->
 		<div class="preview-banner mb-3" id="previewBanner">
 			<h1 id="previewTitle">{{ $page->title }}</h1>
 			<div class="breadcrumb-preview">Home / <strong>{{ $page->title }}</strong></div>
 		</div>
-
-		<form action="{{ route('admin.website.pages.update', $page) }}" method="POST" enctype="multipart/form-data" id="bannerForm">
+		<form action="{{ route('admin.website.pages.update', $page) }}" method="POST" enctype="multipart/form-data">
 			@csrf
 			@method('PUT')
 			<input type="hidden" name="content" value="{{ $page->content }}">
@@ -399,8 +458,8 @@
 	</div>
 </div>
 
-<!-- Content -->
-<div class="section-card">
+<!-- ===== Content Section ===== -->
+<div id="sec-content" class="section-card">
 	<div class="card-top" data-target="body-content">
 		<div class="left">
 			<span class="num" style="background: #54BA4A;"><i class="icon-pencil-alt" style="font-size: 14px; color: #fff;"></i></span>
@@ -409,7 +468,6 @@
 		<span class="chevron"><i class="icon-angle-down"></i></span>
 	</div>
 	<div class="card-body-inner" id="body-content">
-		<!-- Content Preview -->
 		<div class="preview-body mb-3" id="previewContent">
 			@if($page->content)
 				{!! $page->content !!}
@@ -420,8 +478,7 @@
 				</div>
 			@endif
 		</div>
-
-		<form action="{{ route('admin.website.pages.update', $page) }}" method="POST" id="contentForm">
+		<form action="{{ route('admin.website.pages.update', $page) }}" method="POST">
 			@csrf
 			@method('PUT')
 			<input type="hidden" name="title" value="{{ $page->title }}">
@@ -436,7 +493,8 @@
 	</div>
 </div>
 
-<!-- Custom Sections -->
+<!-- ===== Custom Sections ===== -->
+<div id="sec-sections"></div>
 @foreach($sections ?? [] as $section)
 <div class="custom-section-card" style="border-left: 4px solid {{ $section->bg_color && $section->bg_color !== '#ffffff' ? $section->bg_color : '#7366ff' }};">
 	<!-- Preview -->
@@ -532,11 +590,11 @@
 	</div>
 </div>
 
-<!-- SEO & Settings -->
-<div class="section-card">
+<!-- ===== SEO & Settings ===== -->
+<div id="sec-seo" class="section-card">
 	<div class="card-top" data-target="body-seo">
 		<div class="left">
-			<span class="num" style="background: #FFAA05;"><i class="icon-search" style="font-size: 14px; color: #fff;"></i></span>
+			<span class="num" style="background: #FC4438;"><i class="icon-search" style="font-size: 14px; color: #fff;"></i></span>
 			<div><h6>SEO & Page Settings</h6><small>Search engine description, keywords & visibility</small></div>
 		</div>
 		<span class="chevron"><i class="icon-angle-down"></i></span>
@@ -635,6 +693,23 @@ jQuery(document).ready(function() {
 	jQuery('#bannerColorText').on('input', function() { if (/^#[0-9A-Fa-f]{6}$/.test(jQuery(this).val())) { jQuery('#bannerColor').val(jQuery(this).val()); jQuery('<style>#previewBanner::before{background:'+jQuery(this).val()+'!important}</style>').appendTo('head'); } });
 	jQuery('#bannerFileInput').on('change', function() { if(this.files[0]){var r=new FileReader();r.onload=function(e){jQuery('#previewBanner').css('background-image','url('+e.target.result+')')};r.readAsDataURL(this.files[0]);} });
 	@endif
+
+	// Smooth scroll from quick access cards + auto-open accordion
+	jQuery('.scroll-to-section').on('click', function(e) {
+		e.preventDefault();
+		var targetId = jQuery(this).attr('href');
+		var target = jQuery(targetId);
+		if (target.length) {
+			// If it's a section-card with accordion, open it
+			var cardTop = target.find('.card-top');
+			if (cardTop.length && !cardTop.hasClass('open')) {
+				cardTop.trigger('click');
+			}
+			setTimeout(function() {
+				jQuery('html, body').animate({ scrollTop: target.offset().top - 80 }, 400);
+			}, 100);
+		}
+	});
 
 	// Add Section toggle
 	jQuery('#addSectionToggle').on('click', function() { jQuery('#addSectionForm').toggleClass('d-none'); jQuery('#addSectionArrow').toggleClass('icon-angle-down icon-angle-up'); });

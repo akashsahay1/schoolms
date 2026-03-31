@@ -195,12 +195,12 @@
 			<div class="col-md-4">
 				<div class="card sticky-top" style="top: 80px;">
 					<div class="card-header bg-primary">
-						<h5 class="text-white mb-0"><i class="icon-money me-2" style="color: #fff;"></i>Collect Payment</h5>
+						<h5 class="text-white mb-0"><span style="font-size: 18px; font-weight: bold; color: #fff; margin-right: 8px;">₹</span>Collect Payment</h5>
 					</div>
 					<div class="card-body">
 						<div id="noSelectionMsg" class="text-center py-4">
 							<div class="rounded-circle bg-light d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 56px; height: 56px;">
-								<i class="icon-hand-pointing-right" style="font-size: 24px; color: #95a5a6;"></i>
+								<i class="icon-check-box" style="font-size: 24px; color: #95a5a6;"></i>
 							</div>
 							<p class="text-muted mb-0">Select fee(s) from the table to collect payment manually.</p>
 						</div>

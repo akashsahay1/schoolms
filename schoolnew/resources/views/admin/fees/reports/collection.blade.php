@@ -27,6 +27,10 @@
 		</div>
 		<div class="card-body">
 			<form method="GET" action="{{ route('admin.fees.reports.collection') }}" class="row g-3 align-items-end">
+				<div class="col-md-3">
+					<label class="form-label">Search Student</label>
+					<input type="text" name="search" class="form-control" placeholder="Name, admission no. or roll no." value="{{ request('search') }}">
+				</div>
 				<div class="col-md-2">
 					<label class="form-label">From Date</label>
 					<input type="date" name="from_date" class="form-control" value="{{ $fromDate }}">
@@ -44,25 +48,7 @@
 						@endforeach
 					</select>
 				</div>
-				<div class="col-md-2">
-					<label class="form-label">Fee Type</label>
-					<select name="fee_type_id" class="form-select">
-						<option value="">All Types</option>
-						@foreach($feeTypes as $type)
-							<option value="{{ $type->id }}" {{ request('fee_type_id') == $type->id ? 'selected' : '' }}>{{ $type->name }}</option>
-						@endforeach
-					</select>
-				</div>
-				<div class="col-md-2">
-					<label class="form-label">Student</label>
-					<select name="student_id" class="form-select" id="studentFilter">
-						<option value="">All Students</option>
-						@foreach($students as $s)
-							<option value="{{ $s->id }}" {{ request('student_id') == $s->id ? 'selected' : '' }}>{{ $s->full_name }} ({{ $s->admission_no }})</option>
-						@endforeach
-					</select>
-				</div>
-				<div class="col-md-2">
+				<div class="col-md-3">
 					<div class="d-flex gap-2">
 						<button type="submit" class="btn btn-primary flex-fill">
 							<i class="icon-filter me-1"></i> Filter
@@ -210,74 +196,65 @@
 	<div class="row">
 		<!-- Collection Table -->
 		<div class="col-xl-8 mb-4">
-			<div class="card">
-				<div class="card-header d-flex justify-content-between align-items-center">
-					<h6 class="mb-0">Collection Details</h6>
+			<div class="card" style="border-radius: 12px; border: 1px solid #eee;">
+				<div class="card-header d-flex justify-content-between align-items-center" style="background: #f8f9fc; border-bottom: 1px solid #eee; border-radius: 12px 12px 0 0; padding: 14px 20px;">
+					<h6 class="mb-0" style="font-weight: 700; color: #2c323f;"><i class="icon-list me-2" style="color: #7366ff;"></i>Collection Details</h6>
 					<div class="d-flex gap-2">
-						<a href="{{ route('admin.fees.reports.export-excel', ['type' => 'collection', 'from_date' => $fromDate, 'to_date' => $toDate] + request()->only(['class_id', 'fee_type_id', 'student_id'])) }}" class="btn btn-sm btn-outline-success">
-							<i data-feather="download" style="width: 14px; height: 14px;" class="me-1"></i> Excel
+						<a href="{{ route('admin.fees.reports.export-excel', ['type' => 'collection', 'from_date' => $fromDate, 'to_date' => $toDate] + request()->only(['class_id', 'fee_type_id', 'student_id', 'search'])) }}" class="btn btn-sm btn-outline-success" style="border-radius: 6px; font-size: 11px;">
+							<i class="icon-import me-1"></i> Excel
 						</a>
-						<a href="{{ route('admin.fees.reports.export-pdf', ['type' => 'collection', 'from_date' => $fromDate, 'to_date' => $toDate] + request()->only(['class_id', 'fee_type_id', 'student_id'])) }}" class="btn btn-sm btn-outline-danger">
-							<i data-feather="file-text" style="width: 14px; height: 14px;" class="me-1"></i> PDF
+						<a href="{{ route('admin.fees.reports.export-pdf', ['type' => 'collection', 'from_date' => $fromDate, 'to_date' => $toDate] + request()->only(['class_id', 'fee_type_id', 'student_id', 'search'])) }}" class="btn btn-sm btn-outline-danger" style="border-radius: 6px; font-size: 11px;">
+							<i class="icon-file me-1"></i> PDF
 						</a>
 					</div>
 				</div>
 				<div class="card-body p-0">
 					<div class="table-responsive">
-						<table class="table table-hover mb-0">
-							<thead class="bg-light">
-								<tr>
-									<th>Receipt No</th>
-									<th>Date</th>
+						<table class="table mb-0" style="font-size: 13px;">
+							<thead>
+								<tr style="background: #f0efff;">
+									<th style="padding: 10px 16px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #7366ff; font-weight: 700;">Receipt</th>
+									<th style="padding: 10px 16px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #7366ff; font-weight: 700;">Date</th>
 									@if(!$selectedStudent)
-										<th>Student</th>
-										<th>Class</th>
+										<th style="padding: 10px 16px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #7366ff; font-weight: 700;">Student</th>
+										<th style="padding: 10px 16px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #7366ff; font-weight: 700;">Class</th>
 									@endif
-									<th>Fee Type</th>
-									<th class="text-end">Amount</th>
-									@if($selectedStudent)
-										<th class="text-center">Status</th>
-									@endif
+									<th style="padding: 10px 16px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #7366ff; font-weight: 700;">Fee Type</th>
+									<th style="padding: 10px 16px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #7366ff; font-weight: 700;" class="text-end">Amount</th>
 								</tr>
 							</thead>
 							<tbody>
 								@forelse($collections as $collection)
-									<tr>
-										<td>
-											<a href="{{ route('admin.fees.receipt', $collection) }}" class="text-primary">{{ $collection->receipt_no }}</a>
+									<tr style="border-bottom: 1px solid #f0f0f0;">
+										<td style="padding: 12px 16px;">
+											<a href="{{ route('admin.fees.receipt', $collection) }}" style="color: #7366ff; font-weight: 600;">{{ $collection->receipt_no }}</a>
 										</td>
-										<td>{{ $collection->payment_date->format('d M Y') }}</td>
+										<td style="padding: 12px 16px; color: #888;">{{ $collection->payment_date->format('d M Y') }}</td>
 										@if(!$selectedStudent)
-											<td>{{ $collection->student->full_name ?? 'N/A' }}</td>
-											<td>{{ $collection->student->schoolClass->name ?? '-' }}</td>
+											<td style="padding: 12px 16px;">
+												<strong>{{ $collection->student->full_name ?? 'N/A' }}</strong>
+												<br><small style="color: #aaa;">{{ $collection->student->admission_no ?? '' }}</small>
+											</td>
+											<td style="padding: 12px 16px; color: #888;">{{ $collection->student->schoolClass->name ?? '-' }}</td>
 										@endif
-										<td>{{ $collection->feeStructure->feeType->name ?? '-' }}</td>
-										<td class="text-end fw-bold">₹{{ number_format($collection->paid_amount, 2) }}</td>
-										@if($selectedStudent)
-											<td class="text-center"><span class="badge badge-light-success px-3 py-1">Paid</span></td>
-										@endif
+										<td style="padding: 12px 16px;"><span class="badge badge-light-primary" style="font-size: 11px;">{{ $collection->feeStructure->feeType->name ?? '-' }}</span></td>
+										<td style="padding: 12px 16px; font-weight: 700; color: #2c323f;" class="text-end">₹{{ number_format($collection->paid_amount, 2) }}</td>
 									</tr>
 								@empty
 									<tr>
-										<td colspan="{{ $selectedStudent ? 5 : 6 }}" class="text-center py-4 text-muted">
-											@if($selectedStudent)
-												No payments found for <strong>{{ $selectedStudent->full_name }}</strong> in the selected date range ({{ \Carbon\Carbon::parse($fromDate)->format('d M Y') }} — {{ \Carbon\Carbon::parse($toDate)->format('d M Y') }}).
-											@else
-												No collections found for the selected filters.
-											@endif
+										<td colspan="{{ $selectedStudent ? 4 : 6 }}" class="text-center py-5" style="color: #bbb;">
+											<i class="icon-info-alt d-block mb-2" style="font-size: 28px;"></i>
+											No collections found for the selected filters.
 										</td>
 									</tr>
 								@endforelse
 							</tbody>
 							@if($collections->count() > 0)
-								<tfoot class="bg-light">
-									<tr>
-										<th colspan="{{ $selectedStudent ? 2 : 4 }}">Total ({{ $summary['total_transactions'] }} transactions)</th>
-										<th></th>
-										<th class="text-end">₹{{ number_format($summary['total_amount'], 2) }}</th>
-										@if($selectedStudent)
-											<th></th>
-										@endif
+								<tfoot>
+									<tr style="background: #f8f9fc;">
+										<th colspan="{{ $selectedStudent ? 2 : 4 }}" style="padding: 12px 16px; font-size: 12px; color: #888;">Total ({{ $summary['total_transactions'] }} transactions)</th>
+										<th style="padding: 12px 16px;"></th>
+										<th style="padding: 12px 16px; font-size: 15px; color: #54BA4A;" class="text-end">₹{{ number_format($summary['total_amount'], 2) }}</th>
 									</tr>
 								</tfoot>
 							@endif
@@ -285,7 +262,7 @@
 					</div>
 				</div>
 				@if($collections->hasPages())
-					<div class="card-footer">
+					<div class="card-footer bg-white" style="border-radius: 0 0 12px 12px;">
 						{{ $collections->appends(request()->query())->links() }}
 					</div>
 				@endif
@@ -294,45 +271,42 @@
 
 		<!-- Daily Breakdown -->
 		<div class="col-xl-4 mb-4">
-			<div class="card">
-				<div class="card-header">
-					<h6 class="mb-0">Daily Breakdown</h6>
+			<div class="card" style="border-radius: 12px; border: 1px solid #eee;">
+				<div class="card-header" style="background: #f8f9fc; border-bottom: 1px solid #eee; border-radius: 12px 12px 0 0; padding: 14px 20px;">
+					<h6 class="mb-0" style="font-weight: 700; color: #2c323f;"><i class="icon-calendar me-2" style="color: #FFAA05;"></i>Daily Breakdown</h6>
 				</div>
 				<div class="card-body p-0">
-					<div class="table-responsive" style="max-height: 500px;">
-						<table class="table table-hover mb-0">
-							<thead class="bg-light sticky-top">
-								<tr>
-									<th>Date</th>
-									<th class="text-center">Count</th>
-									<th class="text-end">Amount</th>
+					<div class="table-responsive" style="max-height: 480px;">
+						<table class="table mb-0" style="font-size: 13px;">
+							<thead>
+								<tr style="background: #fff8e6; position: sticky; top: 0; z-index: 2;">
+									<th style="padding: 10px 16px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #FFAA05; font-weight: 700;">Date</th>
+									<th style="padding: 10px 16px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #FFAA05; font-weight: 700;" class="text-center">Count</th>
+									<th style="padding: 10px 16px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #FFAA05; font-weight: 700;" class="text-end">Amount</th>
 								</tr>
 							</thead>
 							<tbody>
 								@forelse($dailyData as $day)
-									<tr>
-										<td>{{ \Carbon\Carbon::parse($day->date)->format('d M Y') }}</td>
-										<td class="text-center">{{ $day->count }}</td>
-										<td class="text-end fw-bold">₹{{ number_format($day->total, 2) }}</td>
+									<tr style="border-bottom: 1px solid #f0f0f0;">
+										<td style="padding: 10px 16px; color: #555;">{{ \Carbon\Carbon::parse($day->date)->format('d M, D') }}</td>
+										<td style="padding: 10px 16px;" class="text-center"><span class="badge bg-light text-dark" style="font-size: 11px; min-width: 28px;">{{ $day->count }}</span></td>
+										<td style="padding: 10px 16px; font-weight: 700; color: #2c323f;" class="text-end">₹{{ number_format($day->total, 2) }}</td>
 									</tr>
 								@empty
 									<tr>
-										<td colspan="3" class="text-center py-4 text-muted">
-											@if($selectedStudent)
-												No payments by {{ $selectedStudent->full_name }} in this date range.
-											@else
-												No daily data available for the selected period.
-											@endif
+										<td colspan="3" class="text-center py-5" style="color: #bbb;">
+											<i class="icon-calendar d-block mb-2" style="font-size: 28px;"></i>
+											No data for this period.
 										</td>
 									</tr>
 								@endforelse
 							</tbody>
 							@if($dailyData->count() > 0)
-								<tfoot class="bg-light">
-									<tr>
-										<th>Total</th>
-										<th class="text-center">{{ $dailyData->sum('count') }}</th>
-										<th class="text-end">₹{{ number_format($dailyData->sum('total'), 2) }}</th>
+								<tfoot>
+									<tr style="background: #fff8e6; position: sticky; bottom: 0;">
+										<th style="padding: 10px 16px; font-size: 12px; color: #888;">Total</th>
+										<th style="padding: 10px 16px; font-size: 13px;" class="text-center">{{ $dailyData->sum('count') }}</th>
+										<th style="padding: 10px 16px; font-size: 15px; color: #54BA4A;" class="text-end">₹{{ number_format($dailyData->sum('total'), 2) }}</th>
 									</tr>
 								</tfoot>
 							@endif

@@ -181,11 +181,11 @@
 <div class="homepage-hero">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div>
-            <h4>Homepage Editor</h4>
-            <p>Edit your school website homepage. Click any section to expand and change its content.</p>
+            <h4 style="color: #fff;">Homepage Editor</h4>
+            <p style="color: rgba(255,255,255,0.85);">Edit your school website homepage. Click any section to expand and change its content.</p>
         </div>
-        <a href="{{ route('website.home') }}" target="_blank" class="btn btn-light btn-sm px-3" style="font-weight: 600; border-radius: 8px;">
-            <i class="icon-eye me-1"></i> View Live Homepage
+        <a href="{{ route('website.home') }}" target="_blank" class="btn btn-sm px-3" style="font-weight: 600; border-radius: 8px; color: #fff; border: 1px solid rgba(255,255,255,0.5); background: rgba(255,255,255,0.15);">
+            <i class="icon-eye me-1" style="color: #fff;"></i> View Live Homepage
         </a>
     </div>
 </div>

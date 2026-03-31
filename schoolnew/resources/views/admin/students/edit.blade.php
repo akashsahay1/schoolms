@@ -475,7 +475,7 @@
                 <div class="card-header">
                     <h5>Registration Info</h5>
                 </div>
-                <div class="card-body p-0">
+                <div class="card-body pt-0">
                     <ul class="list-group list-group-flush">
                         <li class="list-group-item d-flex justify-content-between">
                             <span>Admission No</span>

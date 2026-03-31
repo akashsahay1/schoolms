@@ -18,9 +18,13 @@
                 <p class="mb-0">Academic Year: {{ $activeYear ? $activeYear->name : 'No Active Academic Year' }}</p>
             </div>
             <div class="card-body">
-                <form method="GET" action="{{ route('admin.fees.outstanding') }}" class="row g-3">
+                <form method="GET" action="{{ route('admin.fees.outstanding') }}" class="row g-3 align-items-end">
                     <div class="col-md-4">
-                        <label class="form-label">Class (Optional)</label>
+                        <label class="form-label">Search Student</label>
+                        <input type="text" name="search" class="form-control" placeholder="Name, admission no. or roll no." value="{{ request('search') }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Class</label>
                         <select name="class_id" class="form-select">
                             <option value="">All Classes</option>
                             @foreach($classes as $class)
@@ -30,15 +34,18 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-label">&nbsp;</label>
-                        <button type="submit" class="btn btn-primary d-block"><i class="icon-filter me-1"></i> Generate Report</button>
+                    <div class="col-md-3">
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary flex-fill"><i class="icon-filter me-1"></i> Filter</button>
+                            @if(request()->hasAny(['search', 'class_id']))
+                                <a href="{{ route('admin.fees.outstanding') }}" class="btn btn-outline-secondary" title="Reset"><i class="icon-reload"></i></a>
+                            @endif
+                        </div>
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-label">&nbsp;</label>
+                    <div class="col-md-2">
                         @if($outstandingData->count() > 0)
-                            <button type="button" class="btn btn-success d-block" onclick="window.print()">
-                                <i data-feather="printer" class="icon-xs"></i> Print Report
+                            <button type="button" class="btn btn-success w-100" onclick="window.print()">
+                                <i class="icon-printer me-1"></i> Print
                             </button>
                         @endif
                     </div>
@@ -75,15 +82,21 @@
                                         <tr>
                                             <td>{{ $loop->iteration }}</td>
                                             <td>
-                                                <strong>{{ $data['student']->full_name }}</strong><br>
-                                                <small class="text-muted">
-                                                    Adm: {{ $data['student']->admission_no }}
-                                                    @if($data['student']->roll_no)
-                                                        | Roll: {{ $data['student']->roll_no }}
+                                                <div class="d-flex align-items-center gap-2">
+                                                    @if($data['student']->photo)
+                                                        <img src="{{ asset('storage/' . $data['student']->photo) }}" class="rounded-circle" style="width: 36px; height: 36px; object-fit: cover;">
+                                                    @else
+                                                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; font-size: 13px; flex-shrink: 0;">
+                                                            {{ strtoupper(substr($data['student']->first_name, 0, 1)) }}
+                                                        </div>
                                                     @endif
-                                                </small>
+                                                    <div>
+                                                        <strong>{{ $data['student']->full_name }}</strong>
+                                                        <br><small class="text-muted">{{ $data['student']->admission_no }}@if($data['student']->roll_no) &bull; Roll: {{ $data['student']->roll_no }}@endif</small>
+                                                    </div>
+                                                </div>
                                             </td>
-                                            <td>{{ $data['student']->schoolClass->name }} - {{ $data['student']->section->name }}</td>
+                                            <td>{{ $data['student']->schoolClass->name ?? '-' }}{{ $data['student']->section ? ' - ' . $data['student']->section->name : '' }}</td>
                                             <td>
                                                 @foreach($data['outstanding_fees'] as $fee)
                                                     <div class="d-flex align-items-center gap-2 py-1 {{ !$loop->last ? 'border-bottom' : '' }}">

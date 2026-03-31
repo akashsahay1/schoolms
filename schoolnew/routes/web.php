@@ -153,6 +153,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Super Admin,Ad
     Route::post('students/bulk-delete', [StudentController::class, 'bulkDelete'])->name('students.bulk-delete');
     Route::post('students/{student}/reset-password', [StudentController::class, 'resetPassword'])->name('students.reset-password');
     Route::post('students/{student}/update-email', [StudentController::class, 'updateEmail'])->name('students.update-email');
+    Route::post('students/reorder-roll-numbers', [StudentController::class, 'reorderRollNumbers'])->name('students.reorder-roll-numbers');
+    Route::get('students/next-roll-number', [StudentController::class, 'getNextRollNumber'])->name('students.next-roll-number');
     // Student Trash
     Route::get('students-trash', [StudentController::class, 'trash'])->name('students.trash');
     Route::post('students/{id}/restore', [StudentController::class, 'restore'])->name('students.restore');

@@ -184,7 +184,11 @@
                         @if($isVisible('roll_no'))
                         <div class="col-md-4 mb-3">
                             <label class="form-label">Roll No @if($isRequired('roll_no'))<span class="text-danger">*</span>@endif</label>
-                            <input type="text" class="form-control @error('roll_no') is-invalid @enderror" name="roll_no" value="{{ old('roll_no') }}" {{ $isRequired('roll_no') ? 'required' : '' }}>
+                            <input type="text" class="form-control @error('roll_no') is-invalid @enderror" name="roll_no" id="roll_no" value="{{ old('roll_no') }}" {{ $isRequired('roll_no') ? 'required' : '' }} placeholder="Auto-assigned">
+                            <small class="text-muted">Leave empty to auto-assign next number</small>
+                            @error('roll_no')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                         @endif
                     </div>
@@ -503,6 +507,28 @@
             reader.readAsDataURL(file);
         }
     });
+
+    // Auto-fill roll number when section changes
+    function fetchNextRollNumber() {
+        var classId = document.getElementById('classSelect').value;
+        var sectionId = document.getElementById('sectionSelect').value;
+        var rollInput = document.getElementById('roll_no');
+
+        if (classId && sectionId && rollInput && !rollInput.value) {
+            jQuery.ajax({
+                url: '{{ route("admin.students.next-roll-number") }}',
+                data: { class_id: classId, section_id: sectionId },
+                success: function(data) {
+                    if (data.roll_no && !rollInput.value) {
+                        rollInput.value = data.roll_no;
+                        rollInput.placeholder = 'Next: ' + data.roll_no;
+                    }
+                }
+            });
+        }
+    }
+
+    document.getElementById('sectionSelect').addEventListener('change', fetchNextRollNumber);
 
     // Trigger class change if value exists (for old input)
     @if(old('class_id'))
